@@ -40,6 +40,7 @@ export default async function AdminSettingsPage() {
           business_name: row.businessName,
           support_email: row.supportEmail,
           support_phone: row.supportPhone,
+          resend_from_email: row.resendFromEmail,
           admin_alert_email: row.adminAlertEmail,
         }}
       />

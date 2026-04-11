@@ -13,6 +13,7 @@ export interface SystemSettingsFormValues {
   business_name: string | null;
   support_email: string | null;
   support_phone: string | null;
+  resend_from_email: string | null;
   admin_alert_email: string | null;
 }
 
@@ -45,6 +46,7 @@ export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
           business_name: values.business_name || null,
           support_email: values.support_email || "",
           support_phone: values.support_phone || null,
+          resend_from_email: values.resend_from_email || "",
           admin_alert_email: values.admin_alert_email || "",
         }),
       });
@@ -63,6 +65,7 @@ export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
           business_name: data.settings.business_name ?? null,
           support_email: data.settings.support_email ?? null,
           support_phone: data.settings.support_phone ?? null,
+          resend_from_email: data.settings.resend_from_email ?? null,
           admin_alert_email: data.settings.admin_alert_email ?? null,
         });
       }
@@ -173,6 +176,19 @@ export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
               value={values.support_phone ?? ""}
               onChange={(e) => setValues((v) => ({ ...v, support_phone: e.target.value || null }))}
             />
+          </label>
+          <label className="block text-sm font-medium text-gray-700 sm:col-span-2">
+            Resend &quot;from&quot; address
+            <input
+              className={inputClass}
+              value={values.resend_from_email ?? ""}
+              onChange={(e) => setValues((v) => ({ ...v, resend_from_email: e.target.value || null }))}
+              placeholder={"Happy Wanderers <hello@yourdomain.com>"}
+            />
+            <span className="mt-1 block text-xs text-gray-500">
+              Must use a domain verified in Resend. If set, this overrides the EMAIL_FROM / RESEND_FROM
+              environment variables (recommended for production on Vercel).
+            </span>
           </label>
           <label className="block text-sm font-medium text-gray-700 sm:col-span-2">
             Admin alert email (new bookings, contact form)

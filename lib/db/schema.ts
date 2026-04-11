@@ -327,6 +327,8 @@ export const systemSettings = pgTable("system_settings", {
   businessName: text("business_name"),
   supportEmail: text("support_email"),
   supportPhone: text("support_phone"),
+  /** Resend `from` (e.g. hello@verified.domain or Name <hello@...>). Overrides EMAIL_FROM when set. */
+  resendFromEmail: text("resend_from_email"),
   adminAlertEmail: text("admin_alert_email"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

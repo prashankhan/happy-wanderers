@@ -16,6 +16,11 @@ function readEmailFromEnv(): string | undefined {
   return typeof v === "string" ? v : undefined;
 }
 
+function readResendFromEnv(): string | undefined {
+  const v = process.env["RESEND_FROM"];
+  return typeof v === "string" ? v : undefined;
+}
+
 function normalizeEmailFromRaw(raw: string): string {
   let s = raw
     .replace(/^\uFEFF/, "")
@@ -44,19 +49,14 @@ function isValidPlainEmailAddress(email: string): boolean {
 }
 
 /**
- * Resend requires `from` like `email@domain.com` or `Display Name <email@domain.com>`.
- * Production failures often come from:
- * - `EMAIL_FROM` missing or only whitespace on the server
- * - accidental JSON quotes or NBSP / zero-width characters from copy-paste (value looks right in the dashboard but fails checks here)
- * - smart/unicode angle brackets
- * - `Display <email>` stored as `<email>` only (no display name before `<`) — previously fell through to onboarding@resend.dev
+ * Parse a single `from` candidate. Returns null if empty or not a valid Resend `from` shape.
+ * Order for production is handled in {@link resolveResendFromForSend} (DB first, then env).
  */
-function resolveResendFrom(): string {
-  const rawEnv = readEmailFromEnv();
-  if (rawEnv == null) return RESEND_FALLBACK_FROM;
+function parseResendFromRaw(raw: string | null | undefined): string | null {
+  if (raw == null || typeof raw !== "string") return null;
 
-  let s = normalizeEmailFromRaw(rawEnv);
-  if (s.length === 0) return RESEND_FALLBACK_FROM;
+  let s = normalizeEmailFromRaw(raw);
+  if (s.length === 0) return null;
 
   s = s
     .replace(/\u2039/g, "<")
@@ -64,7 +64,6 @@ function resolveResendFrom(): string {
     .replace(/＜/g, "<")
     .replace(/＞/g, ">");
 
-  // `<local@domain.tld>` with no display name (dashboard paste / partial config)
   const angleOnly = s.match(/^<\s*([^\s<>]+@[^\s<>]+)\s*>$/i);
   if (angleOnly) {
     const email = angleOnly[1].trim();
@@ -75,17 +74,34 @@ function resolveResendFrom(): string {
 
   if (bracketed) {
     const email = bracketed[2].trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(email)) return RESEND_FALLBACK_FROM;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(email)) return null;
     return s;
   }
 
   if (isValidPlainEmailAddress(s)) return s.trim();
 
-  return RESEND_FALLBACK_FROM;
+  return null;
+}
+
+interface ResendFromSettingsSlice {
+  resendFromEmail: string | null;
+}
+
+/**
+ * Resend `from`: prefer DB (`system_settings.resend_from_email`) so production does not depend on
+ * `process.env.EMAIL_FROM` being visible inside the serverless bundle, then `EMAIL_FROM`, then `RESEND_FROM`.
+ */
+function resolveResendFromForSend(settings: ResendFromSettingsSlice): string {
+  return (
+    parseResendFromRaw(settings.resendFromEmail) ??
+    parseResendFromRaw(readEmailFromEnv()) ??
+    parseResendFromRaw(readResendFromEnv()) ??
+    RESEND_FALLBACK_FROM
+  );
 }
 
 function getResend(): Resend {
-  const key = process.env.RESEND_API_KEY;
+  const key = process.env["RESEND_API_KEY"];
   if (!key) throw new Error("RESEND_API_KEY is not set");
   return new Resend(key);
 }
@@ -107,7 +123,7 @@ function ensureResendOk(result: { data?: unknown; error?: unknown }, context: st
 export async function sendBookingConfirmationEmails(bookingId: string) {
   const settings = await getSystemSettings();
   const tz = settings.timezone || DEFAULT_TZ;
-  const from = resolveResendFrom();
+  const from = resolveResendFromForSend(settings);
 
   const rows = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
   const b = rows[0];
@@ -205,7 +221,7 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
 
 export async function sendCancellationEmail(bookingId: string) {
   const settings = await getSystemSettings();
-  const from = resolveResendFrom();
+  const from = resolveResendFromForSend(settings);
   const rows = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
   const b = rows[0];
   if (!b) return;
@@ -235,7 +251,7 @@ export async function sendCancellationEmail(bookingId: string) {
 
 export async function sendRefundEmail(bookingId: string) {
   const settings = await getSystemSettings();
-  const from = resolveResendFrom();
+  const from = resolveResendFromForSend(settings);
   const rows = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
   const b = rows[0];
   if (!b) return;
@@ -272,7 +288,7 @@ export async function sendContactAlert(input: {
 }) {
   const settings = await getSystemSettings();
   if (!settings.adminAlertEmail) return;
-  const from = resolveResendFrom();
+  const from = resolveResendFromForSend(settings);
   try {
     const resend = getResend();
     const result = await resend.emails.send({

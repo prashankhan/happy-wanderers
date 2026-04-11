@@ -6,6 +6,7 @@ import { getSystemSettings, updateSystemSettings } from "@/lib/services/system-s
 import { setAdminOperationContext } from "@/lib/sentry/context";
 
 const optionalEmail = z.union([z.string().email(), z.literal(""), z.null()]).optional();
+const optionalResendFrom = z.union([z.string().max(280), z.literal(""), z.null()]).optional();
 
 const patchSchema = z.object({
   booking_reference_prefix: z.string().min(1).max(16).optional(),
@@ -16,6 +17,7 @@ const patchSchema = z.object({
   business_name: z.string().max(200).nullable().optional(),
   support_email: optionalEmail,
   support_phone: z.string().max(40).nullable().optional(),
+  resend_from_email: optionalResendFrom,
   admin_alert_email: optionalEmail,
 });
 
@@ -41,6 +43,7 @@ export async function GET() {
         business_name: row.businessName,
         support_email: row.supportEmail,
         support_phone: row.supportPhone,
+        resend_from_email: row.resendFromEmail,
         admin_alert_email: row.adminAlertEmail,
       },
     });
@@ -91,6 +94,9 @@ export async function PATCH(request: Request) {
       ...(d.business_name !== undefined ? { businessName: d.business_name } : {}),
       ...(d.support_email !== undefined ? { supportEmail: emptyToNull(d.support_email ?? null) } : {}),
       ...(d.support_phone !== undefined ? { supportPhone: emptyToNull(d.support_phone ?? null) } : {}),
+      ...(d.resend_from_email !== undefined
+        ? { resendFromEmail: emptyToNull(d.resend_from_email ?? null) }
+        : {}),
       ...(d.admin_alert_email !== undefined
         ? { adminAlertEmail: emptyToNull(d.admin_alert_email ?? null) }
         : {}),
@@ -107,6 +113,7 @@ export async function PATCH(request: Request) {
         business_name: row.businessName,
         support_email: row.supportEmail,
         support_phone: row.supportPhone,
+        resend_from_email: row.resendFromEmail,
         admin_alert_email: row.adminAlertEmail,
       },
     });

@@ -36,6 +36,7 @@ export async function updateSystemSettings(
     businessName: string | null;
     supportEmail: string | null;
     supportPhone: string | null;
+    resendFromEmail: string | null;
     adminAlertEmail: string | null;
   }>
 ) {
