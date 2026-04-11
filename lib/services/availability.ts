@@ -231,6 +231,32 @@ export async function validateSeatsForDate(input: {
   return { ok: true };
 }
 
+/**
+ * Validates capacity when confirming an existing **pending** hold after payment.
+ * Must NOT use {@link validateSeatsForDate} here: that compares `availableSeats >= guestTotal`,
+ * but `availableSeats` is net of this hold, so a full-capacity pending booking would read as 0
+ * and incorrectly block confirmation after Stripe succeeds.
+ */
+export async function validateCapacityForConfirmingPendingHold(input: {
+  tourId: string;
+  bookingDate: string;
+  pickupTime: string;
+}): Promise<{ ok: true } | { ok: false; message: string }> {
+  const res = await resolveDayAvailability({
+    tourId: input.tourId,
+    bookingDate: input.bookingDate,
+    pickupTime: input.pickupTime,
+  });
+  if (res.cutoffPassed) return { ok: false, message: "Booking cutoff has passed" };
+
+  const allocated = await countAllocatedSeats(input.tourId, input.bookingDate);
+  if (allocated > res.capacityTotal) {
+    return { ok: false, message: "Capacity exceeded for this date" };
+  }
+
+  return { ok: true };
+}
+
 export async function getDefaultPickupTime(
   tourId: string,
   departureLocationId: string

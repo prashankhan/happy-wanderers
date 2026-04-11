@@ -5,9 +5,12 @@ import type Stripe from "stripe";
 
 import { getStripe } from "@/lib/stripe/client";
 import {
+  getStripeWebhookEventStatus,
   handleChargeRefunded,
+  handleCheckoutSessionAsyncPaymentSucceeded,
   handleCheckoutSessionCompleted,
   handlePaymentIntentFailed,
+  handlePaymentIntentSucceeded,
   insertStripeEventReceived,
   markStripeEventFailed,
   markStripeEventProcessed,
@@ -94,22 +97,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   }
 
-  try {
-    await insertStripeEventReceived(event);
-  } catch (err) {
-    if (await wasStripeEventProcessed(event.id)) {
-      return NextResponse.json({ received: true });
-    }
-    Sentry.captureException(err, {
-      tags: { operation_type: "stripe_webhook_duplicate_or_insert" },
-      contexts: {
-        stripe_webhook: {
-          phase: "event_insert",
-          stripe_event_id: event.id,
-          event_type: event.type,
-        },
-      },
-    });
+  await insertStripeEventReceived(event);
+  const rowStatus = await getStripeWebhookEventStatus(event.id);
+  if (rowStatus === "processed") {
     return NextResponse.json({ received: true });
   }
 
@@ -117,6 +107,12 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed":
         await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
+        break;
+      case "checkout.session.async_payment_succeeded":
+        await handleCheckoutSessionAsyncPaymentSucceeded(event.data.object as Stripe.Checkout.Session);
+        break;
+      case "payment_intent.succeeded":
+        await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
         break;
       case "payment_intent.payment_failed":
         await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
