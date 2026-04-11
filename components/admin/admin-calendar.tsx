@@ -42,7 +42,8 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<DayPayload | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [isAvailable, setIsAvailable] = useState(true);
+  /** When true, this one-day rule stops all new bookings for that date (maps to `is_available: false`). */
+  const [blockBookings, setBlockBookings] = useState(false);
   const [capacityOverride, setCapacityOverride] = useState("");
   const [cutoffOverride, setCutoffOverride] = useState("");
   const [note, setNote] = useState("");
@@ -86,7 +87,7 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
     const row = dayMap.get(key);
     if (!row) return;
     setSelected(row);
-    setIsAvailable(row.is_available);
+    setBlockBookings(!row.is_available);
     setCapacityOverride("");
     setCutoffOverride("");
     setNote("");
@@ -103,7 +104,7 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
       body: JSON.stringify({
         tour_id: tourId,
         date: selected.date,
-        is_available: isAvailable,
+        is_available: !blockBookings,
         capacity_override: capacityOverride ? Number(capacityOverride) : null,
         cutoff_override_hours: cutoffOverride ? Number(cutoffOverride) : null,
         note: note || null,
@@ -205,7 +206,9 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
       </div>
 
       {!isAdmin ? (
-        <p className="text-xs text-gray-500">Staff view: overrides are read-only. Sign in as admin to edit.</p>
+        <p className="text-xs text-gray-500">
+          Staff view: one-off day rules are read-only. Sign in as admin to edit.
+        </p>
       ) : null}
 
       {modalOpen && selected ? (
@@ -215,54 +218,82 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
               {format(parseISO(selected.date), "EEEE d MMM yyyy")}
             </h3>
             <p className="mt-1 text-xs text-gray-500">
-              Remaining {selected.remaining_capacity} / {selected.total_capacity}
-              {selected.override_exists ? " · Override active" : ""}
+              Seats left / total for this day: {selected.remaining_capacity} / {selected.total_capacity}
+              {selected.override_exists ? " · Custom day rule saved" : ""}
             </p>
             {msg ? <p className="mt-2 text-sm text-red-600">{msg}</p> : null}
             {isAdmin ? (
-              <div className="mt-4 space-y-3">
-                <label className="flex items-center gap-2 text-sm text-gray-700">
-                  <input type="checkbox" checked={isAvailable} onChange={(e) => setIsAvailable(e.target.checked)} />
-                  Date available
-                </label>
-                <label className="block text-xs font-medium text-gray-500">
-                  Capacity override (optional)
+              <div className="mt-4 space-y-4">
+                <p className="text-xs text-gray-600">
+                  Use this window only when <strong>this single date</strong> should behave differently from your
+                  normal tour schedule (weekday rules, default capacity, and cutoff in the tour editor / settings).
+                  You do <strong>not</strong> go through every open day—only the exceptions.
+                </p>
+                <div className="rounded-lg border border-gray-100 bg-gray-50/80 p-3">
+                  <label className="flex cursor-pointer items-start gap-3">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300"
+                      checked={blockBookings}
+                      onChange={(e) => setBlockBookings(e.target.checked)}
+                    />
+                    <span>
+                      <span className="block text-sm font-medium text-gray-900">
+                        Block new bookings on this date
+                      </span>
+                      <span className="mt-0.5 block text-xs text-gray-600">
+                        When on, nobody can book this tour on this day. When off, your usual rules apply (the day can
+                        still look ‘full’ or ‘past cutoff’ from capacity or timing—that is normal).
+                      </span>
+                    </span>
+                  </label>
+                </div>
+                <label className="block text-xs font-medium text-gray-700">
+                  Max guests this day (optional)
                   <input
                     type="number"
                     min={1}
                     className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                     value={capacityOverride}
                     onChange={(e) => setCapacityOverride(e.target.value)}
-                    placeholder="Leave empty to keep engine default"
+                    placeholder="Leave blank to use your normal capacity for this day"
                   />
+                  <span className="mt-1 block text-[11px] text-gray-500">
+                    Only fill this if this day needs a different seat cap than usual (e.g. smaller vessel).
+                  </span>
                 </label>
-                <label className="block text-xs font-medium text-gray-500">
-                  Cutoff override hours (optional)
+                <label className="block text-xs font-medium text-gray-700">
+                  Stop bookings this many hours before departure (optional)
                   <input
                     type="number"
                     min={1}
                     className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                     value={cutoffOverride}
                     onChange={(e) => setCutoffOverride(e.target.value)}
+                    placeholder="e.g. 24 — leave blank for normal cutoff"
                   />
+                  <span className="mt-1 block text-[11px] text-gray-500">
+                    Overrides the usual ‘book by X hours before pickup’ rule for this day only.
+                  </span>
                 </label>
-                <label className="block text-xs font-medium text-gray-500">
-                  Note
+                <label className="block text-xs font-medium text-gray-700">
+                  Internal note (optional)
                   <textarea
                     className="mt-1 min-h-[64px] w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
+                    placeholder="e.g. why this day is different — for your team only"
                   />
                 </label>
-                <div className="flex flex-wrap gap-2 pt-2">
+                <div className="flex flex-wrap gap-2 border-t border-gray-100 pt-4">
                   <Button type="button" onClick={() => void saveOverride()}>
-                    Save override
+                    Save for this date
                   </Button>
                   <Button type="button" variant="danger" onClick={() => void clearOverride()}>
-                    Remove override
+                    Clear custom settings
                   </Button>
                   <Button type="button" variant="secondary" onClick={() => setModalOpen(false)}>
-                    Close
+                    Cancel
                   </Button>
                 </div>
               </div>

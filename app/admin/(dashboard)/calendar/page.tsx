@@ -19,7 +19,9 @@ export default async function AdminCalendarPage() {
     <div className="space-y-4">
       <h1 className="font-serif text-3xl font-semibold">Availability calendar</h1>
       <p className="text-sm text-gray-600">
-        Month grid wired to availability APIs. Admins can create, edit, and clear overrides per date.
+        Month view of capacity and cutoff per tour. Admins can set <strong>one-off changes for a single date</strong>{" "}
+        (e.g. close a day or change capacity)—not your everyday schedule, which comes from each tour&apos;s weekday
+        rules and defaults.
       </p>
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <AdminCalendar tours={tourRows} isAdmin={isAdmin} />
