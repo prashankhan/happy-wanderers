@@ -14,6 +14,20 @@ function getResend(): Resend {
   return new Resend(key);
 }
 
+/** Resend Node SDK returns `{ data, error }` and does not throw on 4xx — treat `error` as failure. */
+function ensureResendOk(result: { data?: unknown; error?: unknown }, context: string): void {
+  if (result.error != null) {
+    const err = result.error as { message?: string; name?: string };
+    const msg =
+      typeof err?.message === "string" && err.message.length > 0
+        ? err.message
+        : typeof result.error === "object"
+          ? JSON.stringify(result.error)
+          : String(result.error);
+    throw new Error(`Resend (${context}): ${msg}`);
+  }
+}
+
 export async function sendBookingConfirmationEmails(bookingId: string) {
   const settings = await getSystemSettings();
   const tz = settings.timezone || DEFAULT_TZ;
@@ -23,13 +37,12 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
   const b = rows[0];
   if (!b || b.status !== "confirmed") return;
 
-  const resend = getResend();
-
   if (!b.confirmationEmailSentAt) {
     const pickupTime = b.pickupTimeSnapshot;
     const dateLabel = formatDateInTz(new Date(`${b.bookingDate}T12:00:00Z`), tz, "EEEE d MMMM yyyy");
     try {
-      await resend.emails.send({
+      const resend = getResend();
+      const result = await resend.emails.send({
         from,
         to: b.customerEmail,
         subject: `Your booking is confirmed — Reference ${b.bookingReference}`,
@@ -49,6 +62,7 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
           .filter(Boolean)
           .join("\n"),
       });
+      ensureResendOk(result, "customer_confirmation");
       await db
         .update(bookings)
         .set({ confirmationEmailSentAt: new Date(), updatedAt: new Date() })
@@ -74,7 +88,8 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
 
   if (settings.adminAlertEmail && !bookingFresh.adminAlertSentAt) {
     try {
-      await resend.emails.send({
+      const resend = getResend();
+      const result = await resend.emails.send({
         from,
         to: settings.adminAlertEmail,
         subject: `New confirmed booking ${bookingFresh.bookingReference}`,
@@ -91,6 +106,7 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
           .filter(Boolean)
           .join("\n"),
       });
+      ensureResendOk(result, "admin_alert");
       await db
         .update(bookings)
         .set({ adminAlertSentAt: new Date(), updatedAt: new Date() })
@@ -117,14 +133,15 @@ export async function sendCancellationEmail(bookingId: string) {
   const rows = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
   const b = rows[0];
   if (!b) return;
-  const resend = getResend();
   try {
-    await resend.emails.send({
+    const resend = getResend();
+    const result = await resend.emails.send({
       from,
       to: b.customerEmail,
       subject: `Booking cancelled — ${b.bookingReference}`,
       text: `Your booking ${b.bookingReference} for ${b.tourTitleSnapshot} on ${b.bookingDate} has been cancelled.\n\n${settings.supportEmail ? `Contact: ${settings.supportEmail}` : ""}`,
     });
+    ensureResendOk(result, "cancellation");
   } catch (e) {
     captureEmailFailure(e, {
       email_type: "cancellation",
@@ -146,14 +163,15 @@ export async function sendRefundEmail(bookingId: string) {
   const rows = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
   const b = rows[0];
   if (!b) return;
-  const resend = getResend();
   try {
-    await resend.emails.send({
+    const resend = getResend();
+    const result = await resend.emails.send({
       from,
       to: b.customerEmail,
       subject: `Refund processed — ${b.bookingReference}`,
       text: `A refund has been initiated for booking ${b.bookingReference}. Amount: ${b.currency} ${b.totalPriceSnapshot}.\n\nProcessing times vary by bank.\n\n${settings.supportEmail ? `Contact: ${settings.supportEmail}` : ""}`,
     });
+    ensureResendOk(result, "refund");
   } catch (e) {
     captureEmailFailure(e, {
       email_type: "refund",
@@ -179,14 +197,15 @@ export async function sendContactAlert(input: {
   const settings = await getSystemSettings();
   if (!settings.adminAlertEmail) return;
   const from = process.env.EMAIL_FROM ?? "Happy Wanderers <onboarding@resend.dev>";
-  const resend = getResend();
   try {
-    await resend.emails.send({
+    const resend = getResend();
+    const result = await resend.emails.send({
       from,
       to: settings.adminAlertEmail,
       subject: `Contact: ${input.topic ?? "General"}`,
       text: `From: ${input.name} <${input.email}>\nPhone: ${input.phone ?? "—"}\n\n${input.message}`,
     });
+    ensureResendOk(result, "contact_notification");
   } catch (e) {
     captureEmailFailure(e, {
       email_type: "contact_notification",
