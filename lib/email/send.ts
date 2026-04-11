@@ -34,7 +34,6 @@ function resolveResendFrom(): string {
     .replace(/＞/g, ">");
 
   const bracketed = s.match(/^([^<]+)<\s*([^>\s]+@[^>\s]+)\s*>$/i);
-  const plainEmail = s.match(/^[^\s<]+@[^\s>]+\.[^\s>]+$/i);
 
   if (bracketed) {
     const email = bracketed[2].trim();
@@ -42,7 +41,23 @@ function resolveResendFrom(): string {
     return s;
   }
 
-  if (plainEmail) return s;
+  // Plain `local@domain.tld` — do not use a single greedy `[^>]+` after `@` (it eats `domain.tld` and breaks on the required `\.`).
+  if (!s.includes("<") && !s.includes(">") && !/\s/.test(s)) {
+    const at = s.indexOf("@");
+    if (at > 0 && at === s.lastIndexOf("@")) {
+      const local = s.slice(0, at);
+      const domain = s.slice(at + 1);
+      if (
+        local.length > 0 &&
+        domain.length > 0 &&
+        domain.includes(".") &&
+        !domain.startsWith(".") &&
+        !domain.endsWith(".")
+      ) {
+        return s;
+      }
+    }
+  }
 
   return RESEND_FALLBACK_FROM;
 }
