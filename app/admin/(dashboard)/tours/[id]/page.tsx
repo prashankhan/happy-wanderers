@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { and, asc, eq, isNull } from "drizzle-orm";
 
 import { auth } from "@/auth";
+import { TourEditorBanners } from "@/components/admin/tour-editor-banners";
 import { TourEditorTabs, type PricingRuleRow, type SerializedTour } from "@/components/admin/tour-editor-tabs";
 import { db } from "@/lib/db";
 import { pricingRules, tours } from "@/lib/db/schema";
@@ -78,6 +79,7 @@ export default async function AdminTourEditorPage({ params }: { params: Promise<
           Content, pricing, weekday availability, media, and publishing — saved via admin APIs.
         </p>
       </div>
+      <TourEditorBanners tourId={id} status={tour.status} />
       <TourEditorTabs tour={serialized} role={role} initialPricingRules={initialPricing} />
     </div>
   );
