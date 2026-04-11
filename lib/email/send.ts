@@ -10,21 +10,52 @@ import { DEFAULT_TZ, formatDateInTz } from "@/lib/utils/dates";
 
 const RESEND_FALLBACK_FROM = "Happy Wanderers <onboarding@resend.dev>";
 
+/** Runtime key read — avoids any build-time substitution of server env in some bundler configs. */
+function readEmailFromEnv(): string | undefined {
+  const v = process.env["EMAIL_FROM"];
+  return typeof v === "string" ? v : undefined;
+}
+
+function normalizeEmailFromRaw(raw: string): string {
+  let s = raw
+    .replace(/^\uFEFF/, "")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/\u00A0/g, " ")
+    .trim();
+  s = s.replace(/^["']+|["']+$/g, "").trim();
+  if (s.toLowerCase().startsWith("mailto:")) s = s.slice("mailto:".length).trim();
+  return s;
+}
+
+function isValidPlainEmailAddress(email: string): boolean {
+  const e = email.trim();
+  if (e.includes("<") || e.includes(">") || /\s/.test(e)) return false;
+  const at = e.indexOf("@");
+  if (at <= 0 || at !== e.lastIndexOf("@")) return false;
+  const local = e.slice(0, at);
+  const domain = e.slice(at + 1);
+  return (
+    local.length > 0 &&
+    domain.length > 0 &&
+    domain.includes(".") &&
+    !domain.startsWith(".") &&
+    !domain.endsWith(".")
+  );
+}
+
 /**
  * Resend requires `from` like `email@domain.com` or `Display Name <email@domain.com>`.
  * Production failures often come from:
- * - `EMAIL_FROM` set to "" on Vercel (empty string is not nullish, so `??` never fell back)
- * - accidental JSON quotes: `"Name <a@b.com>"` stored literally
- * - smart/unicode angle brackets from copy-paste
+ * - `EMAIL_FROM` missing or only whitespace on the server
+ * - accidental JSON quotes or NBSP / zero-width characters from copy-paste (value looks right in the dashboard but fails checks here)
+ * - smart/unicode angle brackets
+ * - `Display <email>` stored as `<email>` only (no display name before `<`) — previously fell through to onboarding@resend.dev
  */
 function resolveResendFrom(): string {
-  const rawEnv = process.env.EMAIL_FROM;
-  if (typeof rawEnv !== "string") return RESEND_FALLBACK_FROM;
+  const rawEnv = readEmailFromEnv();
+  if (rawEnv == null) return RESEND_FALLBACK_FROM;
 
-  let s = rawEnv.trim();
-  if (s.length === 0) return RESEND_FALLBACK_FROM;
-
-  s = s.replace(/^["']+|["']+$/g, "").trim();
+  let s = normalizeEmailFromRaw(rawEnv);
   if (s.length === 0) return RESEND_FALLBACK_FROM;
 
   s = s
@@ -32,6 +63,13 @@ function resolveResendFrom(): string {
     .replace(/\u203a/g, ">")
     .replace(/＜/g, "<")
     .replace(/＞/g, ">");
+
+  // `<local@domain.tld>` with no display name (dashboard paste / partial config)
+  const angleOnly = s.match(/^<\s*([^\s<>]+@[^\s<>]+)\s*>$/i);
+  if (angleOnly) {
+    const email = angleOnly[1].trim();
+    if (isValidPlainEmailAddress(email)) return email;
+  }
 
   const bracketed = s.match(/^([^<]+)<\s*([^>\s]+@[^>\s]+)\s*>$/i);
 
@@ -41,23 +79,7 @@ function resolveResendFrom(): string {
     return s;
   }
 
-  // Plain `local@domain.tld` — do not use a single greedy `[^>]+` after `@` (it eats `domain.tld` and breaks on the required `\.`).
-  if (!s.includes("<") && !s.includes(">") && !/\s/.test(s)) {
-    const at = s.indexOf("@");
-    if (at > 0 && at === s.lastIndexOf("@")) {
-      const local = s.slice(0, at);
-      const domain = s.slice(at + 1);
-      if (
-        local.length > 0 &&
-        domain.length > 0 &&
-        domain.includes(".") &&
-        !domain.startsWith(".") &&
-        !domain.endsWith(".")
-      ) {
-        return s;
-      }
-    }
-  }
+  if (isValidPlainEmailAddress(s)) return s.trim();
 
   return RESEND_FALLBACK_FROM;
 }

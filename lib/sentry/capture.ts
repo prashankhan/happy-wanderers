@@ -1,5 +1,13 @@
 import * as Sentry from "@sentry/nextjs";
 
+function isResendTestingRecipientRestriction(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error);
+  return (
+    msg.includes("only send testing emails") ||
+    msg.includes("verify a domain at resend.com/domains")
+  );
+}
+
 export function captureEmailFailure(
   error: unknown,
   ctx: {
@@ -8,7 +16,7 @@ export function captureEmailFailure(
     recipient_email?: string;
   }
 ): void {
-  Sentry.captureException(error, {
+  const fingerprint = {
     tags: { email_type: ctx.email_type },
     contexts: {
       email: {
@@ -17,7 +25,16 @@ export function captureEmailFailure(
         recipient_email: ctx.recipient_email,
       },
     },
-  });
+  };
+
+  // Resend rejects non-owner recipients until the sender domain is verified; not an app bug.
+  if (isResendTestingRecipientRestriction(error)) {
+    const message = error instanceof Error ? error.message : String(error);
+    Sentry.captureMessage(message, { level: "warning", ...fingerprint });
+    return;
+  }
+
+  Sentry.captureException(error, fingerprint);
 }
 
 export function captureJobFailure(
