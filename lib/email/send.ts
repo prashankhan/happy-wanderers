@@ -32,6 +32,20 @@ function normalizeEmailFromRaw(raw: string): string {
   return s;
 }
 
+/** Domains Resend will never verify — common seed/placeholder values must not become `from`. */
+function emailUsesDisallowedResendSenderDomain(email: string): boolean {
+  const e = email.trim().toLowerCase();
+  const at = e.lastIndexOf("@");
+  if (at < 1 || at === e.length - 1) return true;
+  const domain = e.slice(at + 1);
+  if (domain === "example.com" || domain === "example.org" || domain === "example.net") return true;
+  if (domain.endsWith(".example.com") || domain.endsWith(".example.org") || domain.endsWith(".example.net"))
+    return true;
+  if (domain === "localhost" || domain.endsWith(".localhost")) return true;
+  if (domain === "invalid" || domain.endsWith(".invalid")) return true;
+  return false;
+}
+
 function isValidPlainEmailAddress(email: string): boolean {
   const e = email.trim();
   if (e.includes("<") || e.includes(">") || /\s/.test(e)) return false;
@@ -39,13 +53,17 @@ function isValidPlainEmailAddress(email: string): boolean {
   if (at <= 0 || at !== e.lastIndexOf("@")) return false;
   const local = e.slice(0, at);
   const domain = e.slice(at + 1);
-  return (
-    local.length > 0 &&
-    domain.length > 0 &&
-    domain.includes(".") &&
-    !domain.startsWith(".") &&
-    !domain.endsWith(".")
-  );
+  if (
+    local.length === 0 ||
+    domain.length === 0 ||
+    !domain.includes(".") ||
+    domain.startsWith(".") ||
+    domain.endsWith(".")
+  ) {
+    return false;
+  }
+  if (emailUsesDisallowedResendSenderDomain(e)) return false;
+  return true;
 }
 
 /**
@@ -75,6 +93,7 @@ function parseResendFromRaw(raw: string | null | undefined): string | null {
   if (bracketed) {
     const email = bracketed[2].trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(email)) return null;
+    if (emailUsesDisallowedResendSenderDomain(email)) return null;
     return s;
   }
 

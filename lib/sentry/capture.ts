@@ -8,6 +8,14 @@ function isResendTestingRecipientRestriction(error: unknown): boolean {
   );
 }
 
+function isResendSenderDomainError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error);
+  return (
+    msg.includes("domain is not verified") ||
+    msg.includes("add and verify your domain on https://resend.com/domains")
+  );
+}
+
 export function captureEmailFailure(
   error: unknown,
   ctx: {
@@ -29,6 +37,13 @@ export function captureEmailFailure(
 
   // Resend rejects non-owner recipients until the sender domain is verified; not an app bug.
   if (isResendTestingRecipientRestriction(error)) {
+    const message = error instanceof Error ? error.message : String(error);
+    Sentry.captureMessage(message, { level: "warning", ...fingerprint });
+    return;
+  }
+
+  // Misconfigured or placeholder `from` domain (e.g. example.com); fix in Admin → Settings or env.
+  if (isResendSenderDomainError(error)) {
     const message = error instanceof Error ? error.message : String(error);
     Sentry.captureMessage(message, { level: "warning", ...fingerprint });
     return;
