@@ -8,6 +8,45 @@ import { eq } from "drizzle-orm";
 import { getSystemSettings } from "@/lib/services/system-settings";
 import { DEFAULT_TZ, formatDateInTz } from "@/lib/utils/dates";
 
+const RESEND_FALLBACK_FROM = "Happy Wanderers <onboarding@resend.dev>";
+
+/**
+ * Resend requires `from` like `email@domain.com` or `Display Name <email@domain.com>`.
+ * Production failures often come from:
+ * - `EMAIL_FROM` set to "" on Vercel (empty string is not nullish, so `??` never fell back)
+ * - accidental JSON quotes: `"Name <a@b.com>"` stored literally
+ * - smart/unicode angle brackets from copy-paste
+ */
+function resolveResendFrom(): string {
+  const rawEnv = process.env.EMAIL_FROM;
+  if (typeof rawEnv !== "string") return RESEND_FALLBACK_FROM;
+
+  let s = rawEnv.trim();
+  if (s.length === 0) return RESEND_FALLBACK_FROM;
+
+  s = s.replace(/^["']+|["']+$/g, "").trim();
+  if (s.length === 0) return RESEND_FALLBACK_FROM;
+
+  s = s
+    .replace(/\u2039/g, "<")
+    .replace(/\u203a/g, ">")
+    .replace(/＜/g, "<")
+    .replace(/＞/g, ">");
+
+  const bracketed = s.match(/^([^<]+)<\s*([^>\s]+@[^>\s]+)\s*>$/i);
+  const plainEmail = s.match(/^[^\s<]+@[^\s>]+\.[^\s>]+$/i);
+
+  if (bracketed) {
+    const email = bracketed[2].trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(email)) return RESEND_FALLBACK_FROM;
+    return s;
+  }
+
+  if (plainEmail) return s;
+
+  return RESEND_FALLBACK_FROM;
+}
+
 function getResend(): Resend {
   const key = process.env.RESEND_API_KEY;
   if (!key) throw new Error("RESEND_API_KEY is not set");
@@ -31,7 +70,7 @@ function ensureResendOk(result: { data?: unknown; error?: unknown }, context: st
 export async function sendBookingConfirmationEmails(bookingId: string) {
   const settings = await getSystemSettings();
   const tz = settings.timezone || DEFAULT_TZ;
-  const from = process.env.EMAIL_FROM ?? "Happy Wanderers <onboarding@resend.dev>";
+  const from = resolveResendFrom();
 
   const rows = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
   const b = rows[0];
@@ -129,7 +168,7 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
 
 export async function sendCancellationEmail(bookingId: string) {
   const settings = await getSystemSettings();
-  const from = process.env.EMAIL_FROM ?? "Happy Wanderers <onboarding@resend.dev>";
+  const from = resolveResendFrom();
   const rows = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
   const b = rows[0];
   if (!b) return;
@@ -159,7 +198,7 @@ export async function sendCancellationEmail(bookingId: string) {
 
 export async function sendRefundEmail(bookingId: string) {
   const settings = await getSystemSettings();
-  const from = process.env.EMAIL_FROM ?? "Happy Wanderers <onboarding@resend.dev>";
+  const from = resolveResendFrom();
   const rows = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
   const b = rows[0];
   if (!b) return;
@@ -196,7 +235,7 @@ export async function sendContactAlert(input: {
 }) {
   const settings = await getSystemSettings();
   if (!settings.adminAlertEmail) return;
-  const from = process.env.EMAIL_FROM ?? "Happy Wanderers <onboarding@resend.dev>";
+  const from = resolveResendFrom();
   try {
     const resend = getResend();
     const result = await resend.emails.send({
