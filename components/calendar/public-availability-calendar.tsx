@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { addMonths, format, parseISO, startOfMonth } from "date-fns";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 
 interface DayPayload {
@@ -12,6 +14,10 @@ interface DayPayload {
   cutoff_passed: boolean;
   override_exists: boolean;
   calendar_state?: string;
+}
+
+function shiftMonthKey(ym: string, delta: number): string {
+  return format(addMonths(parseISO(`${ym}-01T12:00:00`), delta), "yyyy-MM");
 }
 
 function cellClass(d: DayPayload): string {
@@ -25,31 +31,70 @@ function cellClass(d: DayPayload): string {
   return "bg-green-500 text-white";
 }
 
+export interface PublicAvailabilityCalendarProps {
+  tourId: string;
+  departureLocationId?: string;
+  selectedDate?: string;
+  onSelectDate: (isoDate: string) => void;
+  /** First month shown when the calendar mounts (e.g. from `?date=` deep link). */
+  initialMonth?: string;
+  /**
+   * Controlled `yyyy-MM`. When set with `onMonthChange`, prev/next updates the parent.
+   * Omit both for fully internal month navigation.
+   */
+  month?: string;
+  onMonthChange?: (ym: string) => void;
+}
+
 export function PublicAvailabilityCalendar({
   tourId,
   departureLocationId,
-  month,
-  onSelectDate,
   selectedDate,
-}: {
-  tourId: string;
-  departureLocationId?: string;
-  month: string;
-  onSelectDate: (isoDate: string) => void;
-  selectedDate?: string;
-}) {
+  onSelectDate,
+  initialMonth,
+  month: controlledMonth,
+  onMonthChange,
+}: PublicAvailabilityCalendarProps) {
+  const thisMonthKey = format(startOfMonth(new Date()), "yyyy-MM");
+  const maxMonthKey = format(addMonths(startOfMonth(new Date()), 24), "yyyy-MM");
+
+  const [internalMonth, setInternalMonth] = useState(() => {
+    if (controlledMonth) return controlledMonth;
+    if (initialMonth) return initialMonth;
+    return thisMonthKey;
+  });
+
+  const effectiveMonth = controlledMonth ?? internalMonth;
+
+  const lastSyncedInitialMonth = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (controlledMonth !== undefined) return;
+    if (!initialMonth) return;
+    if (lastSyncedInitialMonth.current === initialMonth) return;
+    lastSyncedInitialMonth.current = initialMonth;
+    setInternalMonth(initialMonth);
+  }, [initialMonth, controlledMonth]);
+
+  const setEffectiveMonth = useCallback(
+    (ym: string) => {
+      if (onMonthChange) onMonthChange(ym);
+      if (controlledMonth === undefined) setInternalMonth(ym);
+    },
+    [controlledMonth, onMonthChange]
+  );
+
   const [days, setDays] = useState<DayPayload[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const params = new URLSearchParams({ tour_id: tourId, month });
+    const params = new URLSearchParams({ tour_id: tourId, month: effectiveMonth });
     if (departureLocationId) params.set("departure_location_id", departureLocationId);
     const res = await fetch(`/api/availability?${params.toString()}`);
     const json = (await res.json()) as DayPayload[];
     setDays(Array.isArray(json) ? json : []);
     setLoading(false);
-  }, [tourId, month, departureLocationId]);
+  }, [tourId, effectiveMonth, departureLocationId]);
 
   useEffect(() => {
     void load();
@@ -58,24 +103,52 @@ export function PublicAvailabilityCalendar({
   const byDate = useMemo(() => new Map(days.map((d) => [d.date, d])), [days]);
 
   const grid = useMemo(() => {
-    const [y, m] = month.split("-").map(Number);
+    const [y, m] = effectiveMonth.split("-").map(Number);
     const first = new Date(Date.UTC(y, m - 1, 1));
     const startPad = first.getUTCDay();
     const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
     const cells: { date: string | null }[] = [];
     for (let i = 0; i < startPad; i++) cells.push({ date: null });
     for (let d = 1; d <= lastDay; d++) {
-      const ds = `${month}-${String(d).padStart(2, "0")}`;
+      const ds = `${effectiveMonth}-${String(d).padStart(2, "0")}`;
       cells.push({ date: ds });
     }
     return cells;
-  }, [month]);
+  }, [effectiveMonth]);
+
+  const monthLabel = format(parseISO(`${effectiveMonth}-01T12:00:00`), "MMMM yyyy");
+  const canGoPrev = effectiveMonth > thisMonthKey;
+  const canGoNext = effectiveMonth < maxMonthKey;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between text-sm text-gray-600">
-        <span className="font-medium text-gray-900">{month}</span>
-        {loading ? <span>Loading…</span> : <span>{days.filter((d) => d.available).length} open days</span>}
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="shrink-0 px-2"
+            disabled={!canGoPrev || loading}
+            onClick={() => setEffectiveMonth(shiftMonthKey(effectiveMonth, -1))}
+            aria-label="Previous month"
+          >
+            ←
+          </Button>
+          <span className="min-w-0 truncate font-medium text-gray-900">{monthLabel}</span>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="shrink-0 px-2"
+            disabled={!canGoNext || loading}
+            onClick={() => setEffectiveMonth(shiftMonthKey(effectiveMonth, 1))}
+            aria-label="Next month"
+          >
+            →
+          </Button>
+        </div>
+        {loading ? <span className="shrink-0">Loading…</span> : <span className="shrink-0">{days.filter((d) => d.available).length} open days</span>}
       </div>
       <div className="grid grid-cols-7 gap-2 text-center text-xs">
         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (

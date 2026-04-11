@@ -170,7 +170,9 @@ export async function cancelBookingAdmin(input: {
     newValue: { status: "cancelled" },
   });
 
-  await sendCancellationEmail(input.bookingId);
+  if (b.status === "confirmed") {
+    await sendCancellationEmail(input.bookingId);
+  }
   return { ok: true };
 }
 

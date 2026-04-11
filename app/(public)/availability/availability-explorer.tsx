@@ -51,6 +51,7 @@ export function AvailabilityExplorer({
           <PublicAvailabilityCalendar
             tourId={tourId}
             month={month}
+            onMonthChange={setMonth}
             selectedDate={date}
             onSelectDate={setDate}
           />

@@ -49,6 +49,19 @@ export async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Se
   if (!booking) return;
   if (booking.status !== "pending") return;
 
+  if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") {
+    Sentry.captureMessage("checkout.session.completed: booking left pending — payment not final", {
+      level: "warning",
+      tags: { operation_type: "stripe_checkout_payment_pending" },
+      extra: {
+        booking_id: bookingId,
+        payment_status: session.payment_status,
+        stripe_session_id: session.id,
+      },
+    });
+    return;
+  }
+
   const piForCtx =
     typeof session.payment_intent === "string"
       ? session.payment_intent
@@ -163,6 +176,12 @@ export async function handleChargeRefunded(charge: Stripe.Charge) {
     .limit(1);
   const booking = rows[0];
   if (!booking) return;
+  if (booking.status === "refunded") {
+    return;
+  }
+  if (booking.status !== "confirmed") {
+    return;
+  }
 
   Sentry.getCurrentScope().setContext("booking_lifecycle", {
     operation_type: "stripe_refund_lifecycle",

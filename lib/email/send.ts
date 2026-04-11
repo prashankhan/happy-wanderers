@@ -68,21 +68,25 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
     }
   }
 
-  if (settings.adminAlertEmail && !b.adminAlertSentAt) {
+  const afterCustomer = await db.select().from(bookings).where(eq(bookings.id, bookingId)).limit(1);
+  const bookingFresh = afterCustomer[0];
+  if (!bookingFresh || bookingFresh.status !== "confirmed") return;
+
+  if (settings.adminAlertEmail && !bookingFresh.adminAlertSentAt) {
     try {
       await resend.emails.send({
         from,
         to: settings.adminAlertEmail,
-        subject: `New confirmed booking ${b.bookingReference}`,
+        subject: `New confirmed booking ${bookingFresh.bookingReference}`,
         text: [
-          `Booking ${b.bookingReference}`,
-          `Tour: ${b.tourTitleSnapshot}`,
-          `Date: ${b.bookingDate}`,
-          `Pickup: ${b.pickupLocationNameSnapshot} ${b.pickupTimeSnapshot}`,
-          `Guests: ${b.guestTotal}`,
-          `Customer: ${b.customerFirstName} ${b.customerLastName}`,
-          `Phone: ${b.customerPhone}`,
-          b.customerNotes ? `Notes: ${b.customerNotes}` : "",
+          `Booking ${bookingFresh.bookingReference}`,
+          `Tour: ${bookingFresh.tourTitleSnapshot}`,
+          `Date: ${bookingFresh.bookingDate}`,
+          `Pickup: ${bookingFresh.pickupLocationNameSnapshot} ${bookingFresh.pickupTimeSnapshot}`,
+          `Guests: ${bookingFresh.guestTotal}`,
+          `Customer: ${bookingFresh.customerFirstName} ${bookingFresh.customerLastName}`,
+          `Phone: ${bookingFresh.customerPhone}`,
+          bookingFresh.customerNotes ? `Notes: ${bookingFresh.customerNotes}` : "",
         ]
           .filter(Boolean)
           .join("\n"),

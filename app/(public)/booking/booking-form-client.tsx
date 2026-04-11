@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,10 +21,7 @@ export function BookingFormClient({
   pickups: { id: string; name: string; timeLabel: string }[];
 }) {
   const router = useRouter();
-  const month = useMemo(() => {
-    if (initialDate) return initialDate.slice(0, 7);
-    return new Date().toISOString().slice(0, 7);
-  }, [initialDate]);
+  const initialMonth = initialDate?.slice(0, 7);
 
   const [date, setDate] = useState<string | undefined>(initialDate);
   const [departureId, setDepartureId] = useState<string | undefined>(
@@ -103,7 +100,7 @@ export function BookingFormClient({
             <PublicAvailabilityCalendar
               tourId={tourId}
               departureLocationId={departureId}
-              month={month}
+              initialMonth={initialMonth}
               selectedDate={date}
               onSelectDate={setDate}
             />

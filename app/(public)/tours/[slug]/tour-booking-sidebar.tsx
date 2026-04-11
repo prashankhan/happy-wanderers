@@ -20,7 +20,6 @@ export function TourBookingSidebar({
   defaultPickupId?: string;
   pickups: { id: string; name: string; timeLabel: string }[];
 }) {
-  const month = new Date().toISOString().slice(0, 7);
   const [pickupId, setPickupId] = useState<string | undefined>(defaultPickupId);
   const [date, setDate] = useState<string | undefined>();
 
@@ -54,7 +53,6 @@ export function TourBookingSidebar({
           <PublicAvailabilityCalendar
             tourId={tourId}
             departureLocationId={pickupId}
-            month={month}
             selectedDate={date}
             onSelectDate={setDate}
           />
