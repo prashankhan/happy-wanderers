@@ -18,6 +18,8 @@ Version 1 supports transactional email only.
 
 Marketing emails are excluded.
 
+**Resend `from` address:** resolved from `system_settings.resend_from_email` first, then `EMAIL_FROM` / `RESEND_FROM` environment variables (see `lib/email/send.ts`). `RESEND_API_KEY` remains env-only.
+
 
 ---
 

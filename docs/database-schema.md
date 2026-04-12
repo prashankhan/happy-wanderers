@@ -417,6 +417,7 @@ Stores global platform settings.
 - `business_name` — text, nullable
 - `support_email` — text, nullable
 - `support_phone` — text, nullable
+- `resend_from_email` — text, nullable (Resend `from`: plain address or `Name <addr>`; overrides `EMAIL_FROM` / `RESEND_FROM` when set)
 - `admin_alert_email` — text, nullable
 - `created_at` — timestamp, required
 - `updated_at` — timestamp, required
