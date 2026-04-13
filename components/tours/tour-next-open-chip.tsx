@@ -56,7 +56,7 @@ export function TourNextOpenChip({
 
   if (loading) {
     return (
-      <p className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-500">
+      <p className="rounded-full border border-brand-border bg-brand-surface-soft px-3 py-1.5 text-xs font-medium text-brand-muted">
         Finding next departure…
       </p>
     );
@@ -64,15 +64,15 @@ export function TourNextOpenChip({
 
   if (!label) {
     return (
-      <p className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-900">
+      <p className="rounded-full border border-brand-gold/40 bg-brand-surface-warm px-3 py-1.5 text-xs font-medium text-brand-heading">
         Check calendar for next open date
       </p>
     );
   }
 
   return (
-    <p className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-900">
-      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" aria-hidden />
+    <p className="inline-flex items-center gap-2 rounded-full border border-brand-gold/50 bg-brand-surface-warm px-3 py-1.5 text-xs font-medium text-brand-heading">
+      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-gold" aria-hidden />
       Next open departure · {label}
     </p>
   );

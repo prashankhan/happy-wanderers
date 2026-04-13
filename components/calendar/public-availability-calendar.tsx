@@ -21,14 +21,14 @@ function shiftMonthKey(ym: string, delta: number): string {
 }
 
 function cellClass(d: DayPayload): string {
-  if (d.cutoff_passed) return "bg-gray-500 text-white";
+  if (d.cutoff_passed) return "bg-availability-cutoff text-brand-heading";
   if (!d.available || d.remaining_capacity <= 0) {
-    if (d.remaining_capacity <= 0 && d.total_capacity > 0) return "bg-red-500 text-white";
-    return "bg-gray-300 text-gray-700";
+    if (d.remaining_capacity <= 0 && d.total_capacity > 0) return "bg-availability-full text-white";
+    return "bg-brand-border text-brand-muted";
   }
   const low = d.total_capacity > 0 && d.remaining_capacity / d.total_capacity <= 0.25;
-  if (low) return "bg-amber-400 text-gray-900";
-  return "bg-emerald-600 text-white";
+  if (low) return "bg-availability-low text-brand-heading";
+  return "bg-availability-open text-white";
 }
 
 export interface PublicAvailabilityCalendarProps {
@@ -127,7 +127,7 @@ export function PublicAvailabilityCalendar({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-brand-body">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <Button
             type="button"
@@ -140,7 +140,7 @@ export function PublicAvailabilityCalendar({
           >
             ←
           </Button>
-          <span className="min-w-0 truncate font-medium text-gray-900">{monthLabel}</span>
+          <span className="min-w-0 truncate font-medium text-brand-heading">{monthLabel}</span>
           <Button
             type="button"
             variant="secondary"
@@ -160,24 +160,24 @@ export function PublicAvailabilityCalendar({
         )}
       </div>
       {showLegend ? (
-        <div className="flex flex-wrap gap-x-4 gap-y-2 rounded-xl border border-gray-100 bg-gray-50/90 px-3 py-2.5 text-[11px] font-medium text-gray-600">
+        <div className="flex flex-wrap gap-x-4 gap-y-2 rounded-xl border border-brand-border bg-brand-accent-soft px-3 py-2.5 text-[11px] font-medium text-brand-body">
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm bg-emerald-600" /> Available
+            <span className="h-2.5 w-2.5 rounded-sm bg-availability-open" /> Available
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm bg-amber-400" /> Low seats
+            <span className="h-2.5 w-2.5 rounded-sm bg-availability-low" /> Low seats
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm bg-red-500" /> Sold out
+            <span className="h-2.5 w-2.5 rounded-sm bg-availability-full" /> Sold out
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm bg-gray-500" /> Cut-off passed
+            <span className="h-2.5 w-2.5 rounded-sm bg-availability-cutoff" /> Cut-off passed
           </span>
         </div>
       ) : null}
       <div className="grid grid-cols-7 gap-2 text-center text-xs">
         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
-          <div key={d} className="font-medium text-gray-500">
+          <div key={d} className="font-medium text-brand-muted">
             {d}
           </div>
         ))}
@@ -197,9 +197,10 @@ export function PublicAvailabilityCalendar({
               }}
               className={cn(
                 "flex h-10 items-center justify-center rounded-lg text-xs font-medium transition duration-150",
-                d ? cellClass(d) : "bg-gray-100 text-gray-400",
-                isSel && "ring-2 ring-blue-900 ring-offset-2",
-                clickable && "cursor-pointer hover:brightness-110 hover:ring-2 hover:ring-white/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-900"
+                d ? cellClass(d) : "bg-brand-surface-soft text-brand-muted",
+                isSel && "ring-2 ring-brand-accent ring-offset-2",
+                clickable &&
+                  "cursor-pointer hover:brightness-110 hover:ring-2 hover:ring-white/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
               )}
             >
               {Number(dateStr.slice(8, 10))}
@@ -207,9 +208,14 @@ export function PublicAvailabilityCalendar({
           );
         })}
       </div>
-      <p className="text-xs leading-relaxed text-gray-500">
-        All departures use operator time in <span className="font-medium text-gray-700">Australia/Brisbane</span>.
-        {showLegend ? " Orange indicates limited remaining seats." : null}
+      <p className="text-xs leading-relaxed text-brand-muted">
+        All departures use operator time in <span className="font-medium text-brand-body">Australia/Brisbane</span>.
+        {showLegend ? (
+          <>
+            {" "}
+            <span className="text-availability-low font-medium">Gold</span> indicates limited remaining seats.
+          </>
+        ) : null}
       </p>
     </div>
   );

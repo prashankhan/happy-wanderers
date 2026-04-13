@@ -56,13 +56,13 @@ export function TestimonialStrip({
     <>
       {!isCompact ? (
         <div className="mx-auto mb-14 max-w-2xl text-center">
-          <h2 className="font-serif text-3xl font-semibold text-gray-900 md:text-4xl">{heading}</h2>
-          {intro ? <p className="mt-4 text-lg leading-relaxed text-gray-600">{intro}</p> : null}
+          <h2 className="font-serif text-3xl font-semibold text-brand-heading md:text-4xl">{heading}</h2>
+          {intro ? <p className="mt-4 text-lg leading-relaxed text-brand-body">{intro}</p> : null}
         </div>
       ) : (
         <div className="mb-8">
-          <h2 className="font-serif text-2xl font-semibold text-gray-900">{heading}</h2>
-          {intro ? <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-600">{intro}</p> : null}
+          <h2 className="font-serif text-2xl font-semibold text-brand-heading">{heading}</h2>
+          {intro ? <p className="mt-2 max-w-2xl text-sm leading-relaxed text-brand-body">{intro}</p> : null}
         </div>
       )}
       <div
@@ -74,16 +74,16 @@ export function TestimonialStrip({
         {items.map((t) => (
           <figure
             key={t.id}
-            className="flex h-full flex-col rounded-2xl border border-gray-100 bg-gradient-to-b from-gray-50/80 to-white p-8 shadow-sm ring-1 ring-gray-900/[0.03] transition duration-300 hover:shadow-md"
+            className="flex h-full flex-col rounded-2xl border border-brand-border bg-gradient-to-b from-brand-surface-soft to-brand-surface p-8 shadow-sm ring-1 ring-brand-heading/[0.03] transition duration-300 hover:shadow-md"
           >
-            <Quote className="h-8 w-8 text-blue-900/25" aria-hidden />
-            <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-gray-700 md:text-base">
+            <Quote className="h-8 w-8 text-brand-gold/80" aria-hidden />
+            <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-brand-body md:text-base">
               <p className="italic">&ldquo;{t.quote}&rdquo;</p>
             </blockquote>
-            <figcaption className="mt-6 border-t border-gray-100 pt-4 text-sm">
-              <span className="font-semibold text-gray-900">{t.attribution}</span>
+            <figcaption className="mt-6 border-t border-brand-border pt-4 text-sm">
+              <span className="font-semibold text-brand-heading">{t.attribution}</span>
               {t.context ? (
-                <span className="mt-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+                <span className="mt-1 block text-xs font-medium uppercase tracking-wide text-brand-muted">
                   {t.context}
                 </span>
               ) : null}
@@ -103,7 +103,7 @@ export function TestimonialStrip({
   }
 
   return (
-    <section className={cn("border-t border-gray-200 bg-white py-24 md:py-28", className)}>
+    <section className={cn("border-t border-brand-border bg-brand-surface-warm py-24 md:py-28", className)}>
       <Container>{inner}</Container>
     </section>
   );

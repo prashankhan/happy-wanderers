@@ -35,10 +35,10 @@ export default function AboutPage() {
   return (
     <>
       <section
-        className={`relative left-1/2 right-1/2 -mx-[50vw] w-screen border-b border-gray-200 bg-gradient-to-br from-gray-950 via-blue-950 to-gray-900 ${publicHeroUnderFixedNavClass}`}
+        className={`relative left-1/2 right-1/2 -mx-[50vw] w-screen border-b border-brand-border bg-gradient-to-br from-gray-950 via-blue-950 to-gray-900 ${publicHeroUnderFixedNavClass}`}
       >
         <Container className="py-24 md:py-32">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-200/90">About Happy Wanderers</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold/90">About Happy Wanderers</p>
           <h1 className="mt-6 max-w-4xl font-serif text-4xl font-semibold leading-tight text-white md:text-5xl lg:text-6xl">
             A rainforest operator built on calm logistics and generous field craft
           </h1>
@@ -49,10 +49,10 @@ export default function AboutPage() {
         </Container>
       </section>
 
-      <section className="py-20 md:py-28">
+      <section className="border-b border-brand-border bg-brand-surface-warm py-20 md:py-28">
         <Container className="max-w-3xl">
-          <h2 className="font-serif text-2xl font-semibold text-gray-900 md:text-3xl">Our story</h2>
-          <div className="mt-8 space-y-6 text-base leading-[1.75] text-gray-600 md:text-lg">
+          <h2 className="font-serif text-2xl font-semibold text-brand-heading md:text-3xl">Our story</h2>
+          <div className="mt-8 space-y-6 text-base leading-[1.75] text-brand-body md:text-lg">
             <p>
               Happy Wanderers began with a simple frustration: too many rainforest days felt rushed, over-scripted, or
               disconnected from the ecology guests had travelled to see. We built an operator model around senior
@@ -67,11 +67,11 @@ export default function AboutPage() {
         </Container>
       </section>
 
-      <section className="border-y border-gray-200 bg-gray-50/90 py-20 md:py-28">
+      <section className="border-y border-brand-border bg-brand-surface-soft py-20 md:py-28">
         <Container>
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-serif text-3xl font-semibold text-gray-900 md:text-4xl">Local expertise</h2>
-            <p className="mt-5 text-lg leading-relaxed text-gray-600">
+            <h2 className="font-serif text-3xl font-semibold text-brand-heading md:text-4xl">Local expertise</h2>
+            <p className="mt-5 text-lg leading-relaxed text-brand-body">
               Our guides live inside the rhythms of the Wet Tropics — weather windows, creek behaviour, and the ethics
               of wildlife approach. That expertise is not performative; it shows up in route choice, rest timing, and
               the stories we choose to tell.
@@ -80,12 +80,12 @@ export default function AboutPage() {
         </Container>
       </section>
 
-      <section className="py-20 md:py-28">
+      <section className="border-b border-brand-border bg-brand-surface-warm py-20 md:py-28">
         <Container>
-          <h2 className="mx-auto max-w-2xl text-center font-serif text-3xl font-semibold text-gray-900 md:text-4xl">
+          <h2 className="mx-auto max-w-2xl text-center font-serif text-3xl font-semibold text-brand-heading md:text-4xl">
             Experience philosophy
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-center text-lg leading-relaxed text-gray-600">
+          <p className="mx-auto mt-5 max-w-2xl text-center text-lg leading-relaxed text-brand-body">
             We believe the Daintree rewards restraint — fewer words at the lookout, more attention at the creek line,
             and logistics so smooth you forget they exist.
           </p>
@@ -93,45 +93,45 @@ export default function AboutPage() {
             {pillars.map(({ icon: Icon, title, body }) => (
               <div
                 key={title}
-                className="rounded-2xl border border-gray-100 bg-white p-8 text-left shadow-sm ring-1 ring-gray-900/[0.03]"
+                className="rounded-2xl border border-brand-border bg-brand-surface p-8 text-left shadow-sm ring-1 ring-brand-heading/[0.03]"
               >
-                <Icon className="h-8 w-8 text-blue-900/80" aria-hidden />
-                <h3 className="mt-5 font-serif text-xl font-semibold text-gray-900">{title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-gray-600">{body}</p>
+                <Icon className="h-8 w-8 text-brand-gold" aria-hidden />
+                <h3 className="mt-5 font-serif text-xl font-semibold text-brand-heading">{title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-brand-body">{body}</p>
               </div>
             ))}
           </div>
         </Container>
       </section>
 
-      <section className="border-t border-gray-200 bg-white py-20 md:py-28">
+      <section className="border-t border-brand-border bg-brand-surface py-20 md:py-28">
         <Container className="grid gap-12 lg:grid-cols-2 lg:items-center">
           <div>
-            <h2 className="font-serif text-3xl font-semibold text-gray-900 md:text-4xl">Why travellers choose us</h2>
-            <ul className="mt-8 space-y-4 text-base leading-relaxed text-gray-600">
+            <h2 className="font-serif text-3xl font-semibold text-brand-heading md:text-4xl">Why travellers choose us</h2>
+            <ul className="mt-8 space-y-4 text-base leading-relaxed text-brand-body">
               <li className="flex gap-3">
-                <BadgeCheck className="mt-1 h-5 w-5 shrink-0 text-emerald-600" aria-hidden />
+                <BadgeCheck className="mt-1 h-5 w-5 shrink-0 text-availability-open" aria-hidden />
                 <span>Live availability and cutoffs tied to real pickup times — not brochure estimates.</span>
               </li>
               <li className="flex gap-3">
-                <BadgeCheck className="mt-1 h-5 w-5 shrink-0 text-emerald-600" aria-hidden />
+                <BadgeCheck className="mt-1 h-5 w-5 shrink-0 text-availability-open" aria-hidden />
                 <span>Immutable booking snapshots after confirmation — what you booked is what the guide sees.</span>
               </li>
               <li className="flex gap-3">
-                <BadgeCheck className="mt-1 h-5 w-5 shrink-0 text-emerald-600" aria-hidden />
+                <BadgeCheck className="mt-1 h-5 w-5 shrink-0 text-availability-open" aria-hidden />
                 <span>Private charters when you need the forest on your own terms — same operator standards.</span>
               </li>
             </ul>
           </div>
-          <div className="rounded-3xl border border-gray-100 bg-gray-50/80 p-10 shadow-inner ring-1 ring-gray-900/[0.04]">
-            <div className="flex items-center gap-2 text-blue-900">
+          <div className="rounded-3xl border border-brand-border bg-brand-accent-soft p-10 shadow-inner ring-1 ring-brand-heading/[0.04]">
+            <div className="flex items-center gap-2 text-brand-accent">
               <MapPin className="h-6 w-6" aria-hidden />
-              <h3 className="font-serif text-xl font-semibold text-gray-900">Service area</h3>
+              <h3 className="font-serif text-xl font-semibold text-brand-heading">Service area</h3>
             </div>
-            <p className="mt-4 text-base leading-relaxed text-gray-600">
-              Scheduled and private departures operate across the <strong className="font-medium text-gray-800">Cairns</strong>{" "}
-              coast, <strong className="font-medium text-gray-800">Port Douglas</strong> access routes, and the{" "}
-              <strong className="font-medium text-gray-800">Daintree</strong> rainforest corridor — exact pickup matrix
+            <p className="mt-4 text-base leading-relaxed text-brand-body">
+              Scheduled and private departures operate across the <strong className="font-medium text-brand-heading">Cairns</strong>{" "}
+              coast, <strong className="font-medium text-brand-heading">Port Douglas</strong> access routes, and the{" "}
+              <strong className="font-medium text-brand-heading">Daintree</strong> rainforest corridor — exact pickup matrix
               depends on the tour you select.
             </p>
             <Button asChild variant="primary" className="mt-8">
@@ -146,14 +146,14 @@ export default function AboutPage() {
         intro="Verified guest quotes will replace these placeholders as we collect post-departure feedback."
       />
 
-      <section className="border-t border-gray-200 bg-blue-950 py-20 md:py-24">
+      <section className="border-t border-brand-border bg-brand-accent py-20 md:py-24">
         <Container className="mx-auto max-w-3xl text-center">
           <h2 className="font-serif text-3xl font-semibold text-white md:text-4xl">Speak with the team</h2>
-          <p className="mt-5 text-lg leading-relaxed text-blue-100/95">
+          <p className="mt-5 text-lg leading-relaxed text-white/90">
             Planning a milestone trip, a private charter, or a multi-day combination? Send us a note — we respond
             personally and will never hand you to a call centre script.
           </p>
-          <Button asChild variant="secondary" size="lg" className="mt-10 bg-white text-blue-900 hover:bg-gray-100">
+          <Button asChild variant="primary" size="lg" className="mt-10">
             <Link href="/contact">Contact</Link>
           </Button>
         </Container>

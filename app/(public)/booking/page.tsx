@@ -27,14 +27,14 @@ export default async function BookingPage({
     return (
       <section className="py-24 md:py-32">
         <Container className="mx-auto max-w-lg text-center">
-          <div className="rounded-3xl border border-gray-200 bg-white px-8 py-14 shadow-sm ring-1 ring-gray-900/[0.04]">
-            <h1 className="font-serif text-3xl font-semibold text-gray-900">Tours launching soon</h1>
-            <p className="mt-4 text-base leading-relaxed text-gray-600">
+          <div className="rounded-3xl border border-brand-border bg-brand-surface px-8 py-14 shadow-sm ring-1 ring-brand-heading/[0.04]">
+            <h1 className="font-serif text-3xl font-semibold text-brand-heading">Tours launching soon</h1>
+            <p className="mt-4 text-base leading-relaxed text-brand-body">
               There are no published tours to book just yet. Please check back shortly or contact us — we will help you
               plan your rainforest day.
             </p>
             <p className="mt-6">
-              <Link href="/contact" className="text-sm font-medium text-blue-900 underline-offset-2 hover:underline">
+              <Link href="/contact" className="text-sm font-medium text-brand-accent underline-offset-2 hover:underline">
                 Contact us
               </Link>
             </p>
@@ -58,15 +58,15 @@ export default async function BookingPage({
     <section className="py-16">
       <Container>
         <div className="mb-10 max-w-2xl">
-          <p className="text-sm text-gray-500">
-            <Link href="/tours" className="hover:text-blue-900">
+          <p className="text-sm text-brand-muted">
+            <Link href="/tours" className="hover:text-brand-accent hover:underline">
               Tours
             </Link>
             <span className="mx-2">/</span>
-            <span className="text-gray-900">Booking</span>
+            <span className="text-brand-heading">Booking</span>
           </p>
-          <h1 className="mt-4 font-serif text-4xl font-semibold text-gray-900">Complete your booking</h1>
-          <p className="mt-2 text-gray-600">
+          <h1 className="mt-4 font-serif text-4xl font-semibold text-brand-heading">Complete your booking</h1>
+          <p className="mt-2 text-brand-body">
             We validate availability and cutoff on the server before Stripe. Your booking is only confirmed after
             successful payment webhook.
           </p>

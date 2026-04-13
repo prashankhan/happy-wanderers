@@ -8,6 +8,9 @@ import { PublicAvailabilityCalendar } from "@/components/calendar/public-availab
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+const inputClass =
+  "mt-1 w-full rounded-xl border border-brand-border bg-brand-surface px-3 py-2 text-sm text-brand-heading shadow-sm transition focus:border-brand-accent/40 focus:outline-none focus:ring-2 focus:ring-brand-accent/20";
+
 export function BookingFormClient({
   tourId,
   tourTitle,
@@ -83,14 +86,14 @@ export function BookingFormClient({
   return (
     <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
       <form onSubmit={onSubmit} className="space-y-10">
-        <Card className="shadow-md ring-1 ring-gray-900/[0.03]">
-          <CardHeader className="border-b border-gray-100">
+        <Card className="shadow-md ring-1 ring-brand-heading/[0.03]">
+          <CardHeader className="border-b border-brand-border">
             <CardTitle className="font-serif text-xl">Date &amp; pickup</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
-            <label className="block text-sm font-medium text-gray-800">Pickup location</label>
+            <label className="block text-sm font-medium text-brand-heading">Pickup location</label>
             <select
-              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm transition focus:border-blue-900/30 focus:outline-none focus:ring-2 focus:ring-blue-900/15"
+              className="w-full rounded-xl border border-brand-border bg-brand-surface px-4 py-3 text-sm text-brand-heading shadow-sm transition focus:border-brand-accent/40 focus:outline-none focus:ring-2 focus:ring-brand-accent/20"
               value={departureId ?? ""}
               onChange={(e) => setDepartureId(e.target.value || undefined)}
             >
@@ -111,95 +114,75 @@ export function BookingFormClient({
           </CardContent>
         </Card>
 
-        <Card className="shadow-md ring-1 ring-gray-900/[0.03]">
-          <CardHeader className="border-b border-gray-100">
+        <Card className="shadow-md ring-1 ring-brand-heading/[0.03]">
+          <CardHeader className="border-b border-brand-border">
             <CardTitle className="font-serif text-xl">Guests</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 pt-6 sm:grid-cols-3">
             <label className="text-sm">
-              <span className="font-medium text-gray-700">Adults</span>
+              <span className="font-medium text-brand-body">Adults</span>
               <input
                 type="number"
                 min={1}
-                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
+                className={inputClass}
                 value={adults}
                 onChange={(e) => setAdults(Number(e.target.value))}
               />
             </label>
             <label className="text-sm">
-              <span className="font-medium text-gray-700">Children</span>
+              <span className="font-medium text-brand-body">Children</span>
               <input
                 type="number"
                 min={0}
-                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
+                className={inputClass}
                 value={children}
                 onChange={(e) => setChildren(Number(e.target.value))}
               />
             </label>
             <label className="text-sm">
-              <span className="font-medium text-gray-700">Infants</span>
+              <span className="font-medium text-brand-body">Infants</span>
               <input
                 type="number"
                 min={0}
-                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
+                className={inputClass}
                 value={infants}
                 onChange={(e) => setInfants(Number(e.target.value))}
               />
             </label>
-            <p className="sm:col-span-3 text-xs text-gray-500">Infants count toward vehicle capacity.</p>
+            <p className="sm:col-span-3 text-xs text-brand-muted">Infants count toward vehicle capacity.</p>
           </CardContent>
         </Card>
 
-        <Card className="shadow-md ring-1 ring-gray-900/[0.03]">
-          <CardHeader className="border-b border-gray-100">
+        <Card className="shadow-md ring-1 ring-brand-heading/[0.03]">
+          <CardHeader className="border-b border-brand-border">
             <CardTitle className="font-serif text-xl">Your details</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 pt-6 md:grid-cols-2">
             <label className="text-sm md:col-span-1">
-              <span className="font-medium text-gray-700">First name</span>
-              <input
-                required
-                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-              />
+              <span className="font-medium text-brand-body">First name</span>
+              <input required className={inputClass} value={firstName} onChange={(e) => setFirstName(e.target.value)} />
             </label>
             <label className="text-sm md:col-span-1">
-              <span className="font-medium text-gray-700">Last name</span>
-              <input
-                required
-                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-              />
+              <span className="font-medium text-brand-body">Last name</span>
+              <input required className={inputClass} value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </label>
             <label className="text-sm md:col-span-2">
-              <span className="font-medium text-gray-700">Email</span>
+              <span className="font-medium text-brand-body">Email</span>
               <input
                 required
                 type="email"
-                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
+                className={inputClass}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </label>
             <label className="text-sm md:col-span-2">
-              <span className="font-medium text-gray-700">Phone</span>
-              <input
-                required
-                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
+              <span className="font-medium text-brand-body">Phone</span>
+              <input required className={inputClass} value={phone} onChange={(e) => setPhone(e.target.value)} />
             </label>
             <label className="text-sm md:col-span-2">
-              <span className="font-medium text-gray-700">Notes (optional)</span>
-              <textarea
-                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
-                rows={3}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
+              <span className="font-medium text-brand-body">Notes (optional)</span>
+              <textarea className={inputClass} rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
             </label>
           </CardContent>
         </Card>
@@ -217,45 +200,45 @@ export function BookingFormClient({
       </form>
 
       <aside className="lg:sticky lg:top-28">
-        <div className="mb-4 flex flex-wrap gap-2 text-[11px] font-medium text-gray-600">
-          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 shadow-sm">
-            <Lock className="h-3 w-3 text-blue-900" aria-hidden />
+        <div className="mb-4 flex flex-wrap gap-2 text-[11px] font-medium text-brand-body">
+          <span className="inline-flex items-center gap-1 rounded-full border border-brand-border bg-brand-surface px-2.5 py-1 shadow-sm">
+            <Lock className="h-3 w-3 text-brand-accent" aria-hidden />
             Secure checkout
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 shadow-sm">
-            <Zap className="h-3 w-3 text-amber-600" aria-hidden />
+          <span className="inline-flex items-center gap-1 rounded-full border border-brand-border bg-brand-surface px-2.5 py-1 shadow-sm">
+            <Zap className="h-3 w-3 text-brand-gold" aria-hidden />
             Instant confirmation
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 shadow-sm">
-            <ShieldCheck className="h-3 w-3 text-emerald-700" aria-hidden />
+          <span className="inline-flex items-center gap-1 rounded-full border border-brand-border bg-brand-surface px-2.5 py-1 shadow-sm">
+            <ShieldCheck className="h-3 w-3 text-availability-open" aria-hidden />
             Live availability
           </span>
         </div>
-        <Card className="border-gray-100 shadow-lg ring-1 ring-gray-900/[0.04]">
-          <CardHeader className="border-b border-gray-100 pb-4">
+        <Card className="border-brand-border shadow-lg ring-1 ring-brand-heading/[0.04]">
+          <CardHeader className="border-b border-brand-border pb-4">
             <CardTitle className="font-serif text-lg">Departure summary</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 pt-5 text-sm text-gray-600">
-            <p className="font-medium text-gray-900">{tourTitle}</p>
-            <dl className="space-y-3 rounded-xl border border-gray-100 bg-gray-50/90 p-4">
+          <CardContent className="space-y-4 pt-5 text-sm text-brand-body">
+            <p className="font-medium text-brand-heading">{tourTitle}</p>
+            <dl className="space-y-3 rounded-xl border border-brand-border bg-brand-accent-soft p-4">
               <div className="flex justify-between gap-4">
-                <dt className="text-gray-500">Selected date</dt>
-                <dd className="text-right font-medium text-gray-900">{date ?? "—"}</dd>
+                <dt className="text-brand-muted">Selected date</dt>
+                <dd className="text-right font-medium text-brand-heading">{date ?? "—"}</dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-gray-500">Pickup</dt>
-                <dd className="text-right font-medium text-gray-900">{pickupLabel}</dd>
+                <dt className="text-brand-muted">Pickup</dt>
+                <dd className="text-right font-medium text-brand-heading">{pickupLabel}</dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="text-gray-500">Guests</dt>
-                <dd className="text-right font-medium text-gray-900">
+                <dt className="text-brand-muted">Guests</dt>
+                <dd className="text-right font-medium text-brand-heading">
                   {adults + children + infants} total ({adults}A / {children}C / {infants}I)
                 </dd>
               </div>
             </dl>
-            <div className="rounded-xl border border-dashed border-gray-200 bg-white/80 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Price summary</p>
-              <p className="mt-2 text-sm leading-relaxed text-gray-600">
+            <div className="rounded-xl border border-dashed border-brand-border bg-brand-surface-soft p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-muted">Price summary</p>
+              <p className="mt-2 text-sm leading-relaxed text-brand-body">
                 Final pricing is calculated when you continue — locked from live rules at checkout and matching Stripe.
               </p>
             </div>

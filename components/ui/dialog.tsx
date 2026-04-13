@@ -35,7 +35,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-y-0 right-0 z-[60] flex h-full w-full max-w-sm flex-col overflow-y-auto border-l border-gray-200 bg-white p-6 pb-24 shadow-2xl outline-none duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
+        "fixed inset-y-0 right-0 z-[60] flex h-full w-full max-w-sm flex-col overflow-y-auto border-l border-brand-border bg-brand-surface p-6 pb-24 shadow-2xl outline-none duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
         className
       )}
       {...props}
@@ -46,7 +46,7 @@ const DialogContent = React.forwardRef<
       </DialogPrimitive.Description>
       {children}
       <DialogPrimitive.Close
-        className="absolute right-4 top-4 z-10 rounded-lg p-2 text-gray-500 outline-none ring-blue-900/20 transition hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-2"
+        className="absolute right-4 top-4 z-10 rounded-lg p-2 text-brand-muted outline-none ring-brand-accent/20 transition hover:bg-brand-surface-soft hover:text-brand-heading focus-visible:ring-2 focus-visible:ring-brand-accent"
         aria-label="Close menu"
       >
         <X className="h-5 w-5" />

@@ -30,7 +30,7 @@ export function TourCard({
 }: TourCardProps) {
   return (
     <Card interactive className="group overflow-hidden p-0">
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-200">
+      <div className="relative aspect-[4/3] overflow-hidden bg-brand-border">
         {heroImage ? (
           <Image
             src={heroImage}
@@ -41,11 +41,11 @@ export function TourCard({
             loading="lazy"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-gray-500">Gallery coming soon</div>
+          <div className="flex h-full items-center justify-center text-sm text-brand-muted">Gallery coming soon</div>
         )}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 transition duration-300 group-hover:opacity-100" />
         {isFeatured ? (
-          <span className="absolute left-4 top-4 rounded-full bg-orange-500 px-3 py-1 text-xs font-medium text-white shadow-md">
+          <span className="absolute left-4 top-4 rounded-full bg-brand-primary px-3 py-1 text-xs font-medium text-white shadow-md">
             Featured
           </span>
         ) : null}
@@ -55,24 +55,24 @@ export function TourCard({
         <CardDescription className="leading-relaxed">{shortDescription}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 px-6 pb-6">
-        <div className="grid gap-2 text-sm text-gray-600">
+        <div className="grid gap-2 text-sm text-brand-body">
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 shrink-0 text-blue-900/70" aria-hidden />
+            <Clock className="h-4 w-4 shrink-0 text-brand-accent" aria-hidden />
             <span>{durationText}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 shrink-0 text-blue-900/70" aria-hidden />
+            <Users className="h-4 w-4 shrink-0 text-brand-accent" aria-hidden />
             <span>{groupSizeText}</span>
           </div>
           {locationRegion ? (
             <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 shrink-0 text-blue-900/70" aria-hidden />
+              <MapPin className="h-4 w-4 shrink-0 text-brand-accent" aria-hidden />
               <span>{locationRegion}</span>
             </div>
           ) : null}
         </div>
         {priceFromText ? (
-          <p className="text-sm font-semibold tracking-wide text-orange-600">{priceFromText}</p>
+          <p className="text-sm font-semibold tracking-wide text-brand-gold">{priceFromText}</p>
         ) : null}
         <Button asChild variant="primary" className="w-full sm:w-auto">
           <Link href={`/tours/${slug}`}>View tour</Link>
