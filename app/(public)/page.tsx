@@ -26,20 +26,14 @@ const STATIC_HERO_FALLBACK =
 /** Unsplash removed this asset; DB seeds sometimes still reference it → Next Image 404. */
 const DEAD_HERO_IMAGE_SUBSTR = "1511497584788";
 
+import { HeroContent } from "@/components/marketing/hero-content";
+
 function resolveHeroPhotoSrc(heroImage: string | null | undefined): string {
   const trimmed = typeof heroImage === "string" ? heroImage.trim() : "";
   if (!trimmed) return STATIC_HERO_FALLBACK;
   if (trimmed.includes(DEAD_HERO_IMAGE_SUBSTR)) return STATIC_HERO_FALLBACK;
   return trimmed;
 }
-
-/** Hero primary CTA: brand gold outline on dark hero (overrides `Button` secondary defaults). */
-const heroCtaGoldOutlineClassName =
-  "h-14 w-full rounded-sm border border-brand-gold bg-brand-gold/15 px-8 font-sans text-base font-medium uppercase tracking-widest text-white shadow-sm transition-[background-color,border-color,transform,box-shadow] duration-200 ease-out hover:border-brand-gold hover:bg-brand-gold/25 focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950 motion-safe:active:scale-[0.98] sm:w-auto lg:h-16 lg:px-12 lg:text-lg";
-
-/** Hero secondary CTA: white outline, same scale/type as primary outline. */
-const heroCtaWhiteOutlineClassName =
-  "h-14 w-full rounded-sm border border-white/80 bg-white/5 px-8 font-sans text-base font-medium uppercase tracking-widest text-white shadow-sm transition-[background-color,border-color,transform,box-shadow] duration-200 ease-out hover:border-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950 motion-safe:active:scale-[0.98] sm:w-auto lg:h-16 lg:px-12 lg:text-lg";
 
 function FeaturedSlotPlaceholder({ title, body, href }: { title: string; body: string; href: string }) {
   return (
@@ -107,27 +101,7 @@ export default async function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-r from-gray-950/40 via-transparent to-gray-950/40" />
         </div>
         <Container className="relative z-10 flex min-h-0 flex-1 flex-col justify-start py-16 max-md:pt-36 max-md:pb-20 md:justify-center md:py-28 lg:py-32">
-          <div className="mx-auto max-w-5xl text-center">
-            <p className="text-sm font-light uppercase tracking-[0.2em] text-blue-200/90 md:text-base">
-              Your luxury far north experience
-            </p>
-            <h1 className="mx-auto mt-3 max-w-5xl font-serif text-4xl font-normal tracking-tight leading-[1.08] text-white md:mt-10 md:text-5xl md:leading-[1.06] lg:text-6xl xl:text-7xl">
-              Exclusive Luxury Experiences &amp; Tours in Cairns &amp; Tropical North Queensland
-            </h1>
-            <p className="mx-auto mt-8 max-w-5xl text-base font-light leading-relaxed text-blue-100/95 md:mt-10 md:text-xl md:leading-relaxed">
-              At Cairns Luxury Guides, we specialise in crafting unforgettable, one-of-a-kind experiences in Tropical
-              North Queensland. Our commitment to luxury goes beyond standard tours, offering exclusive, curated
-              adventures that connect you to the breathtaking beauty and hidden gems of this stunning region.
-            </p>
-            <div className="mt-8 flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-4 md:mt-10">
-              <Button asChild variant="secondary" size="lg" className={heroCtaGoldOutlineClassName}>
-                <Link href="/tours">View tours</Link>
-              </Button>
-              <Button asChild variant="secondary" size="lg" className={heroCtaWhiteOutlineClassName}>
-                <Link href="/availability">Check availability</Link>
-              </Button>
-            </div>
-          </div>
+          <HeroContent />
         </Container>
       </section>
 

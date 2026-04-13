@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 
 import "./globals.css";
 
 import { brandFaviconPath } from "@/lib/branding";
 import { AppProviders } from "@/components/providers/app-providers";
 
-const inter = Inter({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-AU" className={`${inter.variable} ${playfairDisplayItalic.variable}`}>
+    <html lang="en-AU" className={`${plusJakartaSans.variable} ${playfairDisplayItalic.variable}`}>
       <body className="min-h-screen font-sans">
         <AppProviders>{children}</AppProviders>
       </body>

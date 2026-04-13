@@ -21,6 +21,7 @@ const SCROLL_THRESHOLD_PX = 12;
 const LOGO_FULL_CLASS =
   "h-auto max-h-24 w-auto max-w-[min(240px,calc(100vw-6.5rem))] object-contain object-left sm:max-w-[min(300px,calc(100vw-7rem))] lg:max-h-28 lg:max-w-[min(480px,42vw)]";
 const links = [
+  { href: "/", label: "Home" },
   { href: "/tours", label: "Tours" },
   { href: "/availability", label: "Availability" },
   { href: "/private-tours", label: "Private tours" },
@@ -49,6 +50,7 @@ const DRAWER_MAIN_LINK_STAGGER = [
   "motion-safe:delay-100",
   "motion-safe:delay-150",
   "motion-safe:delay-200",
+  "motion-safe:delay-[250ms]",
 ] as const;
 
 const DRAWER_POLICY_STAGGER = [
@@ -105,10 +107,7 @@ export function Navbar() {
           />
         </Link>
         <nav
-          className={cn(
-            "hidden items-center gap-5 font-sans text-sm font-medium uppercase tracking-widest lg:flex lg:gap-7 lg:text-base",
-            overHero ? "text-white/80" : "text-brand-heading"
-          )}
+          className="hidden items-center gap-5 font-sans text-lg font-semibold uppercase tracking-widest lg:flex lg:gap-7"
           aria-label="Main"
         >
           {links.map((l) => {
@@ -122,11 +121,11 @@ export function Navbar() {
                   "whitespace-nowrap transition-[color,transform] duration-200 ease-out motion-safe:hover:-translate-y-px motion-safe:active:scale-[0.98]",
                   overHero
                     ? isActive
-                      ? "text-white hover:text-white hover:underline"
-                      : "text-white/80 hover:text-white hover:underline"
+                      ? "text-brand-gold hover:text-brand-gold"
+                      : "text-white/80 hover:text-brand-gold"
                     : isActive
-                      ? "text-brand-accent hover:text-brand-accent hover:underline"
-                      : "text-brand-heading hover:text-brand-accent hover:underline"
+                      ? "text-brand-gold hover:text-brand-gold"
+                      : "text-brand-heading hover:text-brand-gold"
                 )}
               >
                 {l.label}
@@ -140,7 +139,7 @@ export function Navbar() {
             variant="primary"
             size="sm"
             className={cn(
-              "hidden h-12 rounded-sm border-0 px-5 font-sans text-sm font-medium uppercase tracking-widest shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:shadow-md motion-safe:active:scale-[0.98] sm:inline-flex lg:text-base",
+              "hidden h-auto min-h-0 rounded-sm border-0 px-5 py-2 font-sans text-lg font-semibold uppercase tracking-widest shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:shadow-md motion-safe:active:scale-[0.98] sm:inline-flex",
               navBookTourClassName
             )}
           >
@@ -155,7 +154,7 @@ export function Navbar() {
                 className={cn(
                   "lg:hidden h-11 w-11 shrink-0 rounded-sm border p-0 transition-[background-color,border-color,color,transform] duration-200 ease-out motion-safe:active:scale-95",
                   overHero &&
-                    "border-white/35 bg-white/10 text-white hover:bg-white/20 hover:text-white focus-visible:ring-white/40"
+                  "border-white/35 bg-white/10 text-white hover:bg-white/20 hover:text-white focus-visible:ring-white/40"
                 )}
                 aria-label="Open menu"
               >
@@ -185,10 +184,10 @@ export function Navbar() {
                       className={cn(
                         DRAWER_ENTER,
                         DRAWER_MAIN_LINK_STAGGER[index] ?? "motion-safe:delay-200",
-                        "rounded-xl px-3 py-3 font-sans text-sm font-medium uppercase tracking-widest transition-[background-color,color,transform] duration-200 ease-out motion-safe:active:scale-[0.99]",
+                        "rounded-xl px-3 py-3 font-sans text-lg font-semibold uppercase tracking-widest transition-[background-color,color,transform] duration-200 ease-out motion-safe:active:scale-[0.99]",
                         isActive
-                          ? "bg-brand-accent-soft text-brand-accent hover:bg-brand-accent-soft hover:underline"
-                          : "text-brand-heading hover:bg-brand-accent-soft hover:text-brand-accent hover:underline active:bg-brand-accent-soft"
+                          ? "bg-brand-accent-soft text-brand-gold hover:bg-brand-accent-soft"
+                          : "text-brand-heading hover:bg-brand-accent-soft hover:text-brand-gold active:bg-brand-accent-soft"
                       )}
                     >
                       {l.label}
@@ -222,10 +221,10 @@ export function Navbar() {
                       className={cn(
                         DRAWER_ENTER,
                         DRAWER_POLICY_STAGGER[index] ?? "motion-safe:delay-[300ms]",
-                        "rounded-xl px-3 py-3 font-sans text-sm font-medium uppercase tracking-widest transition-[background-color,color,transform] duration-200 ease-out motion-safe:active:scale-[0.99]",
+                        "rounded-xl px-3 py-3 font-sans text-lg font-semibold uppercase tracking-widest transition-[background-color,color,transform] duration-200 ease-out motion-safe:active:scale-[0.99]",
                         isActive
-                          ? "bg-brand-accent-soft text-brand-accent hover:bg-brand-accent-soft hover:underline"
-                          : "text-brand-heading hover:bg-brand-accent-soft hover:text-brand-accent hover:underline active:bg-brand-accent-soft"
+                          ? "bg-brand-accent-soft text-brand-gold hover:bg-brand-accent-soft"
+                          : "text-brand-heading hover:bg-brand-accent-soft hover:text-brand-gold active:bg-brand-accent-soft"
                       )}
                     >
                       {l.label}
@@ -237,7 +236,7 @@ export function Navbar() {
                 asChild
                 variant="primary"
                 className={cn(
-                  "mt-6 h-12 w-full shrink-0 rounded-sm border-0 px-5 font-sans text-sm font-semibold uppercase tracking-widest shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:shadow-md motion-safe:active:scale-[0.98] lg:text-base",
+                  "mt-6 h-auto min-h-0 w-full shrink-0 rounded-sm border-0 px-5 py-2 font-sans text-lg font-semibold uppercase tracking-widest shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:shadow-md motion-safe:active:scale-[0.98]",
                   navBookTourClassName,
                   DRAWER_ENTER,
                   "motion-safe:delay-[340ms]"

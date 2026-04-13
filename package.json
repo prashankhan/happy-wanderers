@@ -32,6 +32,7 @@
     "date-fns-tz": "^3.2.0",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.38.3",
+    "framer-motion": "^12.38.0",
     "lucide-react": "^0.468.0",
     "nanoid": "^5.0.9",
     "next": "16.2.3",

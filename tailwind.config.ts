@@ -33,7 +33,7 @@ const config: Config = {
       },
       fontFamily: {
         serif: ["var(--font-serif)", "ui-serif", "Georgia", "serif"],
-        sans: ["var(--font-sans)", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", '"Plus Jakarta Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
       },
       maxWidth: {
         container: "80rem",
