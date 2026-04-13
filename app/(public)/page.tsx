@@ -27,6 +27,7 @@ const STATIC_HERO_FALLBACK =
 const DEAD_HERO_IMAGE_SUBSTR = "1511497584788";
 
 import { HeroContent } from "@/components/marketing/hero-content";
+import { CredibilityBar } from "@/components/marketing/credibility-bar";
 
 function resolveHeroPhotoSrc(heroImage: string | null | undefined): string {
   const trimmed = typeof heroImage === "string" ? heroImage.trim() : "";
@@ -73,19 +74,12 @@ export default async function HomePage() {
     },
   ].slice(0, fillerCount);
 
-  const credibility = [
-    { label: "Local expert guides", icon: MapPin },
-    { label: "Small-group experiences", icon: Users },
-    { label: "Flexible booking policies", icon: Shield },
-    { label: "Real-time availability", icon: Sunrise },
-  ];
-
   const trustChips = ["Secure booking", "Local operators", "Instant confirmation", "Real-time availability"];
 
   return (
     <>
       <section
-        className={`relative left-1/2 right-1/2 -mx-[50vw] flex min-h-dvh w-screen flex-col border-b border-brand-border/80 bg-gray-950 ${publicHeroUnderFixedNavClass}`}
+        className={`relative left-1/2 right-1/2 -mx-[50vw] flex min-h-dvh w-screen flex-col bg-gray-950 ${publicHeroUnderFixedNavClass}`}
       >
         <div className="absolute inset-0 min-h-full">
           <Image
@@ -105,20 +99,7 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      <section className="border-b border-brand-border bg-brand-surface-soft py-12 md:py-14">
-        <Container>
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-8 md:justify-between lg:gap-x-12">
-            {credibility.map(({ label, icon: Icon }) => (
-              <div key={label} className="flex max-w-[220px] items-center gap-3 text-sm font-medium text-brand-heading">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand-accent-soft text-brand-accent">
-                  <Icon className="h-5 w-5" aria-hidden />
-                </span>
-                <span className="leading-snug">{label}</span>
-              </div>
-            ))}
-          </div>
-        </Container>
-      </section>
+      <CredibilityBar />
 
       <section className="py-24 md:py-32">
         <Container>
