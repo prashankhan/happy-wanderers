@@ -28,7 +28,7 @@ function cellClass(d: DayPayload): string {
   }
   const low = d.total_capacity > 0 && d.remaining_capacity / d.total_capacity <= 0.25;
   if (low) return "bg-amber-400 text-gray-900";
-  return "bg-green-500 text-white";
+  return "bg-emerald-600 text-white";
 }
 
 export interface PublicAvailabilityCalendarProps {
@@ -44,6 +44,8 @@ export interface PublicAvailabilityCalendarProps {
    */
   month?: string;
   onMonthChange?: (ym: string) => void;
+  /** `default` shows full legend; `compact` hides legend (e.g. booking sidebar). */
+  variant?: "default" | "compact";
 }
 
 export function PublicAvailabilityCalendar({
@@ -54,6 +56,7 @@ export function PublicAvailabilityCalendar({
   initialMonth,
   month: controlledMonth,
   onMonthChange,
+  variant = "default",
 }: PublicAvailabilityCalendarProps) {
   const thisMonthKey = format(startOfMonth(new Date()), "yyyy-MM");
   const maxMonthKey = format(addMonths(startOfMonth(new Date()), 24), "yyyy-MM");
@@ -120,6 +123,8 @@ export function PublicAvailabilityCalendar({
   const canGoPrev = effectiveMonth > thisMonthKey;
   const canGoNext = effectiveMonth < maxMonthKey;
 
+  const showLegend = variant !== "compact";
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
@@ -148,8 +153,28 @@ export function PublicAvailabilityCalendar({
             →
           </Button>
         </div>
-        {loading ? <span className="shrink-0">Loading…</span> : <span className="shrink-0">{days.filter((d) => d.available).length} open days</span>}
+        {loading ? (
+          <span className="shrink-0">Loading…</span>
+        ) : (
+          <span className="shrink-0">{days.filter((d) => d.available).length} open days</span>
+        )}
       </div>
+      {showLegend ? (
+        <div className="flex flex-wrap gap-x-4 gap-y-2 rounded-xl border border-gray-100 bg-gray-50/90 px-3 py-2.5 text-[11px] font-medium text-gray-600">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm bg-emerald-600" /> Available
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm bg-amber-400" /> Low seats
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm bg-red-500" /> Sold out
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm bg-gray-500" /> Cut-off passed
+          </span>
+        </div>
+      ) : null}
       <div className="grid grid-cols-7 gap-2 text-center text-xs">
         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
           <div key={d} className="font-medium text-gray-500">
@@ -161,18 +186,20 @@ export function PublicAvailabilityCalendar({
           if (!dateStr) return <div key={`e-${idx}`} />;
           const d = byDate.get(dateStr);
           const isSel = selectedDate === dateStr;
+          const clickable = Boolean(d && d.available && !d.cutoff_passed);
           return (
             <button
               key={dateStr}
               type="button"
-              disabled={!d || !d.available || d.cutoff_passed}
+              disabled={!clickable}
               onClick={() => {
                 if (d && d.available && !d.cutoff_passed) onSelectDate(dateStr);
               }}
               className={cn(
-                "flex h-10 items-center justify-center rounded-lg text-xs font-medium transition",
+                "flex h-10 items-center justify-center rounded-lg text-xs font-medium transition duration-150",
                 d ? cellClass(d) : "bg-gray-100 text-gray-400",
-                isSel && "ring-2 ring-blue-900 ring-offset-2"
+                isSel && "ring-2 ring-blue-900 ring-offset-2",
+                clickable && "cursor-pointer hover:brightness-110 hover:ring-2 hover:ring-white/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-900"
               )}
             >
               {Number(dateStr.slice(8, 10))}
@@ -180,8 +207,9 @@ export function PublicAvailabilityCalendar({
           );
         })}
       </div>
-      <p className="text-xs text-gray-500">
-        Colours reflect live capacity and cutoff (Australia/Brisbane). Orange indicates limited seats.
+      <p className="text-xs leading-relaxed text-gray-500">
+        All departures use operator time in <span className="font-medium text-gray-700">Australia/Brisbane</span>.
+        {showLegend ? " Orange indicates limited remaining seats." : null}
       </p>
     </div>
   );

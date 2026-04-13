@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Lock, ShieldCheck, Zap } from "lucide-react";
 import { useState } from "react";
 
+import { PublicAvailabilityCalendar } from "@/components/calendar/public-availability-calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PublicAvailabilityCalendar } from "@/components/calendar/public-availability-calendar";
 
 export function BookingFormClient({
   tourId,
@@ -37,6 +38,8 @@ export function BookingFormClient({
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const pickupLabel = pickups.find((p) => p.id === departureId)?.name ?? "—";
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -78,16 +81,16 @@ export function BookingFormClient({
   }
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
+    <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
       <form onSubmit={onSubmit} className="space-y-10">
-        <Card>
-          <CardHeader>
+        <Card className="shadow-md ring-1 ring-gray-900/[0.03]">
+          <CardHeader className="border-b border-gray-100">
             <CardTitle className="font-serif text-xl">Date &amp; pickup</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">Pickup location</label>
+          <CardContent className="space-y-4 pt-6">
+            <label className="block text-sm font-medium text-gray-800">Pickup location</label>
             <select
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm"
+              className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm shadow-sm transition focus:border-blue-900/30 focus:outline-none focus:ring-2 focus:ring-blue-900/15"
               value={departureId ?? ""}
               onChange={(e) => setDepartureId(e.target.value || undefined)}
             >
@@ -103,21 +106,22 @@ export function BookingFormClient({
               initialMonth={initialMonth}
               selectedDate={date}
               onSelectDate={setDate}
+              variant="compact"
             />
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
+        <Card className="shadow-md ring-1 ring-gray-900/[0.03]">
+          <CardHeader className="border-b border-gray-100">
             <CardTitle className="font-serif text-xl">Guests</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-3">
+          <CardContent className="grid gap-4 pt-6 sm:grid-cols-3">
             <label className="text-sm">
               <span className="font-medium text-gray-700">Adults</span>
               <input
                 type="number"
                 min={1}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
                 value={adults}
                 onChange={(e) => setAdults(Number(e.target.value))}
               />
@@ -127,7 +131,7 @@ export function BookingFormClient({
               <input
                 type="number"
                 min={0}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
                 value={children}
                 onChange={(e) => setChildren(Number(e.target.value))}
               />
@@ -137,7 +141,7 @@ export function BookingFormClient({
               <input
                 type="number"
                 min={0}
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
                 value={infants}
                 onChange={(e) => setInfants(Number(e.target.value))}
               />
@@ -146,16 +150,16 @@ export function BookingFormClient({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
+        <Card className="shadow-md ring-1 ring-gray-900/[0.03]">
+          <CardHeader className="border-b border-gray-100">
             <CardTitle className="font-serif text-xl">Your details</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
+          <CardContent className="grid gap-4 pt-6 md:grid-cols-2">
             <label className="text-sm md:col-span-1">
               <span className="font-medium text-gray-700">First name</span>
               <input
                 required
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
               />
@@ -164,7 +168,7 @@ export function BookingFormClient({
               <span className="font-medium text-gray-700">Last name</span>
               <input
                 required
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
               />
@@ -174,7 +178,7 @@ export function BookingFormClient({
               <input
                 required
                 type="email"
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -183,7 +187,7 @@ export function BookingFormClient({
               <span className="font-medium text-gray-700">Phone</span>
               <input
                 required
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
@@ -191,7 +195,7 @@ export function BookingFormClient({
             <label className="text-sm md:col-span-2">
               <span className="font-medium text-gray-700">Notes (optional)</span>
               <textarea
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 shadow-sm"
                 rows={3}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
@@ -213,19 +217,48 @@ export function BookingFormClient({
       </form>
 
       <aside className="lg:sticky lg:top-28">
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-serif text-lg">Summary</CardTitle>
+        <div className="mb-4 flex flex-wrap gap-2 text-[11px] font-medium text-gray-600">
+          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 shadow-sm">
+            <Lock className="h-3 w-3 text-blue-900" aria-hidden />
+            Secure checkout
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 shadow-sm">
+            <Zap className="h-3 w-3 text-amber-600" aria-hidden />
+            Instant confirmation
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 shadow-sm">
+            <ShieldCheck className="h-3 w-3 text-emerald-700" aria-hidden />
+            Live availability
+          </span>
+        </div>
+        <Card className="border-gray-100 shadow-lg ring-1 ring-gray-900/[0.04]">
+          <CardHeader className="border-b border-gray-100 pb-4">
+            <CardTitle className="font-serif text-lg">Departure summary</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm text-gray-600">
+          <CardContent className="space-y-4 pt-5 text-sm text-gray-600">
             <p className="font-medium text-gray-900">{tourTitle}</p>
-            <p>Date: {date ?? "—"}</p>
-            <p>
-              Guests: {adults + children + infants} total ({adults}A / {children}C / {infants}I)
-            </p>
-            <p className="text-xs text-gray-500">
-              Pricing is locked from live rules at checkout creation and matches what you pay in Stripe.
-            </p>
+            <dl className="space-y-3 rounded-xl border border-gray-100 bg-gray-50/90 p-4">
+              <div className="flex justify-between gap-4">
+                <dt className="text-gray-500">Selected date</dt>
+                <dd className="text-right font-medium text-gray-900">{date ?? "—"}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-gray-500">Pickup</dt>
+                <dd className="text-right font-medium text-gray-900">{pickupLabel}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-gray-500">Guests</dt>
+                <dd className="text-right font-medium text-gray-900">
+                  {adults + children + infants} total ({adults}A / {children}C / {infants}I)
+                </dd>
+              </div>
+            </dl>
+            <div className="rounded-xl border border-dashed border-gray-200 bg-white/80 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Price summary</p>
+              <p className="mt-2 text-sm leading-relaxed text-gray-600">
+                Final pricing is calculated when you continue — locked from live rules at checkout and matching Stripe.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </aside>

@@ -2,40 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Canela is a licensed font — add WOFF2 files under /public/fonts/canela/ (see filenames below). */
-@font-face {
-  font-family: "Canela";
-  src: url("/fonts/canela/CanelaDeck-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Canela";
-  src: url("/fonts/canela/CanelaDeck-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Canela";
-  src: url("/fonts/canela/CanelaDeck-Bold.woff2") format("woff2");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
+/* Serif display: Playfair Display italic — loaded via next/font in app/layout.tsx (--font-serif). */
 
 @layer base {
   :root {
     --background: 249 250 251;
     --foreground: 17 24 39;
-    /* Headings: Canela when font files exist; otherwise Georgia reads close for layout */
-    --font-serif: "Canela", ui-serif, Georgia, "Times New Roman", serif;
   }
 
   body {
     @apply bg-gray-50 text-gray-900 antialiased;
+    line-height: 1.6;
   }
+}
+
+/**
+ * All `font-serif` usage is for display headings — keep Playfair italic-only
+ * so we never request the non-italic cuts from Google.
+ */
+.font-serif {
+  font-style: italic;
 }
