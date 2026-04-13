@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { BadgeCheck } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
 /** Hero primary CTA: solid brand gold (aligned with nav Book CTA). */
@@ -17,7 +17,7 @@ const heroCtaWhiteFillClassName =
 const heroTrustPointers = ["Designed around you", "Guided with care", "Beyond the expected"] as const;
 
 // Framer motion variants for an elegant entrance
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -28,7 +28,7 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 15 },
   show: {
     opacity: 1,
