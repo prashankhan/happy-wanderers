@@ -1,123 +1,112 @@
-import Image from "next/image";
 import Link from "next/link";
-import { BadgeCheck, Mail, MapPin } from "lucide-react";
-
 import { Container } from "@/components/layout/container";
-import { brandLogoPath } from "@/lib/branding";
 
 export function Footer() {
   const year = new Date().getFullYear();
 
+  const destinations = [
+    { label: "Cairns", href: "/tours?location=cairns" },
+    { label: "Port Douglas", href: "/tours?location=port-douglas" },
+    { label: "Daintree", href: "/tours?location=daintree" },
+    { label: "Rainforest", href: "/tours?category=rainforest" },
+  ];
+
+  const explore = [
+    { label: "Signature Departures", href: "/tours" },
+    { label: "Private Charters", href: "/private-tours" },
+    { label: "Book a tour", href: "/booking", highlight: true },
+    { label: "Our Philosophy", href: "/about" },
+  ];
+
+  const legal = [
+    { label: "Cancellation Policy", href: "/cancellation-policy" },
+    { label: "Terms of Service", href: "/terms" },
+    { label: "Privacy Policy", href: "/privacy" },
+  ];
+
   return (
-    <footer className="border-t border-brand-border bg-brand-surface-soft py-20 md:py-24">
-      <Container className="grid gap-14 lg:grid-cols-12">
-        <div className="space-y-5 lg:col-span-4">
-          <Image
-            src={brandLogoPath}
-            alt="Happy Wanderers"
-            width={180}
-            height={50}
-            className="h-9 w-auto max-w-[160px] object-contain object-left"
-          />
-          <p className="max-w-md text-sm leading-relaxed text-brand-body">
-            Premium rainforest experiences across{" "}
-            <span className="font-medium text-brand-heading">Cairns, Port Douglas &amp; the Daintree</span> — scheduled
-            departures, private charters, and transparent live availability.
-          </p>
-          <div className="flex flex-wrap gap-3 text-xs font-medium text-brand-body">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-border bg-brand-surface px-3 py-1.5 shadow-sm">
-              <BadgeCheck className="h-3.5 w-3.5 text-availability-open" aria-hidden />
-              Secure booking
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-border bg-brand-surface px-3 py-1.5 shadow-sm">
-              <MapPin className="h-3.5 w-3.5 text-brand-accent" aria-hidden />
-              Local operators
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-border bg-brand-surface px-3 py-1.5 shadow-sm">
-              <BadgeCheck className="h-3.5 w-3.5 text-brand-gold" aria-hidden />
-              Instant confirmation
-            </span>
+    <footer className="bg-brand-heading text-white selection:bg-brand-primary/30">
+      {/* Top Section: Architectural Columns */}
+      <Container className="py-24 md:py-32">
+        <div className="grid gap-x-20 gap-y-16 lg:grid-cols-12">
+          
+          {/* Column 1: Destinations */}
+          <div className="lg:col-span-4 space-y-8">
+            <p className="text-base font-bold uppercase tracking-normal text-white/40">Destinations</p>
+            <nav className="flex flex-col gap-3">
+              {destinations.map((item) => (
+                <Link 
+                  key={item.label}
+                  href={item.href}
+                  className="group block text-2xl font-bold tracking-tight transition-all hover:text-brand-primary cursor-pointer"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
           </div>
-        </div>
 
-        <div className="grid gap-10 sm:grid-cols-2 lg:col-span-5 lg:grid-cols-3">
-          <div className="space-y-4 text-sm">
-            <p className="text-xs font-semibold uppercase tracking-widest text-brand-heading">Explore</p>
-            <ul className="space-y-3 text-brand-muted">
-              <li>
-                <Link href="/tours" className="transition hover:text-brand-accent hover:underline">
-                  Tours
+          {/* Column 2: Explore */}
+          <div className="lg:col-span-4 space-y-8">
+            <p className="text-base font-bold uppercase tracking-normal text-white/40">Explore</p>
+            <nav className="flex flex-col gap-3">
+              {explore.map((item) => (
+                <Link 
+                  key={item.label}
+                  href={item.href}
+                  className={`group block text-2xl font-bold tracking-tight transition-all hover:text-brand-primary cursor-pointer ${item.highlight ? 'text-brand-primary' : ''}`}
+                >
+                  {item.label}
                 </Link>
-              </li>
-              <li>
-                <Link href="/availability" className="transition hover:text-brand-accent hover:underline">
-                  Availability
-                </Link>
-              </li>
-              <li>
-                <Link href="/private-tours" className="transition hover:text-brand-accent hover:underline">
-                  Private tours
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="transition hover:text-brand-accent hover:underline">
-                  About
-                </Link>
-              </li>
-            </ul>
+              ))}
+            </nav>
           </div>
-          <div className="space-y-4 text-sm">
-            <p className="text-xs font-semibold uppercase tracking-widest text-brand-heading">Policies</p>
-            <ul className="space-y-3 text-brand-muted">
-              <li>
-                <Link href="/privacy" className="transition hover:text-brand-accent hover:underline">
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="transition hover:text-brand-accent hover:underline">
-                  Terms
-                </Link>
-              </li>
-              <li>
-                <Link href="/cancellation-policy" className="transition hover:text-brand-accent hover:underline">
-                  Cancellation Policy
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div className="space-y-4 text-sm">
-            <p className="text-xs font-semibold uppercase tracking-widest text-brand-heading">Contact</p>
-            <ul className="space-y-3 text-brand-muted">
-              <li>
-                <Link href="/contact" className="transition hover:text-brand-accent hover:underline">
-                  Contact form
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
 
-        <div className="rounded-2xl border border-brand-border bg-brand-surface p-6 shadow-sm lg:col-span-3">
-          <p className="text-xs font-semibold uppercase tracking-widest text-brand-heading">Quick contact</p>
-          <p className="mt-4 flex items-start gap-2 text-sm leading-relaxed text-brand-body">
-            <Mail className="mt-0.5 h-4 w-4 shrink-0 text-brand-accent" aria-hidden />
-            <span>
-              Bespoke departures, accessibility, and day-of coordination — reach us via the{" "}
-              <Link href="/contact" className="font-medium text-brand-accent underline-offset-2 hover:underline">
-                contact form
-              </Link>
-              . We read every message.
-            </span>
-          </p>
+          {/* Column 3: Legal */}
+          <div className="lg:col-span-4 space-y-8">
+            <p className="text-base font-bold uppercase tracking-normal text-white/40">Legal</p>
+            <nav className="flex flex-col gap-3">
+              {legal.map((item) => (
+                <Link 
+                  key={item.label}
+                  href={item.href}
+                  className="group block text-2xl font-bold tracking-tight transition-all hover:text-brand-primary cursor-pointer"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+
         </div>
       </Container>
 
-      <Container className="mt-16 border-t border-brand-border pt-8">
-        <p className="text-center text-xs leading-relaxed text-brand-muted">
-          © {year} Happy Wanderers · Rainforest tours · Cairns &amp; Daintree region · ABN on request.
-        </p>
-      </Container>
+      {/* Brand Sign-off background element */}
+      <div className="relative overflow-hidden pointer-events-none select-none">
+         <p className="text-[15vw] font-bold leading-none tracking-tighter text-white/[0.02] absolute -bottom-[4vw] left-0 w-full text-center whitespace-nowrap">
+            HAPPY WANDERERS
+         </p>
+      </div>
+
+      {/* Final Stripe */}
+      <div className="border-t border-white/5 bg-black/10 py-10">
+        <Container className="flex flex-col items-center justify-between gap-6 md:flex-row">
+          <p className="text-sm font-bold tracking-normal text-white/30 uppercase text-center md:text-left">
+             © {year} Happy Wanderers. Cairns & Daintree Region.
+          </p>
+          <p className="text-sm font-bold tracking-normal text-white/30 uppercase text-center md:text-right">
+            Developed by{" "}
+            <a 
+              href="https://chanmax.io" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-white/50 transition-colors hover:text-brand-primary cursor-pointer"
+            >
+              Chanmax
+            </a>
+          </p>
+        </Container>
+      </div>
     </footer>
   );
 }

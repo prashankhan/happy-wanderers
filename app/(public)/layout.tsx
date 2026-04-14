@@ -8,7 +8,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   return (
     <>
       <Navbar />
-      <main className={publicMainNavTopPaddingClass}>{children}</main>
+      <main>{children}</main>
       <Footer />
     </>
   );

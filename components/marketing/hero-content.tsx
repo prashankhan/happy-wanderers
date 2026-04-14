@@ -71,13 +71,13 @@ export function HeroContent() {
       >
         <Link 
           href="/tours" 
-          className="group inline-flex items-center justify-center rounded-md bg-brand-primary px-10 py-3.5 text-xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-md"
+          className="group inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-md active:scale-[0.98]"
         >
           View all tours
         </Link>
         <Link 
           href="/availability" 
-          className="group inline-flex items-center justify-center rounded-md bg-white px-10 py-3.5 text-xl font-bold tracking-tight text-brand-heading transition-all hover:bg-white/90 hover:shadow-md"
+          className="group inline-flex items-center justify-center rounded-sm border border-white/30 bg-white/5 px-14 py-5 text-2xl font-bold tracking-tight text-white backdrop-blur-sm transition-all hover:bg-white/15 hover:border-white/50 active:scale-[0.98]"
         >
           Check availability
         </Link>

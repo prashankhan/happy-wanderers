@@ -1,17 +1,11 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { BadgeCheck, Globe2, HeartHandshake, MapPin, Shield } from "lucide-react";
+"use client";
 
-import { TestimonialStrip } from "@/components/marketing/testimonials";
 import { Container } from "@/components/layout/container";
-import { Button } from "@/components/ui/button";
-import { publicHeroUnderFixedNavClass } from "@/lib/layout/public-nav-offset";
-
-export const metadata: Metadata = {
-  title: "About",
-  description:
-    "Happy Wanderers — premium small-group and private rainforest tours from Cairns & the Daintree. Operator story, philosophy, and service area.",
-};
+import { PageHeader } from "@/components/layout/page-header";
+import { TestimonialSection } from "@/components/marketing/testimonial-section";
+import { motion } from "framer-motion";
+import { BadgeCheck, Globe2, HeartHandshake, MapPin, Shield } from "lucide-react";
+import Link from "next/link";
 
 const pillars = [
   {
@@ -32,132 +26,151 @@ const pillars = [
 ];
 
 export default function AboutPage() {
-  return (
-    <>
-      <section
-        className={`relative left-1/2 right-1/2 -mx-[50vw] w-screen border-b border-brand-border bg-gradient-to-br from-gray-950 via-blue-950 to-gray-900 ${publicHeroUnderFixedNavClass}`}
-      >
-        <Container className="py-24 md:py-32">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold/90">About Happy Wanderers</p>
-          <h1 className="mt-6 max-w-4xl font-serif text-4xl font-semibold leading-tight text-white md:text-5xl lg:text-6xl">
-            A rainforest operator built on calm logistics and generous field craft
-          </h1>
-          <p className="mt-8 max-w-2xl text-lg leading-relaxed text-blue-100/95 md:text-xl">
-            We are not a marketplace — we are a focused team running scheduled and private departures across Cairns and
-            the Daintree with transparent availability and Stripe-secured checkout.
-          </p>
-        </Container>
-      </section>
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
 
-      <section className="border-b border-brand-border bg-brand-surface-warm py-20 md:py-28">
-        <Container className="max-w-3xl">
-          <h2 className="font-serif text-2xl font-semibold text-brand-heading md:text-3xl">Our story</h2>
-          <div className="mt-8 space-y-6 text-base leading-[1.75] text-brand-body md:text-lg">
-            <p>
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 50, damping: 20 } },
+  };
+
+  return (
+    <div className="bg-brand-surface">
+      <PageHeader 
+        label="About Happy Wanderers"
+        title="Rainforest departures built on calm logistics"
+        description="We are a focused team running scheduled and private departures across Cairns and the Daintree with transparent availability and operator-level craft."
+        breadcrumb={[{ label: "About" }]}
+      />
+
+      {/* Narrative Section */}
+      <section className="py-24 md:py-32">
+        <Container className="grid gap-16 lg:grid-cols-12 lg:gap-24">
+          <div className="lg:col-span-5">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary mb-6">Our story</p>
+            <h2 className="font-serif text-4xl font-bold tracking-tight text-brand-heading">Built for the forest floor</h2>
+          </div>
+          <div className="lg:col-span-12 lg:mt-8 space-y-8 text-lg leading-[1.8] text-brand-body/90 font-medium tracking-tight">
+            <p className="max-w-4xl">
               Happy Wanderers began with a simple frustration: too many rainforest days felt rushed, over-scripted, or
               disconnected from the ecology guests had travelled to see. We built an operator model around senior
-              guides, small vehicles, and software that respects capacity and cutoffs in real time — so the morning of
-              travel feels composed, not improvised.
+              guides, small vehicles, and software that respects capacity in real time.
             </p>
-            <p>
-              Today we host guests from across Australia and the world who want premium pacing without pretence — where
-              &ldquo;luxury&rdquo; means silence on the trail, honest briefings, and pickups that arrive when we say they will.
+            <p className="max-w-4xl">
+              Today we host guests from across the world who want premium pacing without pretence — where
+              &ldquo;luxury&rdquo; means silence on the trail, honest briefings, and pickups that arrive on schedule.
             </p>
           </div>
         </Container>
       </section>
 
-      <section className="border-y border-brand-border bg-brand-surface-soft py-20 md:py-28">
+      {/* Local Expertise / Highlights */}
+      <section className="bg-brand-surface-soft border-y border-brand-border py-24 md:py-32">
         <Container>
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-serif text-3xl font-semibold text-brand-heading md:text-4xl">Local expertise</h2>
-            <p className="mt-5 text-lg leading-relaxed text-brand-body">
+          <div className="mx-auto max-w-3xl text-center space-y-6">
+            <h2 className="font-serif text-4xl font-bold tracking-tight text-brand-heading">Local expertise</h2>
+            <p className="text-xl leading-relaxed text-brand-body/80 tracking-tight">
               Our guides live inside the rhythms of the Wet Tropics — weather windows, creek behaviour, and the ethics
-              of wildlife approach. That expertise is not performative; it shows up in route choice, rest timing, and
-              the stories we choose to tell.
+              of wildlife approach. Expertise that shows up in every route choice.
             </p>
           </div>
-        </Container>
-      </section>
-
-      <section className="border-b border-brand-border bg-brand-surface-warm py-20 md:py-28">
-        <Container>
-          <h2 className="mx-auto max-w-2xl text-center font-serif text-3xl font-semibold text-brand-heading md:text-4xl">
-            Experience philosophy
-          </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-center text-lg leading-relaxed text-brand-body">
-            We believe the Daintree rewards restraint — fewer words at the lookout, more attention at the creek line,
-            and logistics so smooth you forget they exist.
-          </p>
-          <div className="mt-16 grid gap-8 md:grid-cols-3">
+          
+          <div className="mt-20 grid gap-8 md:grid-cols-3">
             {pillars.map(({ icon: Icon, title, body }) => (
               <div
                 key={title}
-                className="rounded-2xl border border-brand-border bg-brand-surface p-8 text-left shadow-sm ring-1 ring-brand-heading/[0.03]"
+                className="group rounded-md border border-brand-border bg-white p-10 text-left transition-all hover:shadow-xl hover:ring-1 hover:ring-brand-border/80"
               >
-                <Icon className="h-8 w-8 text-brand-gold" aria-hidden />
-                <h3 className="mt-5 font-serif text-xl font-semibold text-brand-heading">{title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-brand-body">{body}</p>
+                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-brand-primary/5 text-brand-primary group-hover:scale-110 transition-transform">
+                  <Icon className="size-6" aria-hidden />
+                </div>
+                <h3 className="mt-8 text-xl font-bold tracking-tight text-brand-heading">{title}</h3>
+                <p className="mt-4 text-sm leading-relaxed text-brand-body/70">{body}</p>
               </div>
             ))}
           </div>
         </Container>
       </section>
 
-      <section className="border-t border-brand-border bg-brand-surface py-20 md:py-28">
-        <Container className="grid gap-12 lg:grid-cols-2 lg:items-center">
-          <div>
-            <h2 className="font-serif text-3xl font-semibold text-brand-heading md:text-4xl">Why travellers choose us</h2>
-            <ul className="mt-8 space-y-4 text-base leading-relaxed text-brand-body">
-              <li className="flex gap-3">
-                <BadgeCheck className="mt-1 h-5 w-5 shrink-0 text-availability-open" aria-hidden />
-                <span>Live availability and cutoffs tied to real pickup times — not brochure estimates.</span>
-              </li>
-              <li className="flex gap-3">
-                <BadgeCheck className="mt-1 h-5 w-5 shrink-0 text-availability-open" aria-hidden />
-                <span>Immutable booking snapshots after confirmation — what you booked is what the guide sees.</span>
-              </li>
-              <li className="flex gap-3">
-                <BadgeCheck className="mt-1 h-5 w-5 shrink-0 text-availability-open" aria-hidden />
-                <span>Private charters when you need the forest on your own terms — same operator standards.</span>
-              </li>
+      {/* Service Area & Features */}
+      <section className="py-24 md:py-32">
+        <Container className="grid gap-16 lg:grid-cols-2 lg:items-center lg:gap-24">
+          <div className="space-y-10">
+            <h2 className="font-serif text-4xl font-bold tracking-tight text-brand-heading">The service difference</h2>
+            <ul className="space-y-8">
+              {[
+                "Live availability and cutoffs tied to real pickup times — not estimates.",
+                "Immutable booking snapshots after confirmation — total clarity.",
+                "Private charters when you need the forest on your own terms.",
+              ].map((text, i) => (
+                <li key={i} className="flex gap-4">
+                  <BadgeCheck className="mt-1 size-6 shrink-0 text-availability-open" aria-hidden />
+                  <span className="text-lg font-medium tracking-tight text-brand-body">{text}</span>
+                </li>
+              ))}
             </ul>
           </div>
-          <div className="rounded-3xl border border-brand-border bg-brand-accent-soft p-10 shadow-inner ring-1 ring-brand-heading/[0.04]">
-            <div className="flex items-center gap-2 text-brand-accent">
-              <MapPin className="h-6 w-6" aria-hidden />
-              <h3 className="font-serif text-xl font-semibold text-brand-heading">Service area</h3>
+          
+          <div className="rounded-md border border-brand-border bg-brand-heading p-12 text-white shadow-2xl relative overflow-hidden group">
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 text-brand-primary">
+                <MapPin className="size-6" aria-hidden />
+                <h3 className="font-bold uppercase tracking-[0.2em] text-xs">Service area</h3>
+              </div>
+              <p className="mt-8 text-2xl font-bold tracking-tight">
+                Cairns, Port Douglas & the Daintree rainforest corridor.
+              </p>
+              <p className="mt-4 text-lg text-white/60 leading-relaxed">
+                Scheduled and private departures operate across regional access routes — exact pickup matrix
+                depends on the tour you select.
+              </p>
+              <Link 
+                href="/tours"
+                className="mt-10 inline-flex items-center justify-center rounded-md bg-brand-primary px-10 py-3.5 text-xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover active:scale-[0.98]"
+              >
+                View our tours
+              </Link>
             </div>
-            <p className="mt-4 text-base leading-relaxed text-brand-body">
-              Scheduled and private departures operate across the <strong className="font-medium text-brand-heading">Cairns</strong>{" "}
-              coast, <strong className="font-medium text-brand-heading">Port Douglas</strong> access routes, and the{" "}
-              <strong className="font-medium text-brand-heading">Daintree</strong> rainforest corridor — exact pickup matrix
-              depends on the tour you select.
-            </p>
-            <Button asChild variant="primary" className="mt-8">
-              <Link href="/tours">View tours</Link>
-            </Button>
+            {/* Subtle background accent */}
+            <div className="absolute -right-8 -bottom-8 size-48 bg-brand-primary/10 rounded-full blur-3xl pointer-events-none" />
           </div>
         </Container>
       </section>
 
-      <TestimonialStrip
-        heading="From the field"
-        intro="Verified guest quotes will replace these placeholders as we collect post-departure feedback."
-      />
+      {/* Testimonials */}
+      <div className="border-t border-brand-border">
+        <TestimonialSection />
+      </div>
 
-      <section className="border-t border-brand-border bg-brand-accent py-20 md:py-24">
-        <Container className="mx-auto max-w-3xl text-center">
-          <h2 className="font-serif text-3xl font-semibold text-white md:text-4xl">Speak with the team</h2>
-          <p className="mt-5 text-lg leading-relaxed text-white/90">
-            Planning a milestone trip, a private charter, or a multi-day combination? Send us a note — we respond
-            personally and will never hand you to a call centre script.
-          </p>
-          <Button asChild variant="primary" size="lg" className="mt-10">
-            <Link href="/contact">Contact</Link>
-          </Button>
+      {/* Final Contact Section */}
+      <section className="bg-brand-surface py-12 md:py-24 border-t border-brand-border">
+        <Container className="mx-auto max-w-4xl text-center">
+          <div className="space-y-8">
+            <h2 className="font-serif text-4xl font-bold tracking-tight text-brand-heading md:text-5xl lg:text-6xl italic">
+              Speak with the team
+            </h2>
+            <p className="text-xl leading-relaxed text-brand-body/80 font-medium tracking-tight max-w-3xl mx-auto">
+              Planning a milestone trip or a private charter? Send us a note. 
+              We respond personally—no scripts, just field expertise.
+            </p>
+            <div className="pt-6">
+              <Link 
+                href="/contact"
+                className="inline-flex items-center justify-center rounded-md bg-brand-primary px-12 py-4 text-xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-lg active:scale-[0.98]"
+              >
+                Contact us
+              </Link>
+            </div>
+          </div>
         </Container>
       </section>
-    </>
+    </div>
   );
 }

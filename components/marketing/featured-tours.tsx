@@ -66,7 +66,7 @@ export function FeaturedTours({ tours }: FeaturedToursProps) {
         >
           <Link
             href="/tours"
-            className="group inline-flex items-center justify-center rounded-md bg-black/5 px-4 py-3.5 text-xl font-bold tracking-tight text-brand-primary transition-all hover:bg-black/10"
+            className="inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-md active:scale-[0.98]"
           >
             Browse all scheduled tours
           </Link>

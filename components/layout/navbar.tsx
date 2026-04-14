@@ -83,8 +83,9 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-40 w-full border-b transition-[background-color,border-color,box-shadow] duration-300 ease-out",
-        isScrolled ? "border-brand-border bg-brand-surface shadow-sm" : "border-transparent bg-transparent"
+        "top-0 z-40 w-full transition-[background-color,border-color,box-shadow] duration-300 ease-out",
+        isHome ? "fixed border-b" : "sticky bg-brand-surface border-b border-brand-border shadow-sm",
+        isHome && isScrolled ? "border-brand-border bg-brand-surface shadow-sm" : isHome ? "border-transparent bg-transparent" : ""
       )}
     >
       <Container className="flex h-24 items-center justify-between gap-4 transition-[height,gap] duration-300 ease-out lg:h-36">
@@ -107,7 +108,7 @@ export function Navbar() {
           />
         </Link>
         <nav
-          className="hidden items-center gap-5 font-sans text-xl font-bold tracking-tight lg:flex lg:gap-7"
+          className="hidden items-center gap-5 font-sans text-2xl font-bold tracking-tight lg:flex lg:gap-7"
           aria-label="Main"
         >
           {links.map((l) => {
@@ -118,14 +119,14 @@ export function Navbar() {
                 href={l.href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "whitespace-nowrap transition-[color,transform] duration-200 ease-out motion-safe:hover:-translate-y-px motion-safe:active:scale-[0.98]",
+                  "whitespace-nowrap transition-[color,transform] duration-200 ease-out motion-safe:hover:-translate-y-px motion-safe:active:scale-[0.98] cursor-pointer",
                   overHero
                     ? isActive
-                      ? "text-brand-gold hover:text-brand-gold"
-                      : "text-white/80 hover:text-brand-gold"
+                      ? "text-brand-primary hover:text-brand-primary"
+                      : "text-white/80 hover:text-brand-primary"
                     : isActive
-                      ? "text-brand-gold hover:text-brand-gold"
-                      : "text-brand-heading hover:text-brand-gold"
+                      ? "text-brand-primary hover:text-brand-primary"
+                      : "text-brand-heading hover:text-brand-primary"
                 )}
               >
                 {l.label}
@@ -139,7 +140,7 @@ export function Navbar() {
             variant="primary"
             size="sm"
             className={cn(
-              "hidden h-auto min-h-0 rounded-md border-0 px-5 py-2 font-sans text-xl font-bold tracking-tight shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:shadow-md motion-safe:active:scale-[0.98] sm:inline-flex",
+              "hidden h-auto min-h-0 rounded-sm border-0 px-10 py-3.5 font-sans text-2xl font-bold tracking-tight shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:shadow-md motion-safe:active:scale-[0.98] sm:inline-flex",
               navBookTourClassName
             )}
           >

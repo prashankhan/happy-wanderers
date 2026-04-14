@@ -1,27 +1,21 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { CalendarClock, Car, Map, Sparkles, Users } from "lucide-react";
+"use client";
 
 import { Container } from "@/components/layout/container";
-import { Button } from "@/components/ui/button";
-import { publicHeroUnderFixedNavClass } from "@/lib/layout/public-nav-offset";
-
-export const metadata: Metadata = {
-  title: "Private tours",
-  description:
-    "Private rainforest departures with custom timing, exclusive vehicle, and local expertise — Happy Wanderers Cairns & Daintree.",
-};
+import { PageHeader } from "@/components/layout/page-header";
+import { motion } from "framer-motion";
+import { CalendarClock, Car, Map, Sparkles, Users } from "lucide-react";
+import Link from "next/link";
 
 const benefits = [
   {
     icon: Map,
     title: "Custom itinerary",
-    body: "Shape the day around photography, family pacing, accessibility, or a deeper naturalist focus — within park access and seasonal realities.",
+    body: "Shape the day around photography, family pacing, accessibility, or a deeper naturalist focus — within park access realities.",
   },
   {
     icon: CalendarClock,
     title: "Flexible timing",
-    body: "Private charters unlock earlier departures or extended field time where regulations and safety allow — discussed upfront with our team.",
+    body: "Charter options unlock earlier departures or extended field time where regulations allow — discussed upfront with our team.",
   },
   {
     icon: Car,
@@ -43,85 +37,105 @@ const ideas = [
 ];
 
 export default function PrivateToursPage() {
-  return (
-    <>
-      <section
-        className={`relative left-1/2 right-1/2 -mx-[50vw] w-screen border-b border-brand-border bg-gradient-to-br from-blue-950 via-blue-900 to-gray-900 ${publicHeroUnderFixedNavClass}`}
-      >
-        <Container className="py-24 md:py-32 lg:py-36">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-gold/90">Private departures</p>
-          <h1 className="mt-6 max-w-4xl font-serif text-4xl font-semibold leading-tight text-white md:text-5xl lg:text-6xl">
-            The rainforest, chartered on your terms
-          </h1>
-          <p className="mt-8 max-w-2xl text-lg leading-relaxed text-blue-100/95 md:text-xl">
-            For guests who want the Wet Tropics without the constraints of a fixed schedule — private vehicles,
-            curated pacing, and the same operator discipline that underpins every Happy Wanderers departure.
-          </p>
-        </Container>
-      </section>
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
 
-      <section className="border-b border-brand-border bg-brand-surface-warm py-20 md:py-28">
-        <Container className="max-w-3xl">
-          <h2 className="font-serif text-2xl font-semibold text-brand-heading md:text-3xl">Editorial note</h2>
-          <div className="mt-8 space-y-6 text-base leading-[1.75] text-brand-body md:text-lg">
-            <p>
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 50, damping: 20 } },
+  };
+
+  return (
+    <div className="bg-brand-surface">
+      <PageHeader 
+        label="Private departures"
+        title="The rainforest, chartered on your terms"
+        description="For guests who want the Wet Tropics without the constraints of a fixed schedule — private vehicles, curated pacing, and deep operator discipline."
+        breadcrumb={[{ label: "Private tours" }]}
+      />
+
+      {/* Philosophy / Note section */}
+      <section className="py-24 md:py-32">
+        <Container className="grid gap-16 lg:grid-cols-12 lg:gap-24">
+          <div className="lg:col-span-5">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary mb-6">Editorial note</p>
+            <h2 className="font-serif text-4xl font-bold tracking-tight text-brand-heading">Private touring is about margin</h2>
+          </div>
+          <div className="lg:col-span-12 lg:mt-8 space-y-8 text-lg leading-[1.8] text-brand-body/90 font-medium tracking-tight">
+            <p className="max-w-4xl">
               Private touring is not about excess — it is about margin. Margin to wait for a cassowary crossing, to
               shorten a leg when heat builds, or to spend longer at a creek without watching the clock for a mixed group.
             </p>
-            <p>
+            <p className="max-w-4xl">
               We work within national park rules, road access, and seasonal closures — then build the best possible day
-              inside those guardrails. Tell us who is travelling, what you hope to feel, and we will advise honestly on
-              what is achievable.
+              inside those guardrails.
             </p>
           </div>
         </Container>
       </section>
 
-      <section className="border-y border-brand-border bg-brand-surface-soft py-20 md:py-28">
+      {/* Benefits Grid */}
+      <section className="bg-brand-surface-soft border-y border-brand-border py-24 md:py-32">
         <Container>
-          <h2 className="mx-auto max-w-2xl text-center font-serif text-3xl font-semibold text-brand-heading md:text-4xl">
-            Why guests choose private
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-center text-base leading-relaxed text-brand-body">
-            The same rainforest — with logistics and narration tuned exclusively to your party.
-          </p>
-          <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {benefits.map(({ icon: Icon, title, body }) => (
-              <div
-                key={title}
-                className="rounded-2xl border border-brand-border bg-brand-surface p-8 shadow-sm ring-1 ring-brand-heading/[0.03] transition duration-300 hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-accent-soft text-brand-accent">
-                  <Icon className="h-6 w-6" aria-hidden />
-                </div>
-                <h3 className="mt-6 font-serif text-lg font-semibold text-brand-heading">{title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-brand-body">{body}</p>
-              </div>
-            ))}
+          <div className="mx-auto max-w-3xl text-center space-y-6">
+            <h2 className="font-serif text-4xl font-bold tracking-tight text-brand-heading">Why guests choose private</h2>
+            <p className="text-xl leading-relaxed text-brand-body/80 tracking-tight">
+              The same rainforest — with logistics and narration tuned exclusively to your party.
+            </p>
           </div>
+          
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.2 }}
+            className="mt-20 grid gap-8 md:grid-cols-2 lg:grid-cols-4"
+          >
+            {benefits.map(({ icon: Icon, title, body }) => (
+              <motion.div
+                key={title}
+                variants={itemVariants}
+                className="group rounded-md border border-brand-border bg-white p-8 transition-all hover:shadow-xl hover:ring-1 hover:ring-brand-border/80"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-brand-primary/5 text-brand-primary group-hover:scale-110 transition-transform">
+                  <Icon className="size-6" aria-hidden />
+                </div>
+                <h3 className="mt-8 text-lg font-bold tracking-tight text-brand-heading">{title}</h3>
+                <p className="mt-4 text-sm leading-relaxed text-brand-body/70">{body}</p>
+              </motion.div>
+            ))}
+          </motion.div>
         </Container>
       </section>
 
-      <section className="border-b border-brand-border bg-brand-surface py-20 md:py-28">
+      {/* Inspiration Ideas */}
+      <section className="py-24 md:py-32 bg-white">
         <Container>
-          <div className="grid gap-12 lg:grid-cols-2 lg:items-start">
+          <div className="grid gap-16 lg:grid-cols-2 lg:items-start lg:gap-24">
             <div>
-              <div className="flex items-center gap-2 text-brand-primary">
-                <Sparkles className="h-5 w-5 text-brand-gold" aria-hidden />
-                <p className="text-xs font-semibold uppercase tracking-widest">Inspiration</p>
+              <div className="flex items-center gap-3 text-brand-primary">
+                <Sparkles className="size-5" aria-hidden />
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary">Inspiration</p>
               </div>
-              <h2 className="mt-4 font-serif text-3xl font-semibold text-brand-heading md:text-4xl">
-                Example experience ideas
+              <h2 className="mt-6 font-serif text-4xl font-bold tracking-tight text-brand-heading md:text-5xl">
+                Experience ideas
               </h2>
-              <p className="mt-4 text-base leading-relaxed text-brand-body">
+              <p className="mt-8 text-xl text-brand-body/70 leading-relaxed font-medium tracking-tight">
                 Starting points for conversation — final routes are always confirmed with guides and access conditions.
               </p>
             </div>
-            <ul className="space-y-4 text-base leading-relaxed text-brand-body">
+            <ul className="space-y-6">
               {ideas.map((idea) => (
-                <li key={idea} className="flex gap-3 rounded-2xl border border-brand-border bg-brand-surface p-5 shadow-sm">
-                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-gold" aria-hidden />
-                  <span>{idea}</span>
+                <li key={idea} className="flex gap-5 rounded-md border border-brand-border bg-brand-surface-soft p-8 transition-all hover:border-brand-primary/30">
+                  <span className="mt-2 size-2 shrink-0 rounded-full bg-brand-primary" aria-hidden />
+                  <span className="text-lg font-bold tracking-tight text-brand-heading leading-snug">{idea}</span>
                 </li>
               ))}
             </ul>
@@ -129,19 +143,29 @@ export default function PrivateToursPage() {
         </Container>
       </section>
 
-      <section className="border-t border-brand-border bg-brand-accent py-20 md:py-24">
-        <Container className="mx-auto max-w-3xl text-center">
-          <h2 className="font-serif text-3xl font-semibold text-white md:text-4xl">Start a private enquiry</h2>
-          <p className="mt-5 text-lg leading-relaxed text-white/90">
-            Share dates, party size, and what a perfect day feels like — we will reply with options, transparent
-            constraints, and next steps. No automated enquiry engine required: your message reaches our operator team
-            directly.
-          </p>
-          <Button asChild variant="primary" size="lg" className="mt-10">
-            <Link href="/contact">Contact us</Link>
-          </Button>
+      {/* Final Action Drive */}
+      <section className="bg-brand-heading py-24 md:py-32 text-white overflow-hidden relative border-t border-brand-border">
+        <Container className="mx-auto max-w-4xl text-center relative z-10">
+          <div className="space-y-8">
+            <h2 className="font-serif text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl italic">
+              Start a private enquiry
+            </h2>
+            <p className="text-xl leading-relaxed text-white/70 font-medium tracking-tight max-w-3xl mx-auto">
+              Share dates, party size, and what a perfect day feels like — we will reply personally with options and next steps.
+            </p>
+            <div className="pt-6">
+              <Link 
+                href="/contact"
+                className="inline-flex items-center justify-center rounded-md bg-brand-primary px-12 py-4 text-xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-lg active:scale-[0.98]"
+              >
+                Connect with our team
+              </Link>
+            </div>
+          </div>
         </Container>
+        {/* Subtle background glow */}
+        <div className="absolute -bottom-[20vw] -left-[10vw] size-[50vw] bg-brand-primary/10 rounded-full blur-[120px] pointer-events-none" />
       </section>
-    </>
+    </div>
   );
 }
