@@ -126,28 +126,28 @@ export default function AboutPage() {
             </ul>
           </div>
           
-          <div className="rounded-md border border-brand-border bg-brand-heading p-12 text-white shadow-2xl relative overflow-hidden group">
+          <div className="rounded-md border border-brand-border bg-brand-heading p-12 text-white shadow-2xl relative overflow-hidden group lg:p-16">
             <div className="relative z-10">
               <div className="flex items-center gap-3 text-brand-primary">
                 <MapPin className="size-6" aria-hidden />
-                <h3 className="font-bold uppercase tracking-[0.2em] text-xs">Service area</h3>
+                <h3 className="font-bold uppercase tracking-[0.2em] text-xs">Service area profile</h3>
               </div>
-              <p className="mt-8 text-2xl font-bold tracking-tight">
+              <p className="mt-8 text-3xl font-bold tracking-tight lg:text-4xl">
                 Cairns, Port Douglas & the Daintree rainforest corridor.
               </p>
-              <p className="mt-4 text-lg text-white/60 leading-relaxed">
+              <p className="mt-6 text-lg text-white/60 leading-relaxed font-regular">
                 Scheduled and private departures operate across regional access routes — exact pickup matrix
-                depends on the tour you select.
+                depends on the specific seasonal tour you choose to open.
               </p>
               <Link 
                 href="/tours"
-                className="mt-10 inline-flex items-center justify-center rounded-md bg-brand-primary px-10 py-3.5 text-xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover active:scale-[0.98]"
+                className="mt-12 inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover active:scale-[0.98]"
               >
                 View our tours
               </Link>
             </div>
             {/* Subtle background accent */}
-            <div className="absolute -right-8 -bottom-8 size-48 bg-brand-primary/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -right-8 -bottom-8 size-64 bg-brand-primary/10 rounded-full blur-3xl pointer-events-none" />
           </div>
         </Container>
       </section>
@@ -158,22 +158,22 @@ export default function AboutPage() {
       </div>
 
       {/* Final Contact Section */}
-      <section className="bg-brand-surface py-12 md:py-24 border-t border-brand-border">
-        <Container className="mx-auto max-w-4xl text-center">
-          <div className="space-y-8">
-            <h2 className="font-serif text-4xl font-bold tracking-tight text-brand-heading md:text-5xl lg:text-6xl italic">
-              Speak with the team
+      <section className="bg-brand-surface py-32 md:py-48 border-t border-brand-border">
+        <Container className="mx-auto max-w-5xl text-center">
+          <div className="space-y-10">
+            <h2 className="font-serif text-5xl font-bold tracking-tight text-brand-heading md:text-6xl lg:text-7xl italic">
+              Connect with the field team
             </h2>
-            <p className="text-xl leading-relaxed text-brand-body/80 font-medium tracking-tight max-w-3xl mx-auto">
-              Planning a milestone trip or a private charter? Send us a note. 
-              We respond personally—no scripts, just field expertise.
+            <p className="text-xl leading-relaxed text-brand-body/80 font-medium tracking-tight max-w-3xl mx-auto md:text-2xl">
+              Planning a milestone trip or a collective private charter? Send us a note. 
+              We respond personally—no automated scripts, just field expertise.
             </p>
-            <div className="pt-6">
+            <div className="pt-10">
               <Link 
                 href="/contact"
-                className="inline-flex items-center justify-center rounded-md bg-brand-primary px-12 py-4 text-xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-lg active:scale-[0.98]"
+                className="inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-lg active:scale-[0.98]"
               >
-                Contact us
+                Send a message
               </Link>
             </div>
           </div>

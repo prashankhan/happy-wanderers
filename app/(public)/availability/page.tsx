@@ -23,29 +23,28 @@ export default async function AvailabilityPage({
   const initialTourId = tourId ?? tours[0]?.id;
 
   return (
-    <div className="bg-brand-surface pb-24">
+    <div className="bg-brand-surface pb-32">
       <PageHeader 
-        label="Logistics"
-        title="Live availability"
-        description="Every cell reflects live capacity, weekday rules, and real-time operator overrides. All departures follow Australia/Brisbane time."
+        label="Operator Logistics"
+        title="Live capacity & availability"
+        description="Our calendar reflects real-time field dynamics, including seasonal cutoffs and daily operator overrides. All departures are scheduled in Australia/Brisbane time."
         breadcrumb={[{ label: "Availability" }]}
       />
 
-      <Container className="mt-16 md:mt-24">
+      <Container className="mt-20 md:mt-28">
         {initialTourId ? (
           <AvailabilityExplorer tours={tours} initialTourId={initialTourId} />
         ) : (
-          <div className="mx-auto max-w-lg rounded-md border border-brand-border bg-white px-8 py-14 text-center shadow-sm">
-            <h2 className="font-serif text-3xl font-bold text-brand-heading">Calendar opening soon</h2>
-            <p className="mt-4 text-base leading-relaxed text-brand-body/70">
-              Published tours will appear here with live seats and cutoffs. In the meantime, we are happy to help by
-              email.
+          <div className="mx-auto max-w-2xl rounded-sm border border-brand-border bg-white px-10 py-20 text-center shadow-sm">
+            <h2 className="font-serif text-4xl font-bold text-brand-heading">Calendar opening soon</h2>
+            <p className="mt-6 text-xl leading-relaxed text-brand-body/70 font-medium">
+              Live seats and field cutoffs will appear here shortly. For urgent inquiries or private bookings, please connect with our team.
             </p>
             <Link 
               href="/contact"
-              className="mt-8 inline-flex items-center justify-center rounded-md bg-brand-primary px-10 py-3.5 text-xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover active:scale-[0.98]"
+              className="mt-12 inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover active:scale-[0.98]"
             >
-              Contact us
+              Contact our team
             </Link>
           </div>
         )}

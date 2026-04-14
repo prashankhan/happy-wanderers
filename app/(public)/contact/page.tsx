@@ -33,31 +33,29 @@ export default function ContactPage() {
         breadcrumb={[{ label: "Contact" }]}
       />
 
-      <Container className="py-20 md:py-28">
+      <Container className="py-24 md:py-32">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.98 }}
+          initial={{ opacity: 0, scale: 0.99 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="mx-auto max-w-5xl rounded-md border border-brand-border bg-brand-surface-soft p-8 md:p-14"
+          transition={{ delay: 0.2, duration: 0.8 }}
+          className="mx-auto max-w-5xl rounded-md border border-brand-border/40 bg-brand-surface-soft p-10 md:p-16"
         >
-          <div className="grid gap-12 md:grid-cols-2">
-            <div className="flex gap-5">
-              <ShieldCheck className="h-7 w-7 shrink-0 text-brand-primary" aria-hidden />
+          <div className="grid gap-16 md:grid-cols-2">
+            <div className="flex gap-6">
+              <ShieldCheck className="h-8 w-8 shrink-0 text-brand-primary" aria-hidden />
               <div>
-                <p className="font-bold tracking-tight text-xl text-brand-heading">Support Reassurance</p>
-                <p className="mt-3 text-sm leading-relaxed text-brand-body/80">
-                  We confirm pickup windows and cutoffs against live availability — so the reply you
-                  receive matches what the booking engine will honour.
+                <p className="font-bold tracking-tight text-2xl text-brand-heading">Support assurance</p>
+                <p className="mt-4 text-sm leading-[1.6] text-brand-body/70 font-medium">
+                  We confirm pickup windows against live field capacity — ensuring the reply you receive matches the real-time operational state of our departures.
                 </p>
               </div>
             </div>
-            <div className="flex gap-5">
-              <LifeBuoy className="h-7 w-7 shrink-0 text-brand-primary" aria-hidden />
+            <div className="flex gap-6">
+              <LifeBuoy className="h-8 w-8 shrink-0 text-brand-primary" aria-hidden />
               <div>
-                <p className="font-bold tracking-tight text-xl text-brand-heading">Operator Introduction</p>
-                <p className="mt-3 text-sm leading-relaxed text-brand-body/80">
-                  Happy Wanderers runs scheduled small-group tours and private rainforest charters with the same field
-                  standards. We will route your message to the right guide.
+                <p className="font-bold tracking-tight text-2xl text-brand-heading">Operator knowledge</p>
+                <p className="mt-4 text-sm leading-[1.6] text-brand-body/70 font-medium">
+                  Happy Wanderers is an active operator, not a reseller. Your message goes directly to the team who manages the vehicles and the guides in the field.
                 </p>
               </div>
             </div>
@@ -68,38 +66,26 @@ export default function ContactPage() {
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="mt-24 grid gap-16 lg:grid-cols-12 lg:gap-24"
+          className="mt-32 grid gap-20 lg:grid-cols-12 lg:gap-32"
         >
           <motion.div variants={itemVariants} className="lg:col-span-12 lg:mb-12 xl:col-span-5 xl:mb-0">
-            <h2 className="font-serif text-4xl font-bold tracking-tight text-brand-heading">Before you write</h2>
-            <div className="mt-10 space-y-8 rounded-md border border-brand-border bg-white p-8 shadow-sm">
-              <div className="flex gap-4">
+            <h2 className="font-serif text-5xl font-bold tracking-tight text-brand-heading md:text-6xl italic">Before you write</h2>
+            <div className="mt-12 space-y-10 rounded-md border border-brand-border/60 bg-white p-10 shadow-sm">
+              <div className="flex gap-5">
                 <Clock className="h-6 w-6 shrink-0 text-brand-primary" aria-hidden />
                 <div>
-                  <p className="font-bold tracking-tight text-brand-heading">Expected Response Time</p>
-                  <p className="mt-2 text-sm leading-relaxed text-brand-body">
-                    We aim to reply within <span className="font-bold text-brand-heading">one business day</span>. Urgent day-of issues
-                    should use the phone number printed on your confirmation.
+                  <p className="font-bold tracking-tight text-xl text-brand-heading">Field response time</p>
+                  <p className="mt-3 text-base leading-relaxed text-brand-body/80">
+                    We aims to reply within <span className="font-bold text-brand-heading tracking-tight">one business day</span>. Our team is often in areas of low connectivity during daylight hours.
                   </p>
                 </div>
               </div>
-              <div className="flex gap-4">
+              <div className="flex gap-5">
                 <Phone className="h-6 w-6 shrink-0 text-brand-primary" aria-hidden />
                 <div>
-                  <p className="font-bold tracking-tight text-brand-heading">Phone Support</p>
-                  <p className="mt-2 text-sm leading-relaxed text-brand-body">
-                    A direct operations line appears on confirmed itineraries. For new enquiries, email via the form
-                    keeps a clear paper trail for both sides.
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <MapPin className="h-6 w-6 shrink-0 text-brand-primary" aria-hidden />
-                <div>
-                  <p className="font-bold tracking-tight text-brand-heading">Service Area summary</p>
-                  <p className="mt-2 text-sm leading-relaxed text-brand-body">
-                    Routes across the Cairns coast, northern beaches, Port Douglas, and Daintree
-                    rainforest corridors.
+                  <p className="font-bold tracking-tight text-xl text-brand-heading">Booking numbers</p>
+                  <p className="mt-3 text-base leading-relaxed text-brand-body/80">
+                    A direct operations line is provided to all confirmed guests. For new enquiries, we recommend the form for clear audit trails.
                   </p>
                 </div>
               </div>

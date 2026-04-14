@@ -110,68 +110,68 @@ export function TourDetailView({ tour, images, pickups, heroGallery, bookingSide
             </section>
 
             {/* Timeline Section */}
-            <section className="rounded-md bg-brand-surface-soft p-12 md:p-16 border border-brand-border">
-              <h2 className="flex items-center gap-3 font-serif text-3xl font-bold tracking-tight text-brand-heading md:text-4xl">
-                <CalendarRange className="h-8 w-8 text-brand-primary" aria-hidden />
-                Your day, step by step
+            <section className="rounded-md bg-brand-surface-soft p-12 md:p-20 border border-brand-border">
+              <h2 className="flex items-center gap-4 font-serif text-4xl font-bold tracking-tight text-brand-heading md:text-5xl">
+                <CalendarRange className="h-10 w-10 text-brand-primary" aria-hidden />
+                Journey dynamics
               </h2>
-              <p className="mt-4 max-w-2xl text-lg text-brand-body/80">
-                A clear rhythm from booking to trail — tailored to how we run departures in the Wet Tropics.
+              <p className="mt-6 max-w-2xl text-xl text-brand-body/80 font-medium tracking-tight">
+                A clear, field-led rhythm from reservation to return — designed for the specific logistics of the North Queensland canopy.
               </p>
-              <ol className="relative mt-12 space-y-0 border-l border-brand-primary/20 pl-10">
+              <ol className="relative mt-16 space-y-0 border-l-2 border-brand-primary/20 pl-12">
                 {timelineItems.map((text, i) => (
-                  <li key={i} className="relative pb-12 last:pb-0">
-                    <span className="absolute -left-[51px] top-1 flex h-6 w-6 items-center justify-center rounded-full bg-brand-primary text-[11px] font-bold text-white shadow-lg ring-4 ring-white">
+                  <li key={i} className="relative pb-16 last:pb-0">
+                    <span className="absolute -left-[61px] top-1 flex h-9 w-9 items-center justify-center rounded-full bg-brand-primary text-sm font-black text-white shadow-xl ring-8 ring-white">
                       {i + 1}
                     </span>
-                    <p className="text-base font-medium leading-relaxed text-brand-heading md:text-lg">{text}</p>
+                    <p className="text-xl font-bold leading-relaxed text-brand-heading md:text-2xl tracking-tight">{text}</p>
                   </li>
                 ))}
               </ol>
             </section>
 
             {/* Detailed Overview */}
-            <section className="max-w-none space-y-6">
-              <h2 className="font-serif text-3xl font-bold tracking-tight text-brand-heading md:text-4xl">Overview</h2>
-              <div className="whitespace-pre-line text-lg leading-[1.8] text-brand-body/90 font-medium tracking-tight">
+            <section className="max-w-4xl space-y-8 py-12">
+              <h2 className="font-serif text-4xl font-bold tracking-tight text-brand-heading md:text-5xl italic">The narrative</h2>
+              <div className="whitespace-pre-line text-xl leading-[1.85] text-brand-body/90 font-medium tracking-tight border-l-2 border-brand-border/40 pl-8">
                 {tour.description}
               </div>
             </section>
 
             {/* Inclusions / Exclusions */}
-            <section className="space-y-10">
-              <div className="space-y-4">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary">Pragmatics</p>
-                <h2 className="font-serif text-3xl font-bold tracking-tight text-brand-heading md:text-4xl">Inclusions & exclusions</h2>
+            <section className="space-y-12 py-12">
+              <div className="space-y-6">
+                <p className="text-xs font-bold uppercase tracking-[0.25em] text-brand-primary">Operational Logistics</p>
+                <h2 className="font-serif text-3xl font-bold tracking-tight text-brand-heading md:text-5xl">Pragmatics & exclusions</h2>
               </div>
-              <div className="grid gap-8 lg:grid-cols-2">
-                <Card className="rounded-md border-brand-border shadow-sm">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="flex items-center gap-3 text-xl font-bold tracking-tight">
-                      <Leaf className="h-5 w-5 text-availability-open" aria-hidden />
+              <div className="grid gap-10 lg:grid-cols-2">
+                <Card className="rounded-md border-brand-border shadow-sm bg-brand-surface-soft/30 p-4">
+                  <CardHeader className="pb-6">
+                    <CardTitle className="flex items-center gap-3 text-2xl font-bold tracking-tight">
+                      <Leaf className="h-6 w-6 text-availability-open" aria-hidden />
                       Inclusions
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ul className="space-y-4 text-sm font-medium tracking-tight text-brand-body/80">
+                    <ul className="space-y-5 text-base font-bold tracking-tight text-brand-body/80">
                       {(tour.inclusions ?? []).map((x: string) => (
-                        <li key={x} className="flex gap-3">
-                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-availability-open" aria-hidden />
+                        <li key={x} className="flex gap-4">
+                          <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-availability-open" aria-hidden />
                           <span>{x}</span>
                         </li>
                       ))}
                     </ul>
                   </CardContent>
                 </Card>
-                <Card className="rounded-md border-brand-border shadow-sm">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-xl font-bold tracking-tight">Exclusions</CardTitle>
+                <Card className="rounded-md border-brand-border shadow-sm p-4">
+                  <CardHeader className="pb-6">
+                    <CardTitle className="text-2xl font-bold tracking-tight italic">Exclusions</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ul className="space-y-4 text-sm font-medium tracking-tight text-brand-body/80">
+                    <ul className="space-y-5 text-base font-bold tracking-tight text-brand-body/60">
                       {(tour.exclusions ?? []).map((x: string) => (
-                        <li key={x} className="flex gap-3">
-                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-muted/40" aria-hidden />
+                        <li key={x} className="flex gap-4">
+                          <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-brand-muted/30" aria-hidden />
                           <span>{x}</span>
                         </li>
                       ))}

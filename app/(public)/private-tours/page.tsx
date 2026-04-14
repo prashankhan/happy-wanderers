@@ -124,26 +124,26 @@ export default function PrivateToursPage() {
       </section>
 
       {/* Inspiration Ideas */}
-      <section className="py-24 md:py-32 bg-white">
+      <section className="py-32 md:py-48 bg-white">
         <Container>
-          <div className="grid gap-16 lg:grid-cols-2 lg:items-start lg:gap-24">
+          <div className="grid gap-20 lg:grid-cols-2 lg:items-start lg:gap-32">
             <div>
               <div className="flex items-center gap-3 text-brand-primary">
                 <Sparkles className="size-5" aria-hidden />
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary">Inspiration</p>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary font-bold">Inspiration palette</p>
               </div>
-              <h2 className="mt-6 font-serif text-4xl font-bold tracking-tight text-brand-heading md:text-5xl">
-                Experience ideas
+              <h2 className="mt-8 font-serif text-5xl font-bold tracking-tight text-brand-heading md:text-6xl">
+                Experience possibilities
               </h2>
-              <p className="mt-8 text-xl text-brand-body/70 leading-relaxed font-medium tracking-tight">
-                Starting points for conversation — final routes are always confirmed with guides and access conditions.
+              <p className="mt-10 text-xl text-brand-body/70 leading-relaxed font-medium tracking-tight md:text-2xl">
+                Starting points for conversation — final routes are always confirmed by our field guides based on season and access.
               </p>
             </div>
             <ul className="space-y-6">
               {ideas.map((idea) => (
-                <li key={idea} className="flex gap-5 rounded-md border border-brand-border bg-brand-surface-soft p-8 transition-all hover:border-brand-primary/30">
-                  <span className="mt-2 size-2 shrink-0 rounded-full bg-brand-primary" aria-hidden />
-                  <span className="text-lg font-bold tracking-tight text-brand-heading leading-snug">{idea}</span>
+                <li key={idea} className="flex gap-6 rounded-sm border border-brand-border bg-brand-surface-soft p-10 transition-all hover:border-brand-primary/40 hover:shadow-md group">
+                  <span className="mt-2 size-2.5 shrink-0 rounded-full bg-brand-primary transition-transform group-hover:scale-125" aria-hidden />
+                  <span className="text-xl font-bold tracking-tight text-brand-heading leading-snug lg:text-2xl">{idea}</span>
                 </li>
               ))}
             </ul>
@@ -152,19 +152,19 @@ export default function PrivateToursPage() {
       </section>
 
       {/* Final Action Drive */}
-      <section className="bg-brand-heading py-24 md:py-32 text-white overflow-hidden relative border-t border-brand-border">
-        <Container className="mx-auto max-w-4xl text-center relative z-10">
-          <div className="space-y-8">
-            <h2 className="font-serif text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl italic">
+      <section className="bg-brand-heading py-32 md:py-48 text-white overflow-hidden relative border-t border-brand-border">
+        <Container className="mx-auto max-w-5xl text-center relative z-10">
+          <div className="space-y-10">
+            <h2 className="font-serif text-5xl font-bold tracking-tight md:text-6xl lg:text-8xl italic">
               Start a private enquiry
             </h2>
-            <p className="text-xl leading-relaxed text-white/70 font-medium tracking-tight max-w-3xl mx-auto">
-              Share dates, party size, and what a perfect day feels like — we will reply personally with options and next steps.
+            <p className="text-xl leading-relaxed text-white/70 font-medium tracking-tight max-w-3xl mx-auto md:text-2xl">
+              Share your dates, party size, and what a perfect day feels like — our field team will reply personally with options.
             </p>
-            <div className="pt-6">
+            <div className="pt-12">
               <Link 
                 href="/contact"
-                className="inline-flex items-center justify-center rounded-md bg-brand-primary px-12 py-4 text-xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-lg active:scale-[0.98]"
+                className="inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-lg active:scale-[0.98]"
               >
                 Connect with our team
               </Link>
