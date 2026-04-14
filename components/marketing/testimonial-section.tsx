@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { Quote } from "lucide-react";
 import { Container } from "@/components/layout/container";
 
@@ -33,7 +33,7 @@ const TESTIMONIALS: TestimonialItem[] = [
 ];
 
 export function TestimonialSection() {
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
@@ -44,7 +44,7 @@ export function TestimonialSection() {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 50, damping: 20 } },
   };
