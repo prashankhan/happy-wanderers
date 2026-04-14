@@ -5,14 +5,6 @@ import { BadgeCheck } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 import { Button } from "@/components/ui/button";
 
-/** Hero primary CTA: solid brand gold (aligned with nav Book CTA). */
-const heroCtaGoldFillClassName =
-  "h-14 w-full rounded-sm border-0 bg-brand-gold px-5 font-sans text-lg font-semibold uppercase tracking-widest text-brand-heading shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:bg-[#e5a30a] hover:shadow-md focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950 motion-safe:active:scale-[0.98] sm:w-auto lg:h-16 lg:px-9";
-
-/** Hero secondary CTA: solid white on dark hero. */
-const heroCtaWhiteFillClassName =
-  "h-14 w-full rounded-sm border-0 bg-white px-5 font-sans text-lg font-semibold uppercase tracking-widest text-brand-heading shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:bg-white/90 hover:shadow-md focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950 motion-safe:active:scale-[0.98] sm:w-auto lg:h-16 lg:px-9";
-
 /** Hero: three inline trust signals beneath primary CTAs (brand positioning). */
 const heroTrustPointers = ["Designed around you", "Guided with care", "Beyond the expected"] as const;
 
@@ -77,12 +69,18 @@ export function HeroContent() {
         variants={itemVariants}
         className="mt-8 flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-4 md:mt-10"
       >
-        <Button asChild variant="secondary" size="lg" className={heroCtaGoldFillClassName}>
-          <Link href="/tours">View Tours</Link>
-        </Button>
-        <Button asChild variant="secondary" size="lg" className={heroCtaWhiteFillClassName}>
-          <Link href="/availability">Check Availability</Link>
-        </Button>
+        <Link 
+          href="/tours" 
+          className="group inline-flex items-center justify-center rounded-md bg-brand-primary px-10 py-3.5 text-xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-md"
+        >
+          View all tours
+        </Link>
+        <Link 
+          href="/availability" 
+          className="group inline-flex items-center justify-center rounded-md bg-white px-10 py-3.5 text-xl font-bold tracking-tight text-brand-heading transition-all hover:bg-white/90 hover:shadow-md"
+        >
+          Check availability
+        </Link>
       </motion.div>
       
       <motion.ul

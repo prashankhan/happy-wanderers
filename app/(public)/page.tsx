@@ -28,6 +28,7 @@ const DEAD_HERO_IMAGE_SUBSTR = "1511497584788";
 
 import { HeroContent } from "@/components/marketing/hero-content";
 import { CredibilityBar } from "@/components/marketing/credibility-bar";
+import { FeaturedTours } from "@/components/marketing/featured-tours";
 
 function resolveHeroPhotoSrc(heroImage: string | null | undefined): string {
   const trimmed = typeof heroImage === "string" ? heroImage.trim() : "";
@@ -36,22 +37,7 @@ function resolveHeroPhotoSrc(heroImage: string | null | undefined): string {
   return trimmed;
 }
 
-function FeaturedSlotPlaceholder({ title, body, href }: { title: string; body: string; href: string }) {
-  return (
-    <Card className="flex h-full flex-col overflow-hidden border-dashed border-brand-border bg-brand-surface-soft p-0 shadow-sm transition duration-300 hover:border-brand-border hover:shadow-md">
-      <div className="relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-brand-accent-soft to-brand-surface-warm">
-        <Sparkles className="h-12 w-12 text-brand-accent/25" aria-hidden />
-      </div>
-      <CardContent className="flex flex-1 flex-col p-6">
-        <h3 className="font-serif text-xl font-semibold text-brand-heading">{title}</h3>
-        <p className="mt-2 flex-1 text-sm leading-relaxed text-brand-body">{body}</p>
-        <Button asChild variant="secondary" className="mt-6 w-full sm:w-auto">
-          <Link href={href}>Learn more</Link>
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
+
 
 export default async function HomePage() {
   const featured = await listPublishedTours({ featured: true });
@@ -60,19 +46,6 @@ export default async function HomePage() {
   const heroPhotoSrc = resolveHeroPhotoSrc(heroImage);
 
   const toursForGrid = fallback.slice(0, 3);
-  const fillerCount = Math.max(0, 3 - toursForGrid.length);
-  const fillers = [
-    {
-      title: "Private rainforest charters",
-      body: "Exclusive vehicle, flexible timing, and itineraries shaped around your pace — ideal for families and small groups.",
-      href: "/private-tours",
-    },
-    {
-      title: "Bespoke departures",
-      body: "Tell us what you are celebrating or studying — we will advise what is possible within park access and season.",
-      href: "/contact",
-    },
-  ].slice(0, fillerCount);
 
   const trustChips = ["Secure booking", "Local operators", "Instant confirmation", "Real-time availability"];
 
@@ -101,44 +74,20 @@ export default async function HomePage() {
 
       <CredibilityBar />
 
-      <section className="py-24 md:py-32">
-        <Container>
-          <div className="mb-16 max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-widest text-brand-primary">Featured</p>
-            <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-brand-heading md:text-4xl lg:text-5xl">
-              Signature departures
-            </h2>
-            <p className="mt-5 text-lg leading-relaxed text-brand-body md:text-xl">
-              Each experience is paced for the forest — with duration, region, and transparent pricing context before
-              you open a tour. Three curated cards below; when new tours publish, they appear here automatically.
-            </p>
-          </div>
-          <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-            {toursForGrid.map((t) => (
-              <TourCard
-                key={t.id}
-                title={t.title}
-                slug={t.slug}
-                shortDescription={t.shortDescription}
-                durationText={t.durationText}
-                groupSizeText={t.groupSizeText}
-                priceFromText={t.priceFromText}
-                locationRegion={t.locationRegion}
-                heroImage={t.heroImage}
-                isFeatured={t.isFeatured}
-              />
-            ))}
-            {fillers.map((f, idx) => (
-              <FeaturedSlotPlaceholder key={`filler-${idx}`} title={f.title} body={f.body} href={f.href} />
-            ))}
-          </div>
-          <div className="mt-12 text-center">
-            <Button asChild variant="ghost">
-              <Link href="/tours">Browse all scheduled tours</Link>
-            </Button>
-          </div>
-        </Container>
-      </section>
+      <FeaturedTours
+        tours={toursForGrid.map((t) => ({
+          id: t.id,
+          title: t.title,
+          slug: t.slug,
+          shortDescription: t.shortDescription,
+          durationText: t.durationText || "",
+          groupSizeText: t.groupSizeText || "",
+          priceFromText: t.priceFromText,
+          locationRegion: t.locationRegion,
+          heroImage: t.heroImage,
+          isFeatured: t.isFeatured,
+        }))}
+      />
 
       <section className="border-y border-brand-border bg-gradient-to-b from-brand-surface via-brand-surface-soft to-brand-surface py-24 md:py-32">
         <Container className="grid gap-16 lg:grid-cols-2 lg:items-center lg:gap-20">

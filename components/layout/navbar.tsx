@@ -59,9 +59,9 @@ const DRAWER_POLICY_STAGGER = [
   "motion-safe:delay-[300ms]",
 ] as const;
 
-/** Book CTA: gold fill + dark label (readable on white nav); hover slightly deepens gold vs primary orange. */
+/** Book CTA: primary brand orange, exact typography styling as the rest of the site but custom nav padding. */
 const navBookTourClassName =
-  "bg-brand-gold text-brand-heading hover:bg-[#e5a30a] focus-visible:ring-brand-gold";
+  "bg-brand-primary text-white hover:bg-brand-primary-hover focus-visible:ring-brand-primary";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -107,7 +107,7 @@ export function Navbar() {
           />
         </Link>
         <nav
-          className="hidden items-center gap-5 font-sans text-lg font-semibold uppercase tracking-widest lg:flex lg:gap-7"
+          className="hidden items-center gap-5 font-sans text-xl font-bold tracking-tight lg:flex lg:gap-7"
           aria-label="Main"
         >
           {links.map((l) => {
@@ -139,7 +139,7 @@ export function Navbar() {
             variant="primary"
             size="sm"
             className={cn(
-              "hidden h-auto min-h-0 rounded-sm border-0 px-5 py-2 font-sans text-lg font-semibold uppercase tracking-widest shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:shadow-md motion-safe:active:scale-[0.98] sm:inline-flex",
+              "hidden h-auto min-h-0 rounded-md border-0 px-5 py-2 font-sans text-xl font-bold tracking-tight shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:shadow-md motion-safe:active:scale-[0.98] sm:inline-flex",
               navBookTourClassName
             )}
           >
@@ -184,7 +184,7 @@ export function Navbar() {
                       className={cn(
                         DRAWER_ENTER,
                         DRAWER_MAIN_LINK_STAGGER[index] ?? "motion-safe:delay-200",
-                        "rounded-xl px-3 py-3 font-sans text-lg font-semibold uppercase tracking-widest transition-[background-color,color,transform] duration-200 ease-out motion-safe:active:scale-[0.99]",
+                        "rounded-xl px-3 py-3 font-sans text-xl font-bold tracking-tight transition-[background-color,color,transform] duration-200 ease-out motion-safe:active:scale-[0.99]",
                         isActive
                           ? "bg-brand-accent-soft text-brand-gold hover:bg-brand-accent-soft"
                           : "text-brand-heading hover:bg-brand-accent-soft hover:text-brand-gold active:bg-brand-accent-soft"
@@ -221,7 +221,7 @@ export function Navbar() {
                       className={cn(
                         DRAWER_ENTER,
                         DRAWER_POLICY_STAGGER[index] ?? "motion-safe:delay-[300ms]",
-                        "rounded-xl px-3 py-3 font-sans text-lg font-semibold uppercase tracking-widest transition-[background-color,color,transform] duration-200 ease-out motion-safe:active:scale-[0.99]",
+                        "rounded-xl px-3 py-3 font-sans text-xl font-bold tracking-tight transition-[background-color,color,transform] duration-200 ease-out motion-safe:active:scale-[0.99]",
                         isActive
                           ? "bg-brand-accent-soft text-brand-gold hover:bg-brand-accent-soft"
                           : "text-brand-heading hover:bg-brand-accent-soft hover:text-brand-gold active:bg-brand-accent-soft"
@@ -236,7 +236,7 @@ export function Navbar() {
                 asChild
                 variant="primary"
                 className={cn(
-                  "mt-6 h-auto min-h-0 w-full shrink-0 rounded-sm border-0 px-5 py-2 font-sans text-lg font-semibold uppercase tracking-widest shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:shadow-md motion-safe:active:scale-[0.98]",
+                  "mt-6 h-auto min-h-0 w-full shrink-0 rounded-md border-0 px-5 py-2 font-sans text-xl font-bold tracking-tight shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:shadow-md motion-safe:active:scale-[0.98]",
                   navBookTourClassName,
                   DRAWER_ENTER,
                   "motion-safe:delay-[340ms]"

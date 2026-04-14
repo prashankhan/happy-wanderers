@@ -39,8 +39,8 @@ export function CredibilityBar() {
           variants={containerVariants}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, amount: 0.4 }}
-          className="flex flex-wrap items-start justify-center gap-x-12 gap-y-12 md:justify-between lg:gap-x-16"
+          viewport={{ once: true, amount: 0.1 }}
+          className="flex flex-col items-center gap-12 md:flex-row md:flex-wrap md:items-start md:justify-between lg:justify-between"
         >
           {credibility.map(({ line1, line2, icon: Icon }) => (
             <motion.div
