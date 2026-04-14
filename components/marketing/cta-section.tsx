@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { Container } from "@/components/layout/container";
 
 interface CtaSectionProps {
@@ -10,7 +10,7 @@ interface CtaSectionProps {
 }
 
 export function CtaSection({ imageSrc }: CtaSectionProps) {
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
     show: {
       opacity: 1,
@@ -23,7 +23,7 @@ export function CtaSection({ imageSrc }: CtaSectionProps) {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 15 },
     show: { opacity: 1, y: 0 },
   };

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import { Container } from "@/components/layout/container";
 
 interface DestinationShowcaseProps {
@@ -11,7 +11,7 @@ interface DestinationShowcaseProps {
 
 export function DestinationShowcase({ imageSrc }: DestinationShowcaseProps) {
   // Stagger variants for the text content
-  const contentVariants = {
+  const contentVariants: Variants = {
     hidden: { opacity: 0, x: 20 },
     show: {
       opacity: 1,
@@ -25,7 +25,7 @@ export function DestinationShowcase({ imageSrc }: DestinationShowcaseProps) {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 15 },
     show: { opacity: 1, y: 0 },
   };
