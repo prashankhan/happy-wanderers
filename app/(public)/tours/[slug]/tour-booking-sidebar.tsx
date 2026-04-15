@@ -45,6 +45,7 @@ export function TourBookingSidebar({
         </CardHeader>
         <CardContent className="space-y-4 px-4 pt-4 pb-4 md:space-y-6 md:px-6 md:pt-6 md:pb-6">
           <div>
+            <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Pickup location</label>
             <select
               className="w-full rounded-sm border border-brand-border bg-brand-surface px-3 py-2.5 md:px-4 md:py-3 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
               value={pickupId ?? ""}

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Container } from "@/components/layout/container";
 
 import { AvailabilityExplorer } from "./availability-explorer";
-import { listPublishedTours } from "@/lib/services/tours-public";
+import { listPublishedTours, getPublishedTourById } from "@/lib/services/tours-public";
 
 export const metadata: Metadata = {
   title: "Availability",
@@ -21,13 +21,21 @@ export default async function AvailabilityPage({
   const tours = await listPublishedTours({});
   const initialTourId = tourId ?? tours[0]?.id;
 
+  const initialTour = initialTourId ? await getPublishedTourById(initialTourId) : null;
+  const tourPickups = initialTour?.pickups.map((p) => ({
+    id: p.id,
+    name: p.name,
+    timeLabel: p.pickupTimeLabel ?? p.pickupTime,
+  })) ?? [];
+
   return (
     <div className="bg-white pb-32 lg:pb-24">
       <Container className="px-4 pt-8 sm:px-6 lg:pt-12">
         {initialTourId ? (
           <AvailabilityExplorer 
             tours={tours as any} 
-            initialTourId={initialTourId} 
+            initialTourId={initialTourId}
+            initialPickups={tourPickups}
           />
         ) : (
           <div className="mx-auto max-w-2xl rounded-sm border border-brand-border bg-white px-10 py-20 text-center shadow-sm">

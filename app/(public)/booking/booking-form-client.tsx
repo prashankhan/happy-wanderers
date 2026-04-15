@@ -1,15 +1,18 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Lock, ShieldCheck, Zap } from "lucide-react";
 import { useState } from "react";
 
-import { PublicAvailabilityCalendar } from "@/components/calendar/public-availability-calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const inputClass =
-  "mt-2 w-full rounded-sm border border-brand-border bg-brand-surface px-5 py-4 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10";
+  "mt-2 w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10";
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr + "T12:00:00");
+  return d.toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" });
+}
 
 export function BookingFormClient({
   tourId,
@@ -25,12 +28,11 @@ export function BookingFormClient({
   pickups: { id: string; name: string; timeLabel: string }[];
 }) {
   const router = useRouter();
-  const initialMonth = initialDate?.slice(0, 7);
 
-  const [date, setDate] = useState<string | undefined>(initialDate);
-  const [departureId, setDepartureId] = useState<string | undefined>(
-    initialDepartureId ?? pickups[0]?.id
-  );
+  const date = initialDate;
+  const departureId = initialDepartureId ?? pickups[0]?.id;
+  const selectedPickup = pickups.find((p) => p.id === departureId);
+
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
@@ -41,8 +43,6 @@ export function BookingFormClient({
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const pickupLabel = pickups.find((p) => p.id === departureId)?.name ?? "—";
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -84,47 +84,15 @@ export function BookingFormClient({
   }
 
   return (
-    <div className="grid gap-16 lg:grid-cols-[1fr_400px]">
-      <form onSubmit={onSubmit} className="space-y-12">
-        <Card className="shadow-md ring-1 ring-brand-heading/[0.03] rounded-sm">
-          <CardHeader className="border-b border-brand-border px-8 py-6">
-            <CardTitle className="font-serif text-2xl font-bold">Departure logistics</CardTitle>
+    <div className="grid gap-12 lg:grid-cols-[1fr_400px] lg:items-start lg:gap-16">
+      <form onSubmit={onSubmit} className="space-y-8">
+        <Card className="rounded-sm border-brand-border shadow-lg shadow-brand-heading/5 ring-1 ring-brand-heading/5">
+          <CardHeader className="border-b border-brand-border p-3 md:p-6">
+            <CardTitle className="font-serif text-lg md:text-2xl font-bold">Guests</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-8 p-8">
+          <CardContent className="grid gap-4 p-3 md:grid-cols-3 md:gap-6 md:p-6">
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted mb-3">Pickup location</label>
-              <select
-                className="w-full rounded-sm border border-brand-border bg-brand-surface px-5 py-4 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
-                value={departureId ?? ""}
-                onChange={(e) => setDepartureId(e.target.value || undefined)}
-              >
-                {pickups.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} — {p.timeLabel}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="border border-brand-border rounded-sm p-4 bg-white/50">
-              <PublicAvailabilityCalendar
-                tourId={tourId}
-                departureLocationId={departureId}
-                initialMonth={initialMonth}
-                selectedDate={date}
-                onSelectDate={setDate}
-                variant="compact"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-md ring-1 ring-brand-heading/[0.03] rounded-sm">
-          <CardHeader className="border-b border-brand-border px-8 py-6">
-            <CardTitle className="font-serif text-2xl font-bold italic">Guest composition</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-8 p-8 sm:grid-cols-3">
-            <label>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted">Adults</span>
+              <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">Adults</label>
               <input
                 type="number"
                 min={1}
@@ -132,9 +100,9 @@ export function BookingFormClient({
                 value={adults}
                 onChange={(e) => setAdults(Number(e.target.value))}
               />
-            </label>
-            <label>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted">Children</span>
+            </div>
+            <div>
+              <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">Children</label>
               <input
                 type="number"
                 min={0}
@@ -142,9 +110,9 @@ export function BookingFormClient({
                 value={children}
                 onChange={(e) => setChildren(Number(e.target.value))}
               />
-            </label>
-            <label>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted">Infants</span>
+            </div>
+            <div>
+              <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">Infants</label>
               <input
                 type="number"
                 min={0}
@@ -152,26 +120,26 @@ export function BookingFormClient({
                 value={infants}
                 onChange={(e) => setInfants(Number(e.target.value))}
               />
-            </label>
-            <p className="sm:col-span-3 text-[10px] uppercase font-bold tracking-widest text-brand-primary">Infants count toward vehicle capacity norms.</p>
+            </div>
+            <p className="md:col-span-3 text-xs text-brand-muted">Infants count toward vehicle capacity.</p>
           </CardContent>
         </Card>
 
-        <Card className="shadow-md ring-1 ring-brand-heading/[0.03] rounded-sm">
-          <CardHeader className="border-b border-brand-border px-8 py-6">
-            <CardTitle className="font-serif text-2xl font-bold">Contact details</CardTitle>
+        <Card className="rounded-sm border-brand-border shadow-lg shadow-brand-heading/5 ring-1 ring-brand-heading/5">
+          <CardHeader className="border-b border-brand-border p-3 md:p-6">
+            <CardTitle className="font-serif text-lg md:text-2xl font-bold">Contact details</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-8 p-8 md:grid-cols-2">
-            <label className="md:col-span-1">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted">First name</span>
+          <CardContent className="grid gap-4 p-3 md:grid-cols-2 md:gap-6 md:p-6">
+            <div>
+              <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">First name</label>
               <input required className={inputClass} value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-            </label>
-            <label className="md:col-span-1">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted">Last name</span>
+            </div>
+            <div>
+              <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">Last name</label>
               <input required className={inputClass} value={lastName} onChange={(e) => setLastName(e.target.value)} />
-            </label>
-            <label className="md:col-span-2">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted">Email address</span>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">Email address</label>
               <input
                 required
                 type="email"
@@ -179,73 +147,75 @@ export function BookingFormClient({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-            </label>
-            <label className="md:col-span-2">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted">Primary phone</span>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">Phone</label>
               <input required className={inputClass} value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </label>
-            <label className="md:col-span-2">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted">Special notes</span>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">Special notes</label>
               <textarea className={inputClass} rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
-            </label>
+            </div>
           </CardContent>
         </Card>
 
         {error ? <p className="text-sm font-bold text-red-600 bg-red-50 p-4 rounded-sm border border-red-200">{error}</p> : null}
 
-        <div className="flex flex-wrap gap-6 pt-6">
-          <Button type="submit" variant="primary" className="h-auto px-14 py-5 text-2xl font-bold tracking-tight rounded-sm" disabled={loading}>
-            {loading ? "Redirecting…" : "Continue to payment"}
-          </Button>
-          <Button type="button" variant="secondary" className="h-auto px-10 py-5 text-xl font-bold tracking-tight rounded-sm border-brand-border" onClick={() => router.push("/tours")}>
-            Back to tours
-          </Button>
+        <div className="pt-2">
+          <button type="button" onClick={() => router.push("/availability")} className="text-sm font-medium text-brand-primary hover:text-brand-primary-hover hover:underline">
+            ← Back to availability
+          </button>
         </div>
       </form>
 
-      <aside className="lg:sticky lg:top-36">
-        <div className="mb-6 flex flex-wrap gap-3 text-[10px] font-bold uppercase tracking-widest text-brand-body">
-          <span className="inline-flex items-center gap-1.5 rounded-sm border border-brand-border bg-brand-surface px-3 py-1.5 shadow-sm">
-            <Lock className="h-3.5 w-3.5 text-brand-primary" aria-hidden />
-            Secure
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-sm border border-brand-border bg-brand-surface px-3 py-1.5 shadow-sm">
-            <Zap className="h-3.5 w-3.5 text-brand-primary" aria-hidden />
-            Instant
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-sm border border-brand-border bg-brand-surface px-3 py-1.5 shadow-sm">
-            <ShieldCheck className="h-3.5 w-3.5 text-availability-open" aria-hidden />
-            Verified
-          </span>
-        </div>
-        <Card className="border-brand-border shadow-xl ring-1 ring-brand-heading/[0.04] rounded-sm">
-          <CardHeader className="border-b border-brand-border px-8 py-8">
-            <CardTitle className="font-serif text-2xl font-bold italic">Summary</CardTitle>
+      {/* Sidebar */}
+      <aside className="lg:sticky lg:top-40">
+        <Card className="rounded-sm border-brand-border shadow-lg shadow-brand-heading/5 ring-1 ring-brand-heading/5">
+          <CardHeader className="border-b border-brand-border p-3 md:p-6">
+            <p className="text-lg md:text-2xl font-bold text-brand-heading">{tourTitle}</p>
           </CardHeader>
-          <CardContent className="space-y-8 p-8">
-            <p className="text-xl font-bold tracking-tight text-brand-heading leading-tight">{tourTitle}</p>
-            <dl className="space-y-4 rounded-sm border border-brand-border bg-brand-surface-soft p-6">
-              <div className="flex flex-col gap-1">
-                <dt className="text-[10px] font-bold uppercase tracking-widest text-brand-muted">Departure date</dt>
-                <dd className="text-xl font-black text-brand-heading">{date ?? "—"}</dd>
+          <CardContent className="space-y-4 p-3 md:space-y-6 md:p-6">
+            {date && (
+              <div className="rounded-sm border border-brand-border bg-brand-surface-soft/40 p-4">
+                <span className="text-xs font-bold uppercase tracking-normal text-brand-muted">Date</span>
+                <p className="mt-1 text-base font-bold text-brand-heading">{formatDate(date)}</p>
               </div>
-              <div className="flex flex-col gap-1 pt-4 border-t border-brand-border/40">
-                <dt className="text-[10px] font-bold uppercase tracking-widest text-brand-muted">Pickup source</dt>
-                <dd className="text-base font-bold text-brand-heading">{pickupLabel}</dd>
+            )}
+            {selectedPickup && (
+              <div className="rounded-sm border border-brand-border bg-brand-surface-soft/40 p-4">
+                <span className="text-xs font-bold uppercase tracking-normal text-brand-muted">Pickup location & time</span>
+                <p className="mt-1 text-sm font-medium text-brand-heading">{selectedPickup.name}</p>
+                <p className="mt-0.5 text-xs text-brand-muted">{selectedPickup.timeLabel}</p>
               </div>
-              <div className="flex flex-col gap-1 pt-4 border-t border-brand-border/40">
-                <dt className="text-[10px] font-bold uppercase tracking-widest text-brand-muted">Total parties</dt>
-                <dd className="text-base font-bold text-brand-heading">
-                  {adults + children + infants} Guests ({adults}A · {children}C · {infants}I)
-                </dd>
+            )}
+
+            <div>
+              <span className="text-xs font-bold uppercase tracking-normal text-brand-muted">Guests</span>
+              <div className="mt-2 flex flex-wrap gap-3 text-sm">
+                {adults > 0 && (
+                  <span className="inline-flex items-center gap-1.5 rounded-sm border border-brand-border bg-brand-surface px-2.5 py-1.5 font-medium text-brand-heading">
+                    <span className="text-brand-primary font-bold">{adults}</span>
+                    <span className="text-brand-muted">Adult{adults !== 1 ? "s" : ""}</span>
+                  </span>
+                )}
+                {children > 0 && (
+                  <span className="inline-flex items-center gap-1.5 rounded-sm border border-brand-border bg-brand-surface px-2.5 py-1.5 font-medium text-brand-heading">
+                    <span className="text-brand-primary font-bold">{children}</span>
+                    <span className="text-brand-muted">Child{children !== 1 ? "ren" : ""}</span>
+                  </span>
+                )}
+                {infants > 0 && (
+                  <span className="inline-flex items-center gap-1.5 rounded-sm border border-brand-border bg-brand-surface px-2.5 py-1.5 font-medium text-brand-heading">
+                    <span className="text-brand-primary font-bold">{infants}</span>
+                    <span className="text-brand-muted">Infant{infants !== 1 ? "s" : ""}</span>
+                  </span>
+                )}
               </div>
-            </dl>
-            <div className="rounded-sm border border-dashed border-brand-border bg-white/50 p-6">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-brand-muted">Billing logic</p>
-              <p className="mt-3 text-sm leading-relaxed text-brand-body/70 font-medium">
-                Regional pricing is calculated dynamically. Confirmed seats depend on the completion of the Stripe secure session.
-              </p>
             </div>
+
+            <Button variant="primary" className="w-full h-auto py-4 text-lg font-bold tracking-tight rounded-sm" disabled={loading} onClick={onSubmit}>
+              {loading ? "Redirecting…" : "Continue to payment"}
+            </Button>
           </CardContent>
         </Card>
       </aside>

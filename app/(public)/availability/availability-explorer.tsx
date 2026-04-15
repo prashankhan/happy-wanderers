@@ -22,6 +22,12 @@ interface TourOption {
   heroImage: string | null;
 }
 
+interface PickupOption {
+  id: string;
+  name: string;
+  timeLabel: string;
+}
+
 function formatDate(dateStr: string): string {
   try {
     return format(parseISO(`${dateStr}T12:00:00`), "EEEE, do MMMM");
@@ -33,15 +39,34 @@ function formatDate(dateStr: string): string {
 export function AvailabilityExplorer({
   tours,
   initialTourId,
+  initialPickups,
 }: {
   tours: TourOption[];
   initialTourId: string;
+  initialPickups: PickupOption[];
 }) {
   const [tourId, setTourId] = useState(initialTourId);
   const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [date, setDate] = useState<string | undefined>();
+  const [pickups, setPickups] = useState<PickupOption[]>(initialPickups);
+  const [departureId, setDepartureId] = useState<string | undefined>(initialPickups[0]?.id);
 
   const activeTour = tours.find((t) => t.id === tourId);
+
+  async function handleTourChange(newTourId: string) {
+    const tour = tours.find((t) => t.id === newTourId);
+    setTourId(newTourId);
+    setDate(undefined);
+    setDepartureId(undefined);
+    if (tour?.slug) {
+      const res = await fetch(`/api/tours/${tour.slug}/pickups`);
+      if (res.ok) {
+        const data = await res.json();
+        setPickups(data);
+        setDepartureId(data[0]?.id);
+      }
+    }
+  }
 
   return (
     <div className="grid gap-12 lg:grid-cols-[1fr_400px] lg:items-start lg:gap-16 xl:gap-20">
@@ -57,10 +82,7 @@ export function AvailabilityExplorer({
                 <select
                   className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                   value={tourId}
-                  onChange={(e) => {
-                    setTourId(e.target.value);
-                    setDate(undefined);
-                  }}
+                  onChange={(e) => handleTourChange(e.target.value)}
                 >
                   {tours.map((t) => (
                     <option key={t.id} value={t.id}>
@@ -156,7 +178,6 @@ export function AvailabilityExplorer({
       <aside className="lg:sticky lg:top-40">
         <Card className="rounded-sm border-brand-border shadow-lg shadow-brand-heading/5 ring-1 ring-brand-heading/5">
           <CardHeader className="border-b border-brand-border p-2 md:p-8">
-            {/* Always show tour name for context */}
             <p className="text-sm font-bold text-brand-heading mb-1 md:mb-2">
               {activeTour?.title ?? "—"}
             </p>
@@ -164,11 +185,26 @@ export function AvailabilityExplorer({
               {date ? formatDate(date) : "Select a date"}
             </p>
           </CardHeader>
-          <CardContent className="space-y-2 md:space-y-6 p-2 md:p-8">
+          <CardContent className="space-y-4 md:space-y-6 p-2 md:p-8">
             <div>
-              {date ? (
+              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Pickup location</label>
+              <select
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                value={departureId ?? ""}
+                onChange={(e) => setDepartureId(e.target.value || undefined)}
+              >
+                {pickups.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} — {p.timeLabel}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              {date && departureId ? (
                 <Button asChild variant="primary" className="w-full rounded-sm h-auto py-5 md:py-6 text-xl md:text-2xl font-bold tracking-tighter">
-                  <Link href={`/booking?tour_id=${tourId}&date=${date}`}>Confirm selection</Link>
+                  <Link href={`/booking?tour_id=${tourId}&date=${date}&departure_location_id=${departureId}`}>Confirm selection</Link>
                 </Button>
               ) : (
                 <Button variant="primary" className="w-full rounded-sm h-auto py-5 md:py-6 text-xl md:text-2xl font-bold tracking-tighter opacity-20 cursor-not-allowed" type="button" disabled>

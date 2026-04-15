@@ -57,19 +57,8 @@ export default async function BookingPage({
   }));
 
   return (
-    <section className="py-24 md:py-32 bg-brand-surface min-h-screen">
-      <Container>
-        <div className="mb-16 max-w-3xl">
-          <nav className="mb-10 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-brand-body/30">
-            <Link href="/tours" className="transition hover:text-brand-primary">Tours</Link>
-            <span className="opacity-50">/</span>
-            <span className="text-brand-body/60">Booking Departure</span>
-          </nav>
-          <h1 className="font-serif text-5xl font-bold tracking-tighter text-brand-heading md:text-7xl">Complete reservation</h1>
-          <p className="mt-8 text-xl font-medium leading-relaxed tracking-tight text-brand-body/70 md:text-2xl">
-            Our team validates live field capacity and regional cutoffs before processing secure payment via Stripe.
-          </p>
-        </div>
+    <div className="bg-white pb-32 lg:pb-24">
+      <Container className="px-4 pt-8 sm:px-6 lg:pt-12">
         <BookingFormClient
           tourId={resolved.tour.id}
           tourTitle={resolved.tour.title}
@@ -78,6 +67,6 @@ export default async function BookingPage({
           pickups={pickups}
         />
       </Container>
-    </section>
+    </div>
   );
 }
