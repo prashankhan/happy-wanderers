@@ -56,16 +56,7 @@ export function ToursListView({ rows }: ToursListViewProps) {
 
       <section className="py-24 md:py-32">
         <Container>
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mb-20 border-l-2 border-brand-primary/20 pl-6"
-          >
-            <p className="text-base leading-relaxed text-brand-body/60 font-medium italic max-w-2xl">
-              Note: Availability is confirmed in <span className="text-brand-heading font-bold">Australia/Brisbane</span> time. Our guides monitor the field conditions daily to ensure each departure meets our environmental standards.
-            </p>
-          </motion.div>
+          <div className="md:mt-16" />
 
           <motion.div 
             variants={containerVariants}
