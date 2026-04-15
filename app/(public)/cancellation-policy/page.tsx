@@ -11,7 +11,6 @@ export default function CancellationPolicyPage() {
   return (
     <div className="bg-brand-surface pb-24">
       <PageHeader 
-        label="Legal"
         title="Cancellation policy"
         description="Transparent rules for weather events, scheduling shifts, and passenger changes."
         breadcrumb={[{ label: "Cancellation Policy" }]}

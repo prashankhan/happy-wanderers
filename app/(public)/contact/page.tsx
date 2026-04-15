@@ -27,7 +27,6 @@ export default function ContactPage() {
   return (
     <div className="bg-brand-surface">
       <PageHeader 
-        label="Happy Wanderers"
         title="Contact our team"
         description="We are a small, destination-led team based in Cairns & the Daintree region. Your message is read by humans who run the departures."
         breadcrumb={[{ label: "Contact" }]}

@@ -52,7 +52,6 @@ export default function AboutPage() {
   return (
     <div className="bg-brand-surface">
       <PageHeader 
-        label="About Happy Wanderers"
         title="Rainforest departures built on calm logistics"
         description="We are a focused team running scheduled and private departures across Cairns and the Daintree with transparent availability and operator-level craft."
         breadcrumb={[{ label: "About" }]}

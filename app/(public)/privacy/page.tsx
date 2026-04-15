@@ -11,7 +11,6 @@ export default function PrivacyPage() {
   return (
     <div className="bg-brand-surface pb-24">
       <PageHeader 
-        label="Legal"
         title="Privacy policy"
         description="A clear summary of how we handle personal data for departures, logistics, and enquiries."
         breadcrumb={[{ label: "Privacy" }]}

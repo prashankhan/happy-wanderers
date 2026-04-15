@@ -63,7 +63,6 @@ export default function PrivateToursPage() {
   return (
     <div className="bg-brand-surface">
       <PageHeader 
-        label="Private departures"
         title="The rainforest, chartered on your terms"
         description="For guests who want the Wet Tropics without the constraints of a fixed schedule — private vehicles, curated pacing, and deep operator discipline."
         breadcrumb={[{ label: "Private tours" }]}

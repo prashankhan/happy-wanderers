@@ -11,7 +11,6 @@ export default function TermsPage() {
   return (
     <div className="bg-brand-surface pb-24">
       <PageHeader 
-        label="Legal"
         title="Terms & conditions"
         description="The foundation of our service—accuracy in booking, safety in the field, and operator discipline."
         breadcrumb={[{ label: "Terms" }]}

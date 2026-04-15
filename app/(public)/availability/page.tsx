@@ -25,7 +25,6 @@ export default async function AvailabilityPage({
   return (
     <div className="bg-brand-surface pb-32">
       <PageHeader 
-        label="Operator Logistics"
         title="Live capacity & availability"
         description="Our calendar reflects real-time field dynamics, including seasonal cutoffs and daily operator overrides. All departures are scheduled in Australia/Brisbane time."
         breadcrumb={[{ label: "Availability" }]}

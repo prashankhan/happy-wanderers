@@ -50,7 +50,6 @@ export function ToursListView({ rows }: ToursListViewProps) {
   return (
     <div className="bg-brand-surface min-h-screen">
       <PageHeader 
-        label="Experiences"
         title="Our tours"
         description="Intentionally small departures, rainforest-first pacing, and logistics designed for real mornings — not brochure promises."
         breadcrumb={[{ label: "Tours" }]}
