@@ -12,7 +12,7 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, breadcrumb }: PageHeaderProps) {
   return (
-    <header className="bg-white border-b border-brand-border overflow-hidden">
+    <header className="bg-brand-surface border-b border-brand-border overflow-hidden">
       <Container className="py-16 md:py-24 lg:py-28 relative">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
