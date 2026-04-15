@@ -20,7 +20,7 @@ const config: Config = {
           body: "#334155",
           muted: "#64748b",
           surface: "#ffffff",
-          "surface-soft": "#f8fafc",
+          "surface-soft": "#f3f4f6",
           "surface-warm": "#fff7e6",
           border: "#e2e8f0",
         },
