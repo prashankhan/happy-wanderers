@@ -160,19 +160,23 @@ export function PublicAvailabilityCalendar({
         )}
       </div>
       {showLegend ? (
-        <div className="flex flex-wrap gap-x-4 gap-y-2 rounded-xl border border-brand-border bg-brand-accent-soft px-3 py-2.5 text-[11px] font-medium text-brand-body">
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm bg-availability-open" /> Available
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm bg-availability-low" /> Low seats
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm bg-availability-full" /> Sold out
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-sm bg-availability-cutoff" /> Cut-off passed
-          </span>
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 rounded-sm bg-brand-surface-soft/70 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-sm bg-availability-open" />
+            <span className="text-xs font-medium text-brand-muted">Available</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-sm bg-availability-low" />
+            <span className="text-xs font-medium text-brand-muted">Low seats</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-sm bg-availability-full" />
+            <span className="text-xs font-medium text-brand-muted">Sold out</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-sm bg-availability-cutoff" />
+            <span className="text-xs font-medium text-brand-muted">Booking closed</span>
+          </div>
         </div>
       ) : null}
       <div className="grid grid-cols-7 gap-2 text-center text-xs">

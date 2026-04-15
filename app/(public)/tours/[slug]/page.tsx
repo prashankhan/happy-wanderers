@@ -37,16 +37,14 @@ export default async function TourDetailPage({ params }: PageProps) {
   return (
     <TourDetailView 
       tour={tour}
-      images={images}
-      pickups={pickups}
       heroGallery={<TourHeroGallery images={images.map(i => ({ id: i.id, imageUrl: i.imageUrl, altText: i.altText, isHero: i.isHero }))} tourTitle={tour.title} />}
       bookingSidebar={
         <TourBookingSidebar
           tourId={tour.id}
-          title={tour.title}
           priceFromText={tour.priceFromText}
           defaultPickupId={defaultPickup}
           pickups={pickups.map((p) => ({ id: p.id, name: p.name, timeLabel: p.pickupTimeLabel ?? p.pickupTime }))}
+          cancellationPolicy={tour.cancellationPolicy}
         />
       }
     />

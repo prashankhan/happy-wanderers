@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Container } from "@/components/layout/container";
-import { PageHeader } from "@/components/layout/page-header";
 
 import { AvailabilityExplorer } from "./availability-explorer";
 import { listPublishedTours } from "@/lib/services/tours-public";
@@ -23,14 +22,8 @@ export default async function AvailabilityPage({
   const initialTourId = tourId ?? tours[0]?.id;
 
   return (
-    <div className="bg-brand-surface pb-32">
-      <PageHeader 
-        title="Live capacity & availability"
-        description="Our calendar reflects real-time field dynamics, including seasonal cutoffs and daily operator overrides. All departures are scheduled in Australia/Brisbane time."
-        breadcrumb={[{ label: "Availability" }]}
-      />
-
-      <Container className="mt-12 px-2 md:mt-28 md:px-6">
+    <div className="bg-white pb-32 lg:pb-24">
+      <Container className="px-4 pt-8 sm:px-6 lg:pt-12">
         {initialTourId ? (
           <AvailabilityExplorer tours={tours} initialTourId={initialTourId} />
         ) : (

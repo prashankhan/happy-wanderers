@@ -37,7 +37,7 @@ export function TourNextOpenChip({
         .sort((a, b) => a.date.localeCompare(b.date))[0];
       if (next) {
         try {
-          const pretty = format(parseISO(`${next.date}T12:00:00`), "EEE d MMM");
+          const pretty = format(parseISO(`${next.date}T12:00:00`), "EEEE, do MMMM yyyy");
           setLabel(pretty);
         } catch {
           setLabel(next.date);
@@ -56,24 +56,29 @@ export function TourNextOpenChip({
 
   if (loading) {
     return (
-      <p className="rounded-full border border-brand-border bg-brand-surface-soft px-3 py-1.5 text-xs font-medium text-brand-muted">
-        Finding next departure…
+      <p className="text-xs text-brand-muted">
+        Loading next departure…
       </p>
     );
   }
 
   if (!label) {
     return (
-      <p className="rounded-full border border-brand-gold/40 bg-brand-surface-warm px-3 py-1.5 text-xs font-medium text-brand-heading">
-        Check calendar for next open date
+      <p className="text-xs text-brand-muted">
+        No upcoming departures
       </p>
     );
   }
 
+  const fullLabel = label.toUpperCase();
+
   return (
-    <p className="inline-flex items-center gap-2 rounded-full border border-brand-gold/50 bg-brand-surface-warm px-3 py-1.5 text-xs font-medium text-brand-heading">
-      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-gold" aria-hidden />
-      Next open departure · {label}
-    </p>
+    <div className="flex items-center gap-3">
+      <span className="h-2 w-2 shrink-0 rounded-full bg-brand-primary" aria-hidden />
+      <div className="flex flex-col">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-brand-muted">Next departure</span>
+        <span className="text-sm font-semibold uppercase tracking-wide text-brand-heading">{fullLabel}</span>
+      </div>
+    </div>
   );
 }
