@@ -30,7 +30,7 @@ export default async function AvailabilityPage({
         breadcrumb={[{ label: "Availability" }]}
       />
 
-      <Container className="mt-20 md:mt-28">
+      <Container className="mt-12 px-2 md:mt-28 md:px-6">
         {initialTourId ? (
           <AvailabilityExplorer tours={tours} initialTourId={initialTourId} />
         ) : (
