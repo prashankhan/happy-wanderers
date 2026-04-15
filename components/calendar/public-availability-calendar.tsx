@@ -177,7 +177,7 @@ export function PublicAvailabilityCalendar({
       ) : null}
       <div className="grid grid-cols-7 gap-2 text-center text-xs">
         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
-          <div key={d} className="font-medium text-brand-muted">
+          <div key={d} className="font-bold uppercase tracking-widest text-brand-muted/50 pb-2">
             {d}
           </div>
         ))}
@@ -196,11 +196,11 @@ export function PublicAvailabilityCalendar({
                 if (d && d.available && !d.cutoff_passed) onSelectDate(dateStr);
               }}
               className={cn(
-                "flex h-10 items-center justify-center rounded-lg text-xs font-medium transition duration-150",
-                d ? cellClass(d) : "bg-brand-surface-soft text-brand-muted",
-                isSel && "ring-2 ring-brand-accent ring-offset-2",
+                "flex h-12 md:h-14 items-center justify-center rounded-sm text-sm font-bold transition-all duration-200",
+                d ? cellClass(d) : "bg-brand-surface text-brand-muted/20",
+                isSel && "ring-2 ring-brand-primary ring-offset-2 scale-[1.05] z-10 shadow-lg",
                 clickable &&
-                  "cursor-pointer hover:brightness-110 hover:ring-2 hover:ring-white/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
+                  "cursor-pointer hover:ring-2 hover:ring-brand-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
               )}
             >
               {Number(dateStr.slice(8, 10))}
@@ -208,15 +208,6 @@ export function PublicAvailabilityCalendar({
           );
         })}
       </div>
-      <p className="text-xs leading-relaxed text-brand-muted">
-        All departures use operator time in <span className="font-medium text-brand-body">Australia/Brisbane</span>.
-        {showLegend ? (
-          <>
-            {" "}
-            <span className="text-availability-low font-medium">Gold</span> indicates limited remaining seats.
-          </>
-        ) : null}
-      </p>
     </div>
   );
 }
