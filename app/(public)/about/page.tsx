@@ -58,48 +58,50 @@ export default function AboutPage() {
       />
 
       {/* Narrative Section */}
-      <section className="py-24 md:py-32">
-        <Container className="grid gap-16 lg:grid-cols-12 lg:gap-24">
-          <div className="lg:col-span-5">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary mb-6">Our story</p>
-            <h2 className="font-serif text-4xl font-bold tracking-tight text-brand-heading">Built for the forest floor</h2>
+      <section className="py-32 md:py-48 lg:py-64">
+        <Container className="grid gap-20 lg:grid-cols-12">
+          <div className="lg:col-span-12 mb-16">
+            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-brand-primary mb-8">The Narrative</p>
+            <h2 className="font-serif text-5xl font-black tracking-tighter text-brand-heading md:text-7xl lg:text-8xl leading-[0.9]">
+              Built for the <br className="hidden md:block" />forest floor.
+            </h2>
           </div>
-          <div className="lg:col-span-12 lg:mt-8 space-y-8 text-lg leading-[1.8] text-brand-body/90 font-medium tracking-tight">
-            <p className="max-w-4xl">
+          <div className="lg:col-span-8 lg:col-start-1 space-y-12 text-xl leading-[1.6] text-brand-body/90 font-medium tracking-tight md:text-3xl md:leading-[1.4]">
+            <p className="max-w-5xl">
               Happy Wanderers began with a simple frustration: too many rainforest days felt rushed, over-scripted, or
               disconnected from the ecology guests had travelled to see. We built an operator model around senior
               guides, small vehicles, and software that respects capacity in real time.
             </p>
-            <p className="max-w-4xl">
+            <p className="max-w-5xl text-brand-body/60 italic">
               Today we host guests from across the world who want premium pacing without pretence — where
-              &ldquo;luxury&rdquo; means silence on the trail, honest briefings, and pickups that arrive on schedule.
+              &ldquo;luxury&rdquo; means silence on the trail, honest briefings, and arrivals that synchronize with the natural light.
             </p>
           </div>
         </Container>
       </section>
 
       {/* Local Expertise / Highlights */}
-      <section className="bg-brand-surface-soft border-y border-brand-border py-24 md:py-32">
+      <section className="bg-brand-surface-soft border-y border-brand-border py-32 md:py-48">
         <Container>
-          <div className="mx-auto max-w-3xl text-center space-y-6">
-            <h2 className="font-serif text-4xl font-bold tracking-tight text-brand-heading">Local expertise</h2>
-            <p className="text-xl leading-relaxed text-brand-body/80 tracking-tight">
+          <div className="mx-auto max-w-4xl text-center space-y-10">
+            <h2 className="font-serif text-5xl font-bold tracking-tight text-brand-heading md:text-7xl">Field authority.</h2>
+            <p className="text-xl leading-relaxed text-brand-body/80 tracking-tight md:text-3xl max-w-2xl mx-auto">
               Our guides live inside the rhythms of the Wet Tropics — weather windows, creek behaviour, and the ethics
-              of wildlife approach. Expertise that shows up in every route choice.
+              of wildlife approach.
             </p>
           </div>
           
-          <div className="mt-20 grid gap-8 md:grid-cols-3">
+          <div className="mt-28 grid gap-8 md:grid-cols-3">
             {pillars.map(({ icon: Icon, title, body }) => (
               <div
                 key={title}
-                className="group rounded-md border border-brand-border bg-white p-10 text-left transition-all hover:shadow-xl hover:ring-1 hover:ring-brand-border/80"
+                className="group rounded-sm border border-brand-border bg-white p-12 text-left transition-all hover:shadow-2xl hover:-translate-y-1"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-brand-primary/5 text-brand-primary group-hover:scale-110 transition-transform">
+                <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-brand-primary/10 text-brand-primary transition-transform">
                   <Icon className="size-6" aria-hidden />
                 </div>
-                <h3 className="mt-8 text-xl font-bold tracking-tight text-brand-heading">{title}</h3>
-                <p className="mt-4 text-sm leading-relaxed text-brand-body/70">{body}</p>
+                <h3 className="mt-10 text-2xl font-bold tracking-tighter text-brand-heading uppercase">{title}</h3>
+                <p className="mt-6 text-base leading-relaxed text-brand-body/60 font-medium">{body}</p>
               </div>
             ))}
           </div>
@@ -107,46 +109,47 @@ export default function AboutPage() {
       </section>
 
       {/* Service Area & Features */}
-      <section className="py-24 md:py-32">
-        <Container className="grid gap-16 lg:grid-cols-2 lg:items-center lg:gap-24">
-          <div className="space-y-10">
-            <h2 className="font-serif text-4xl font-bold tracking-tight text-brand-heading">The service difference</h2>
-            <ul className="space-y-8">
+      <section className="py-32 md:py-48 bg-white">
+        <Container className="grid gap-24 lg:grid-cols-2 lg:items-center">
+          <div className="space-y-16">
+            <h2 className="font-serif text-5xl font-bold tracking-tight text-brand-heading md:text-7xl">The service <br />difference.</h2>
+            <ul className="space-y-12">
               {[
-                "Live availability and cutoffs tied to real pickup times — not estimates.",
-                "Immutable booking snapshots after confirmation — total clarity.",
+                "Live availability tied to real field capacity — not estimates.",
+                "Immutable booking snapshots for total passenger clarity.",
                 "Private charters when you need the forest on your own terms.",
               ].map((text, i) => (
-                <li key={i} className="flex gap-4">
-                  <BadgeCheck className="mt-1 size-6 shrink-0 text-availability-open" aria-hidden />
-                  <span className="text-lg font-medium tracking-tight text-brand-body">{text}</span>
+                <li key={i} className="flex gap-6">
+                  <BadgeCheck className="mt-1 size-8 shrink-0 text-brand-primary" aria-hidden />
+                  <span className="text-xl font-bold tracking-tight text-brand-heading md:text-2xl">{text}</span>
                 </li>
               ))}
             </ul>
           </div>
           
-          <div className="rounded-md border border-brand-border bg-brand-heading p-12 text-white shadow-2xl relative overflow-hidden group lg:p-16">
+          <div className="rounded-sm border border-brand-border bg-brand-heading p-12 text-white shadow-3xl relative overflow-hidden lg:p-20">
             <div className="relative z-10">
               <div className="flex items-center gap-3 text-brand-primary">
                 <MapPin className="size-6" aria-hidden />
-                <h3 className="font-bold uppercase tracking-[0.2em] text-xs">Service area profile</h3>
+                <h3 className="font-bold uppercase tracking-[0.3em] text-[10px]">Service area profile</h3>
               </div>
-              <p className="mt-8 text-3xl font-bold tracking-tight lg:text-4xl">
-                Cairns, Port Douglas & the Daintree rainforest corridor.
+              <p className="mt-10 text-4xl font-black tracking-tighter lg:text-5xl leading-[0.9]">
+                Cairns, <br />Port Douglas <br />& the Daintree.
               </p>
-              <p className="mt-6 text-lg text-white/60 leading-relaxed font-regular">
-                Scheduled and private departures operate across regional access routes — exact pickup matrix
-                depends on the specific seasonal tour you choose to open.
+              <p className="mt-8 text-xl text-white/50 leading-relaxed font-medium tracking-tight">
+                Scheduled and private departures operate across the rainforest corridor. Exact pickup rules depend on the specific seasonal tour you choose.
               </p>
-              <Link 
-                href="/tours"
-                className="mt-12 inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover active:scale-[0.98]"
-              >
-                View our tours
-              </Link>
+              <div className="mt-14">
+                <Link 
+                  href="/tours"
+                  className="inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover active:scale-[0.98]"
+                >
+                  View departures
+                </Link>
+              </div>
             </div>
             {/* Subtle background accent */}
-            <div className="absolute -right-8 -bottom-8 size-64 bg-brand-primary/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -right-20 -bottom-20 size-96 bg-brand-primary/10 rounded-full blur-[100px] pointer-events-none" />
           </div>
         </Container>
       </section>
@@ -157,20 +160,20 @@ export default function AboutPage() {
       </div>
 
       {/* Final Contact Section */}
-      <section className="bg-brand-surface py-32 md:py-48 border-t border-brand-border">
+      <section className="bg-brand-surface py-32 md:py-64 border-t border-brand-border">
         <Container className="mx-auto max-w-5xl text-center">
-          <div className="space-y-10">
-            <h2 className="font-serif text-5xl font-bold tracking-tight text-brand-heading md:text-6xl lg:text-7xl italic">
-              Connect with the field team
+          <div className="space-y-12">
+            <h2 className="font-serif text-6xl font-black tracking-tighter text-brand-heading md:text-8xl lg:text-9xl leading-[0.85] italic">
+              Connect with <br />the field.
             </h2>
-            <p className="text-xl leading-relaxed text-brand-body/80 font-medium tracking-tight max-w-3xl mx-auto md:text-2xl">
-              Planning a milestone trip or a collective private charter? Send us a note. 
-              We respond personally—no automated scripts, just field expertise.
+            <p className="text-xl leading-relaxed text-brand-body/80 font-bold tracking-tight max-w-3xl mx-auto md:text-3xl">
+              Planning a milestone trip or a private charter? Send us a note. 
+              We respond personally—no automated scripts.
             </p>
-            <div className="pt-10">
+            <div className="pt-12">
               <Link 
                 href="/contact"
-                className="inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-lg active:scale-[0.98]"
+                className="inline-flex items-center justify-center rounded-sm bg-brand-primary px-16 py-6 text-3xl font-bold tracking-tighter text-white transition-all hover:bg-brand-primary-hover hover:shadow-2xl active:scale-[0.98]"
               >
                 Send a message
               </Link>
