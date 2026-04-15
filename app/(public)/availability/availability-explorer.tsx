@@ -28,7 +28,7 @@ export function AvailabilityExplorer({
         <Card className="shadow-md ring-1 ring-brand-heading/[0.03] rounded-sm order-first">
           <CardHeader className="border-b border-brand-border p-10">
             <div className="grid gap-10 sm:grid-cols-2">
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted mb-3">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-brand-muted mb-3">
                 Select Experience
                 <select
                   className="mt-4 w-full rounded-sm border border-brand-border bg-brand-surface px-5 py-4 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
@@ -42,7 +42,7 @@ export function AvailabilityExplorer({
                   ))}
                 </select>
               </label>
-              <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted mb-3">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-brand-muted mb-3">
                 Viewing Month
                 <input
                   type="month"
@@ -69,7 +69,7 @@ export function AvailabilityExplorer({
 
         {/* Supporting Context: How we read the field */}
         <section className="rounded-sm border border-brand-border bg-brand-surface-soft p-12 text-brand-heading shadow-sm ring-1 ring-brand-border/40">
-          <div className="flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-[0.3em] text-brand-primary mb-8">
+          <div className="flex flex-wrap items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-brand-muted mb-8">
             <MapPin className="h-4 w-4" aria-hidden />
             Field Intelligence
           </div>
@@ -82,25 +82,25 @@ export function AvailabilityExplorer({
           
           <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-brand-border/60 pt-10">
             <div className="space-y-2">
-              <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-brand-heading">
+              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-brand-muted">
                 <span className="size-3 rounded-sm bg-availability-open" /> Open Canopy
               </div>
               <p className="text-sm text-brand-body/60 font-medium leading-relaxed">Standard capacity available for booking.</p>
             </div>
             <div className="space-y-2">
-              <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-brand-heading">
+              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-brand-muted">
                 <span className="size-3 rounded-sm bg-availability-low" /> Limited Seats
               </div>
               <p className="text-sm text-brand-body/60 font-medium leading-relaxed">Departure is reaching its small-group limit.</p>
             </div>
             <div className="space-y-2">
-              <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-brand-heading">
+              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-brand-muted">
                 <span className="size-3 rounded-sm bg-availability-full" /> Field Reserved
               </div>
               <p className="text-sm text-brand-body/60 font-medium leading-relaxed">Departure is at capacity or undergoing maintenance.</p>
             </div>
             <div className="space-y-2">
-              <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-brand-heading">
+              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-brand-muted">
                 <span className="size-3 rounded-sm bg-brand-muted/30" /> Logistics Cut-off
               </div>
               <p className="text-sm text-brand-body/60 font-medium leading-relaxed">Date is too close to departure for secure logistics.</p>
@@ -113,13 +113,13 @@ export function AvailabilityExplorer({
         <Card className="shadow-xl ring-1 ring-brand-heading/[0.04] rounded-sm border-brand-border/60">
           <CardHeader className="border-b border-brand-border px-8 py-8">
             <div className="space-y-1">
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-muted">Action</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-brand-muted">Action</p>
               <CardTitle className="font-serif text-3xl font-bold italic pt-2">Verify & Continue</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="space-y-10 p-8">
             <div className="rounded-sm border border-brand-border bg-brand-surface-soft p-8 text-center">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted mb-4">Selected Departure</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-brand-muted mb-4">Selected Departure</p>
               <p className="text-3xl font-black tracking-tighter text-brand-heading leading-none">{date ?? "—"}</p>
               {activeTour && date && (
                 <p className="mt-4 text-xs font-bold text-brand-primary uppercase tracking-widest">{activeTour.title}</p>
