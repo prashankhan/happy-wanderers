@@ -40,7 +40,7 @@ export function PageHeader({ title, description, breadcrumb }: PageHeaderProps) 
           )}
 
           {/* Page Narrative */}
-          <h1 className="font-serif text-5xl font-bold tracking-tighter text-brand-heading md:text-7xl lg:text-9xl lg:leading-[1.02]">
+          <h1 className="font-serif text-5xl font-bold tracking-tighter text-brand-heading md:text-6xl lg:text-7xl lg:leading-[1.1]">
             {title}
           </h1>
           {description && (
