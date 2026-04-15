@@ -28,7 +28,7 @@ export function AvailabilityExplorer({
         <Card className="shadow-md ring-1 ring-brand-heading/[0.03] rounded-sm order-first">
           <CardHeader className="border-b border-brand-border p-10">
             <div className="grid gap-10 sm:grid-cols-2">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-brand-muted mb-3">
+              <label className="block text-xs font-bold uppercase tracking-wider text-brand-muted mb-3">
                 Select Experience
                 <select
                   className="mt-4 w-full rounded-sm border border-brand-border bg-brand-surface px-5 py-4 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
@@ -42,7 +42,7 @@ export function AvailabilityExplorer({
                   ))}
                 </select>
               </label>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-brand-muted mb-3">
+              <label className="block text-xs font-bold uppercase tracking-wider text-brand-muted mb-3">
                 Viewing Month
                 <input
                   type="month"
@@ -112,10 +112,7 @@ export function AvailabilityExplorer({
       <aside className="lg:sticky lg:top-28">
         <Card className="shadow-xl ring-1 ring-brand-heading/[0.04] rounded-sm border-brand-border/60">
           <CardHeader className="border-b border-brand-border px-8 py-8">
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-brand-muted">Action</p>
-              <CardTitle className="font-serif text-3xl font-bold italic pt-2">Verify & Continue</CardTitle>
-            </div>
+            <CardTitle className="font-serif text-3xl font-bold italic">Verify & Continue</CardTitle>
           </CardHeader>
           <CardContent className="space-y-10 p-8">
             <div className="rounded-sm border border-brand-border bg-brand-surface-soft p-8 text-center">
