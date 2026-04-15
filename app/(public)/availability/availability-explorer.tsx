@@ -1,17 +1,40 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { Clock, MapPin, Users } from "lucide-react";
+import { format, parseISO } from "date-fns";
 
 import { PublicAvailabilityCalendar } from "@/components/calendar/public-availability-calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
+interface TourOption {
+  id: string;
+  title: string;
+  slug: string;
+  shortDescription: string | null;
+  durationText: string | null;
+  groupSizeText: string | null;
+  priceFromText: string | null;
+  locationRegion: string | null;
+  heroImage: string | null;
+}
+
+function formatDate(dateStr: string): string {
+  try {
+    return format(parseISO(`${dateStr}T12:00:00`), "EEEE, do MMMM");
+  } catch {
+    return dateStr;
+  }
+}
+
 export function AvailabilityExplorer({
   tours,
   initialTourId,
 }: {
-  tours: { id: string; title: string; slug: string }[];
+  tours: TourOption[];
   initialTourId: string;
 }) {
   const [tourId, setTourId] = useState(initialTourId);
@@ -25,8 +48,8 @@ export function AvailabilityExplorer({
       <div className="space-y-8 md:space-y-12">
         {/* Calendar Control Center */}
         <Card className="rounded-sm border-brand-border shadow-lg shadow-brand-heading/5 ring-1 ring-brand-heading/5">
-          <CardHeader className="border-b border-brand-border p-4 md:p-8">
-            <div className="grid gap-6 md:gap-8 sm:grid-cols-[3fr_1fr]">
+          <CardHeader className="border-b border-brand-border p-0 md:p-8">
+            <div className="grid gap-2 md:gap-8 sm:grid-cols-[3fr_1fr] p-2 md:p-0">
               <div>
                 <p className="text-base font-bold uppercase tracking-normal text-brand-muted mb-3">
                   Select Experience
@@ -34,7 +57,10 @@ export function AvailabilityExplorer({
                 <select
                   className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                   value={tourId}
-                  onChange={(e) => setTourId(e.target.value)}
+                  onChange={(e) => {
+                    setTourId(e.target.value);
+                    setDate(undefined);
+                  }}
                 >
                   {tours.map((t) => (
                     <option key={t.id} value={t.id}>
@@ -56,8 +82,63 @@ export function AvailabilityExplorer({
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-4 md:p-8 bg-white">
-            <div className="border border-brand-border rounded-sm p-4 md:p-6 bg-brand-surface-soft/50">
+
+          {/* Tour Preview Card */}
+          {activeTour && (
+            <CardContent className="border-b border-brand-border bg-brand-surface-soft/30 p-0 md:p-6">
+              <div className="flex gap-2 p-2 md:p-0 md:gap-6">
+                {activeTour.heroImage && (
+                  <div className="relative h-24 w-32 shrink-0 overflow-hidden rounded-sm bg-brand-border">
+                    <Image
+                      src={activeTour.heroImage}
+                      alt={activeTour.title}
+                      fill
+                      className="object-cover brightness-90 saturate-[0.85]"
+                      sizes="128px"
+                    />
+                  </div>
+                )}
+                <div className="flex flex-col justify-center min-w-0">
+                  <h3 className="font-serif text-lg md:text-xl font-bold text-brand-heading line-clamp-1">
+                    {activeTour.title}
+                  </h3>
+                  {activeTour.shortDescription && (
+                    <p className="mt-1 text-sm text-brand-muted line-clamp-2 hidden md:block">
+                      {activeTour.shortDescription}
+                    </p>
+                  )}
+                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+                    {activeTour.durationText && (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-muted">
+                        <Clock className="h-3.5 w-3.5" />
+                        {activeTour.durationText}
+                      </span>
+                    )}
+                    {activeTour.groupSizeText && (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-muted">
+                        <Users className="h-3.5 w-3.5" />
+                        {activeTour.groupSizeText}
+                      </span>
+                    )}
+                    {activeTour.locationRegion && (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-brand-muted">
+                        <MapPin className="h-3.5 w-3.5" />
+                        {activeTour.locationRegion}
+                      </span>
+                    )}
+                    {activeTour.priceFromText && (
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-brand-muted">
+                        Starting from <span className="font-bold text-brand-heading">{activeTour.priceFromText}</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          )}
+
+          <CardContent className="p-0 md:p-6 bg-white">
+            <div className="border border-brand-border rounded-sm p-2 md:p-6 bg-brand-surface-soft/50">
               <PublicAvailabilityCalendar
                 tourId={tourId}
                 month={month}
@@ -74,17 +155,16 @@ export function AvailabilityExplorer({
       {/* Sidebar */}
       <aside className="lg:sticky lg:top-40">
         <Card className="rounded-sm border-brand-border shadow-lg shadow-brand-heading/5 ring-1 ring-brand-heading/5">
-          <CardHeader className="border-b border-brand-border p-6 md:p-8">
-            {activeTour && date && (
-              <p className="text-[10px] font-bold uppercase tracking-widest text-brand-primary mb-2">
-                {activeTour.title}
-              </p>
-            )}
-            <p className="text-3xl md:text-4xl font-black tracking-tighter text-brand-heading leading-none">
-              {date ?? "—"}
+          <CardHeader className="border-b border-brand-border p-2 md:p-8">
+            {/* Always show tour name for context */}
+            <p className="text-sm font-bold text-brand-heading mb-1 md:mb-2">
+              {activeTour?.title ?? "—"}
+            </p>
+            <p className="text-lg md:text-2xl font-bold tracking-tight text-brand-heading">
+              {date ? formatDate(date) : "Select a date"}
             </p>
           </CardHeader>
-          <CardContent className="space-y-6 p-6 md:p-8">
+          <CardContent className="space-y-2 md:space-y-6 p-2 md:p-8">
             <div>
               {date ? (
                 <Button asChild variant="primary" className="w-full rounded-sm h-auto py-5 md:py-6 text-xl md:text-2xl font-bold tracking-tighter">
@@ -98,9 +178,12 @@ export function AvailabilityExplorer({
             </div>
 
             {activeTour && (
-              <div className="text-center pt-4 border-t border-brand-border/50">
-                <Link href={`/tours/${activeTour.slug}`} className="text-xs font-bold uppercase tracking-widest text-brand-muted hover:text-brand-primary transition-colors">
-                  Review tour details
+              <div className="pt-4 border-t border-brand-border/50">
+                <Link 
+                  href={`/tours/${activeTour.slug}`} 
+                  className="block text-center text-sm font-medium text-brand-primary hover:text-brand-primary-hover transition-colors"
+                >
+                  View tour details
                 </Link>
               </div>
             )}

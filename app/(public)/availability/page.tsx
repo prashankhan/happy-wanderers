@@ -25,7 +25,10 @@ export default async function AvailabilityPage({
     <div className="bg-white pb-32 lg:pb-24">
       <Container className="px-4 pt-8 sm:px-6 lg:pt-12">
         {initialTourId ? (
-          <AvailabilityExplorer tours={tours} initialTourId={initialTourId} />
+          <AvailabilityExplorer 
+            tours={tours as any} 
+            initialTourId={initialTourId} 
+          />
         ) : (
           <div className="mx-auto max-w-2xl rounded-sm border border-brand-border bg-white px-10 py-20 text-center shadow-sm">
             <h2 className="font-serif text-4xl font-bold text-brand-heading">Calendar opening soon</h2>

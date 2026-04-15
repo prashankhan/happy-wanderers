@@ -70,14 +70,12 @@ export function TourNextOpenChip({
     );
   }
 
-  const fullLabel = label.toUpperCase();
-
   return (
     <div className="flex items-center gap-3">
       <span className="h-2 w-2 shrink-0 rounded-full bg-brand-primary" aria-hidden />
       <div className="flex flex-col">
         <span className="text-[10px] font-bold uppercase tracking-widest text-brand-muted">Next departure</span>
-        <span className="text-sm font-semibold uppercase tracking-wide text-brand-heading">{fullLabel}</span>
+        <span className="text-sm font-semibold text-brand-heading">{label}</span>
       </div>
     </div>
   );
