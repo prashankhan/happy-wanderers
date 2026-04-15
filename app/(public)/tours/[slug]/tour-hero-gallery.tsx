@@ -27,17 +27,16 @@ export function TourHeroGallery({ images, tourTitle }: { images: TourHeroGallery
 
   return (
     <div className="space-y-4">
-      <div className="relative aspect-[21/9] min-h-[220px] w-full overflow-hidden rounded-2xl bg-gray-100 shadow-xl shadow-gray-900/10 ring-1 ring-black/5 md:min-h-[320px] md:rounded-3xl">
+      <div className="relative aspect-[16/9] min-h-[200px] w-full overflow-hidden rounded-sm bg-brand-surface shadow-xl shadow-brand-heading/10 ring-1 ring-brand-heading/10 md:min-h-[400px] md:aspect-[21/9]">
         <Image
           key={active.id}
           src={active.imageUrl}
           alt={active.altText ?? `${tourTitle} — gallery`}
           fill
           priority
-          className="object-cover"
+          className="object-cover brightness-90 saturate-[0.85]"
           sizes="100vw"
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-blue-950/70 via-blue-950/20 to-transparent" />
       </div>
       {ordered.length > 1 ? (
         <div className="flex gap-2 overflow-x-auto pb-1 pt-1 [scrollbar-width:thin]">
@@ -49,8 +48,8 @@ export function TourHeroGallery({ images, tourTitle }: { images: TourHeroGallery
                 type="button"
                 onClick={() => setActiveId(img.id)}
                 className={cn(
-                  "relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border-2 bg-gray-100 shadow-md shadow-gray-900/10 transition duration-200 md:h-20 md:w-32",
-                  isOn ? "border-blue-900 ring-2 ring-blue-900/20" : "border-transparent opacity-80 hover:opacity-100"
+                  "relative h-16 w-24 shrink-0 overflow-hidden rounded-sm border-2 bg-brand-surface shadow-sm shadow-brand-heading/10 transition duration-200 md:h-20 md:w-32",
+                  isOn ? "border-brand-primary ring-2 ring-brand-primary/20" : "border-transparent opacity-70 hover:opacity-100"
                 )}
               >
                 <Image

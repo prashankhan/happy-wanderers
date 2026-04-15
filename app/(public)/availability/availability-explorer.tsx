@@ -27,8 +27,8 @@ export function AvailabilityExplorer({
         {/* Primary Action: The Calendar Control Center */}
         <Card className="rounded-none border-x-0 border-t border-b shadow-none md:rounded-sm md:border md:shadow-md ring-1 ring-brand-heading/[0.03] order-first p-0">
           <CardHeader className="border-b border-brand-border p-2 md:p-10">
-            <div className="grid gap-6 md:gap-8 sm:grid-cols-[1.6fr_1fr]">
-              <label className="block text-xs font-bold uppercase tracking-wider text-brand-muted mb-3">
+            <div className="grid gap-6 md:gap-8 sm:grid-cols-[3fr_1fr]">
+              <label className="block text-sm font-extrabold uppercase tracking-wider text-brand-muted mb-3">
                 Select Experience
                 <select
                   className="mt-4 w-full rounded-sm border border-brand-border bg-brand-surface px-5 py-4 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
@@ -42,7 +42,7 @@ export function AvailabilityExplorer({
                   ))}
                 </select>
               </label>
-              <label className="block text-xs font-bold uppercase tracking-wider text-brand-muted mb-3">
+              <label className="block text-sm font-extrabold uppercase tracking-wider text-brand-muted mb-3">
                 Select Month
                 <input
                   type="month"
