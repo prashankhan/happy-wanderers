@@ -27,7 +27,7 @@ export function AvailabilityExplorer({
         {/* Primary Action: The Calendar Control Center */}
         <Card className="shadow-md ring-1 ring-brand-heading/[0.03] rounded-sm order-first">
           <CardHeader className="border-b border-brand-border p-10">
-            <div className="grid gap-10 sm:grid-cols-2">
+            <div className="grid gap-10 sm:grid-cols-[1.6fr_1fr]">
               <label className="block text-xs font-bold uppercase tracking-wider text-brand-muted mb-3">
                 Select Experience
                 <select
