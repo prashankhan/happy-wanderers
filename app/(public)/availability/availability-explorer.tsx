@@ -43,7 +43,7 @@ export function AvailabilityExplorer({
                 </select>
               </label>
               <label className="block text-xs font-bold uppercase tracking-wider text-brand-muted mb-3">
-                Viewing Month
+                Select Month
                 <input
                   type="month"
                   className="mt-4 w-full rounded-sm border border-brand-border bg-brand-surface px-5 py-4 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
