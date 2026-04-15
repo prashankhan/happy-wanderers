@@ -22,7 +22,7 @@ export function PageHeader({ title, description, breadcrumb }: PageHeaderProps) 
         >
           {/* Breadcrumbs */}
           {breadcrumb && (
-            <nav className="mb-10 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-brand-body/30">
+            <nav className="mb-12 flex items-center justify-center gap-3 text-sm font-bold uppercase tracking-[0.25em] text-brand-body/40">
               <Link href="/" className="transition hover:text-brand-primary">Home</Link>
               {breadcrumb.map((item, i) => (
                 <div key={i} className="flex items-center gap-2">
