@@ -44,23 +44,25 @@ export function HeroContent() {
     >
       <motion.p
         variants={itemVariants}
-        className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/50 md:text-xs"
+        className="text-sm font-bold uppercase tracking-[0.2em] text-white/60 md:text-base"
       >
-        Guided journeys from Cairns & Port Douglas
+        Thoughtfully guided private journeys from Cairns
       </motion.p>
       
       <motion.h1
         variants={itemVariants}
-        className="mx-auto mt-8 max-w-none font-serif text-5xl font-black tracking-tighter leading-[0.9] text-white md:mt-12 md:text-8xl lg:text-[9rem] xl:text-[11rem] italic"
+        className="mx-auto mt-6 max-w-5xl font-serif text-4xl font-normal tracking-tight leading-[1.08] text-white md:mt-10 md:text-5xl md:leading-[1.06] lg:text-6xl xl:text-7xl"
       >
-        The rainforest, <span className="not-italic font-sans">as it was meant to be</span> found.
+        Travel Tropical North Queensland in a way that feels personal
       </motion.h1>
       
       <motion.p
         variants={itemVariants}
-        className="mx-auto mt-12 max-w-3xl text-xl font-medium leading-relaxed text-white/70 md:mt-16 md:text-3xl md:leading-[1.4] tracking-tight"
+        className="mx-auto mt-6 max-w-3xl text-base font-medium leading-relaxed text-white/70 md:mt-8 md:text-xl md:leading-relaxed"
       >
-        Move beyond the predictable. Hand-crafted private itineraries shaped around the rhythm of the field, the light of the canopy, and the pace of your own curiosity.
+        Move beyond predictable sightseeing into experiences shaped around comfort, attentiveness, and genuine
+        connection with the places you explore — guided with insight, professionalism, and thoughtful detail at
+        every step.
       </motion.p>
       
       <motion.div
