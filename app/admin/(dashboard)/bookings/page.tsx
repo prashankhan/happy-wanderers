@@ -1,10 +1,13 @@
 import Link from "next/link";
-import { and, asc, desc, eq, ilike, isNull, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, isNull, sql } from "drizzle-orm";
 
 import { BookingStatusBadge, PaymentStatusBadge } from "@/components/admin/booking-status-badge";
 import { ManualBookingForm } from "@/components/admin/manual-booking-form";
+import { Pagination } from "@/components/admin/pagination";
 import { db } from "@/lib/db";
 import { bookings, departureLocations, tours } from "@/lib/db/schema";
+
+const PAGE_SIZE = 20;
 
 export default async function AdminBookingsPage({
   searchParams,
@@ -16,6 +19,9 @@ export default async function AdminBookingsPage({
   const statusRaw = typeof sp.status === "string" ? sp.status : "";
   const customerEmail = typeof sp.customer_email === "string" ? sp.customer_email.trim() : "";
   const tourId = typeof sp.tour_id === "string" ? sp.tour_id : "";
+  const pageRaw = typeof sp.page === "string" ? parseInt(sp.page, 10) : 1;
+  const page = isNaN(pageRaw) || pageRaw < 1 ? 1 : pageRaw;
+  const offset = (page - 1) * PAGE_SIZE;
 
   const bookingStatuses = [
     "pending",
@@ -35,6 +41,16 @@ export default async function AdminBookingsPage({
   if (customerEmail) conditions.push(ilike(bookings.customerEmail, `%${customerEmail}%`));
   if (tourId) conditions.push(eq(bookings.tourId, tourId));
 
+  const whereClause = conditions.length ? and(...conditions) : sql`true`;
+
+  const [countResult] = await db
+    .select({ count: count() })
+    .from(bookings)
+    .where(whereClause);
+
+  const totalCount = countResult?.count ?? 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
   const rows = await db
     .select({
       booking: bookings,
@@ -42,9 +58,10 @@ export default async function AdminBookingsPage({
     })
     .from(bookings)
     .leftJoin(tours, eq(bookings.tourId, tours.id))
-    .where(conditions.length ? and(...conditions) : sql`true`)
+    .where(whereClause)
     .orderBy(desc(bookings.createdAt))
-    .limit(100);
+    .limit(PAGE_SIZE)
+    .offset(offset);
 
   const tourRows = await db
     .select({ id: tours.id, title: tours.title })
@@ -139,7 +156,7 @@ export default async function AdminBookingsPage({
       <div className="overflow-x-auto rounded-sm border border-brand-border bg-white shadow-sm">
         {rows.length > 0 && (
           <div className="border-b border-brand-border px-4 py-2 text-xs text-brand-muted">
-            Showing {rows.length} booking{rows.length !== 1 ? "s" : ""}
+            Showing {offset + 1}-{Math.min(offset + rows.length, totalCount)} of {totalCount} booking{totalCount !== 1 ? "s" : ""}
           </div>
         )}
         <table className="min-w-full text-left text-sm">
@@ -182,6 +199,12 @@ export default async function AdminBookingsPage({
           </div>
         )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center py-4">
+          <Pagination currentPage={page} totalPages={totalPages} />
+        </div>
+      )}
     </div>
   );
 }

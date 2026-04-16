@@ -172,7 +172,7 @@ export function AdminSidebar() {
 
       <aside
         className={cn(
-          "hidden lg:flex lg:flex-col lg:border-r lg:border-brand-border lg:bg-slate-50",
+          "hidden lg:flex lg:flex-col lg:border-r lg:border-brand-border lg:bg-slate-50 lg:h-full lg:shrink-0",
           collapsed ? "lg:w-16" : "lg:w-64"
         )}
       >
@@ -242,7 +242,7 @@ export function AdminSidebar() {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-brand-border bg-slate-50 transition-transform lg:hidden",
+          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-brand-border bg-slate-50 transition-transform lg:hidden lg:h-full",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
