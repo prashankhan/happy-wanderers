@@ -1,5 +1,6 @@
 "use client";
 
+import * as Dialog from "@radix-ui/react-dialog";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -55,9 +56,11 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
     setPaymentStatus("paid");
   }
 
-  function handleClose() {
-    resetForm();
-    setOpen(false);
+  function handleOpenChange(openState: boolean) {
+    if (!openState) {
+      resetForm();
+    }
+    setOpen(openState);
   }
 
   const depsForTour = useMemo(
@@ -68,6 +71,10 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
   async function submit() {
     if (!tourId || !bookingDate || !departureId) {
       showToast("Select tour, date, and departure.", "error");
+      return;
+    }
+    if (!customerFirstName.trim() || !customerLastName.trim() || !customerEmail.trim()) {
+      showToast("First name, last name, and email are required.", "error");
       return;
     }
     setPending(true);
@@ -101,9 +108,11 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
         return;
       }
       showToast("Booking created successfully");
-      handleClose();
-      router.push(`/admin/bookings/${data.booking_id}`);
-      router.refresh();
+      setTimeout(() => {
+        handleOpenChange(false);
+        router.push(`/admin/bookings/${data.booking_id}`);
+        router.refresh();
+      }, 1000);
     } finally {
       setPending(false);
     }
@@ -114,49 +123,62 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
   }
 
   return (
-    <div>
-      {!open ? (
-        <Button type="button" variant="secondary" onClick={() => setOpen(true)}>
+    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
+      <Dialog.Trigger asChild>
+        <Button type="button" variant="secondary">
           New manual booking
         </Button>
-      ) : (
-        <div className="rounded-sm border border-brand-border bg-white p-6 shadow-sm">
-          {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
-          <h2 className="text-sm font-bold text-brand-heading">Manual confirmed booking</h2>
-          <p className="mt-1 text-xs text-brand-muted">
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-sm border border-brand-border bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+          <Dialog.Title className="text-lg font-semibold text-brand-heading">New manual booking</Dialog.Title>
+          <Dialog.Description className="mt-1 text-xs text-brand-muted">
             Creates a confirmed booking, snapshots pricing, and sends confirmation emails.
-          </p>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Tour</label>
-              <select
-                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
-                value={tourId}
-                onChange={(e) => {
-                  setTourId(e.target.value);
-                  setDepartureId("");
-                }}
-              >
-                {tours.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.title}
-                  </option>
-                ))}
-              </select>
+          </Dialog.Description>
+
+          {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+
+          <div className="mt-4 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-medium text-brand-muted mb-1">
+                  Tour <span className="text-red-500">*</span>
+                </label>
+                <select
+                  className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  value={tourId}
+                  onChange={(e) => {
+                    setTourId(e.target.value);
+                    setDepartureId("");
+                  }}
+                >
+                  {tours.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-brand-muted mb-1">
+                  Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  value={bookingDate}
+                  onChange={(e) => setBookingDate(e.target.value)}
+                />
+              </div>
             </div>
+
             <div>
-              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Date</label>
-              <input
-                type="date"
-                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
-                value={bookingDate}
-                onChange={(e) => setBookingDate(e.target.value)}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Departure</label>
+              <label className="block text-xs font-medium text-brand-muted mb-1">
+                Departure <span className="text-red-500">*</span>
+              </label>
               <select
-                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={departureId}
                 onChange={(e) => setDepartureId(e.target.value)}
               >
@@ -168,40 +190,44 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Adults</label>
-              <input
-                type="number"
-                min={0}
-                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
-                value={adults}
-                onChange={(e) => setAdults(Number(e.target.value))}
-              />
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div>
+                <label className="block text-xs font-medium text-brand-muted mb-1">Adults</label>
+                <input
+                  type="number"
+                  min={1}
+                  className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  value={adults}
+                  onChange={(e) => setAdults(Math.max(1, Number(e.target.value)))}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-brand-muted mb-1">Children</label>
+                <input
+                  type="number"
+                  min={0}
+                  className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  value={children}
+                  onChange={(e) => setChildren(Number(e.target.value))}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-brand-muted mb-1">Infants</label>
+                <input
+                  type="number"
+                  min={0}
+                  className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  value={infants}
+                  onChange={(e) => setInfants(Number(e.target.value))}
+                />
+              </div>
             </div>
+
             <div>
-              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Children</label>
-              <input
-                type="number"
-                min={0}
-                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
-                value={children}
-                onChange={(e) => setChildren(Number(e.target.value))}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Infants</label>
-              <input
-                type="number"
-                min={0}
-                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
-                value={infants}
-                onChange={(e) => setInfants(Number(e.target.value))}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Payment</label>
+              <label className="block text-xs font-medium text-brand-muted mb-1">Payment</label>
               <select
-                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={paymentStatus}
                 onChange={(e) => setPaymentStatus(e.target.value as "unpaid" | "paid")}
               >
@@ -209,58 +235,86 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
                 <option value="unpaid">Unpaid</option>
               </select>
             </div>
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">First name</label>
-              <input
-                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
-                value={customerFirstName}
-                onChange={(e) => setCustomerFirstName(e.target.value)}
-              />
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-medium text-brand-muted mb-1">
+                  First name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  value={customerFirstName}
+                  onChange={(e) => setCustomerFirstName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-brand-muted mb-1">
+                  Last name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  value={customerLastName}
+                  onChange={(e) => setCustomerLastName(e.target.value)}
+                />
+              </div>
             </div>
+
             <div>
-              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Last name</label>
-              <input
-                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
-                value={customerLastName}
-                onChange={(e) => setCustomerLastName(e.target.value)}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Email</label>
+              <label className="block text-xs font-medium text-brand-muted mb-1">
+                Email <span className="text-red-500">*</span>
+              </label>
               <input
                 type="email"
-                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={customerEmail}
                 onChange={(e) => setCustomerEmail(e.target.value)}
               />
             </div>
-            <div className="md:col-span-2">
-              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Phone</label>
+
+            <div>
+              <label className="block text-xs font-medium text-brand-muted mb-1">Phone</label>
               <input
-                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
               />
             </div>
-            <div className="md:col-span-2">
-              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Notes</label>
+
+            <div>
+              <label className="block text-xs font-medium text-brand-muted mb-1">Notes</label>
               <textarea
-                className="min-h-[64px] w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                className="min-h-[64px] w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={customerNotes}
                 onChange={(e) => setCustomerNotes(e.target.value)}
               />
             </div>
           </div>
-          <div className="mt-4 flex gap-3">
+
+          <div className="mt-6 flex justify-end gap-3">
+            <Dialog.Close asChild>
+              <Button type="button" variant="secondary" disabled={pending}>
+                Cancel
+              </Button>
+            </Dialog.Close>
             <Button type="button" onClick={() => void submit()} disabled={pending}>
-              Create booking
-            </Button>
-            <Button type="button" variant="secondary" onClick={handleClose} disabled={pending}>
-              Cancel
+              {pending ? "Creating…" : "Create booking"}
             </Button>
           </div>
-        </div>
-      )}
-    </div>
+
+          <Dialog.Close asChild>
+            <button
+              type="button"
+              className="absolute right-4 top-4 rounded-sm p-1 text-brand-muted hover:text-brand-heading"
+              aria-label="Close"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
