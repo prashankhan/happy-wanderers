@@ -40,7 +40,13 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<"unpaid" | "paid">("paid");
-  const today = new Date().toISOString().split("T")[0];
+  
+  function getBrisbaneDate(): string {
+    const now = new Date();
+    const brisbane = new Date(now.toLocaleString("en-AU", { timeZone: "Australia/Brisbane" }));
+    return brisbane.toISOString().split("T")[0];
+  }
+  const today = getBrisbaneDate();
 
   function isValidDate(dateStr: string): boolean {
     return dateStr >= today;
