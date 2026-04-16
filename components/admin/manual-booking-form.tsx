@@ -43,7 +43,9 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
   
   function getBrisbaneDate(): string {
     const now = new Date();
-    const brisbane = new Date(now.toLocaleString("en-AU", { timeZone: "Australia/Brisbane" }));
+    const brisbaneOffset = 10;
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    const brisbane = new Date(utc + 3600000 * brisbaneOffset);
     return brisbane.toISOString().split("T")[0];
   }
   const today = getBrisbaneDate();
