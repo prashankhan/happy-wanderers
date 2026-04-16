@@ -135,7 +135,7 @@ export default async function AdminBookingsPage({
         ) : null}
       </form>
 
-      <div className="overflow-hidden rounded-sm border border-brand-border bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-sm border border-brand-border bg-white shadow-sm">
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-brand-border bg-brand-surface text-xs font-bold uppercase tracking-normal text-brand-muted">
             <tr>

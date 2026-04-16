@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
               <input
                 type="email"
                 required
-                className="mt-1 w-full rounded-lg border border-brand-border px-3 py-2"
+                className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -52,7 +52,7 @@ export default function AdminLoginPage() {
               <input
                 type="password"
                 required
-                className="mt-1 w-full rounded-lg border border-brand-border px-3 py-2"
+                className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />

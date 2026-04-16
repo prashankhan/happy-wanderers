@@ -179,7 +179,7 @@ export function TourMediaSection({ tourId, isAdmin }: TourMediaSectionProps) {
       ) : (
         <p className="text-xs text-brand-muted">Staff can upload gallery images; hero and delete are admin-only.</p>
       )}
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {images.map((img, idx) => (
           <li key={img.id} className="overflow-hidden rounded-sm border border-brand-border bg-white shadow-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}

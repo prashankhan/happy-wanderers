@@ -4,6 +4,8 @@ import * as Tabs from "@radix-ui/react-tabs";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
+import { AddPricingRuleModal } from "@/components/admin/add-pricing-rule-modal";
+import { Toast, useToast } from "@/components/admin/toast";
 import { TourMediaSection } from "@/components/admin/tour-media-section";
 import { Button } from "@/components/ui/button";
 
@@ -69,8 +71,18 @@ export interface TourEditorTabsProps {
 export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTabsProps) {
   const router = useRouter();
   const isAdmin = role === "admin";
-  const [msg, setMsg] = useState<string | null>(null);
+  const { toast, showToast, hideToast } = useToast();
   const [pending, setPending] = useState(false);
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+
+  function generateSlug(text: string): string {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim();
+  }
 
   const [content, setContent] = useState({
     title: tour.title,
@@ -128,7 +140,6 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
   async function saveContent() {
     if (!isAdmin) return;
     setPending(true);
-    setMsg(null);
     try {
       const body = {
         title: content.title,
@@ -172,10 +183,10 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
       });
       const data = (await res.json()) as { success?: boolean; message?: string };
       if (!res.ok) {
-        setMsg(data.message ?? "Save failed");
+        showToast(data.message ?? "Save failed", "error");
         return;
       }
-      setMsg("Tour saved.");
+      showToast("Content saved successfully");
       router.refresh();
     } finally {
       setPending(false);
@@ -185,7 +196,6 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
   async function saveAvailability() {
     if (!isAdmin || !rules) return;
     setPending(true);
-    setMsg(null);
     try {
       const res = await fetch(`/api/admin/tours/${tour.id}/availability-rules`, {
         method: "PUT",
@@ -194,41 +204,11 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
       });
       const data = (await res.json()) as { success?: boolean; message?: string };
       if (!res.ok) {
-        setMsg(data.message ?? "Save failed");
+        showToast(data.message ?? "Save failed", "error");
         return;
       }
-      setMsg("Availability rules saved.");
+      showToast("Availability rules saved");
       router.refresh();
-    } finally {
-      setPending(false);
-    }
-  }
-
-  async function createPricingRule() {
-    if (!isAdmin) return;
-    const label = prompt("Rule label?");
-    if (!label) return;
-    setPending(true);
-    setMsg(null);
-    try {
-      const res = await fetch("/api/admin/pricing/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tour_id: tour.id,
-          label,
-          adult_price: "100",
-          child_price: "50",
-          infant_price: "0",
-          infant_pricing_type: "free",
-        }),
-      });
-      const data = (await res.json()) as { success?: boolean; message?: string };
-      if (!res.ok) {
-        setMsg(data.message ?? "Failed");
-        return;
-      }
-      await loadPricing();
     } finally {
       setPending(false);
     }
@@ -237,7 +217,6 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
   async function updateRule(id: string, patch: Partial<PricingRuleRow>) {
     if (!isAdmin) return;
     setPending(true);
-    setMsg(null);
     try {
       const res = await fetch("/api/admin/pricing/update", {
         method: "PATCH",
@@ -255,9 +234,10 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
       });
       const data = (await res.json()) as { success?: boolean; message?: string };
       if (!res.ok) {
-        setMsg(data.message ?? "Failed");
+        showToast(data.message ?? "Failed to update", "error");
         return;
       }
+      showToast("Pricing rule updated");
       await loadPricing();
     } finally {
       setPending(false);
@@ -270,6 +250,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
     setPending(true);
     try {
       await fetch(`/api/admin/pricing/delete?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+      showToast("Pricing rule deleted");
       await loadPricing();
     } finally {
       setPending(false);
@@ -278,8 +259,8 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
 
   return (
     <Tabs.Root defaultValue="content" className="space-y-4">
-      {msg ? <p className="text-sm text-brand-body">{msg}</p> : null}
-      <Tabs.List className="flex flex-wrap gap-2 border-b border-brand-border pb-2">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
+      <Tabs.List className="flex gap-1 overflow-x-auto border-b border-brand-border pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {["content", "pricing", "availability", "media", "settings"].map((tab) => (
           <Tabs.Trigger
             key={tab}
@@ -301,7 +282,14 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
             <input
               className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={content.title}
-              onChange={(e) => setContent((c) => ({ ...c, title: e.target.value }))}
+              onChange={(e) => {
+                const newTitle = e.target.value;
+                setContent((c) => ({
+                  ...c,
+                  title: newTitle,
+                  slug: slugManuallyEdited ? c.slug : generateSlug(newTitle),
+                }));
+              }}
               disabled={!isAdmin || pending}
             />
           </label>
@@ -310,7 +298,10 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
             <input
               className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={content.slug}
-              onChange={(e) => setContent((c) => ({ ...c, slug: e.target.value }))}
+              onChange={(e) => {
+                setSlugManuallyEdited(true);
+                setContent((c) => ({ ...c, slug: e.target.value }));
+              }}
               disabled={!isAdmin || pending}
             />
           </label>
@@ -430,66 +421,69 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           <>
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm text-brand-body">Pricing rules for checkout and manual bookings.</p>
-              <Button type="button" variant="secondary" size="sm" onClick={() => void createPricingRule()} disabled={pending}>
-                Add rule
-              </Button>
+              <AddPricingRuleModal
+                tourId={tour.id}
+                onCreated={loadPricing}
+                pending={pending}
+                onPendingChange={setPending}
+              />
             </div>
             <ul className="space-y-4">
               {pricing.map((r) => (
                 <li key={r.id} className="rounded-sm border border-brand-border p-4">
                   <div className="grid gap-2 md:grid-cols-3">
-                    <label className="text-xs text-brand-muted">
+                    <label className="text-xs font-medium text-brand-muted">
                       Label
                       <input
-                        className="mt-1 w-full rounded border border-brand-border px-2 py-1 text-sm"
+                        className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
                         defaultValue={r.label}
                         onBlur={(e) => {
                           if (e.target.value !== r.label) void updateRule(r.id, { label: e.target.value });
                         }}
                       />
                     </label>
-                    <label className="text-xs text-brand-muted">
-                      Adult
+                    <label className="text-xs font-medium text-brand-muted">
+                      Adult price
                       <input
-                        className="mt-1 w-full rounded border border-brand-border px-2 py-1 text-sm"
+                        className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
                         defaultValue={r.adultPrice}
                         onBlur={(e) => {
                           if (e.target.value !== r.adultPrice) void updateRule(r.id, { adultPrice: e.target.value });
                         }}
                       />
                     </label>
-                    <label className="text-xs text-brand-muted">
-                      Child
+                    <label className="text-xs font-medium text-brand-muted">
+                      Child price
                       <input
-                        className="mt-1 w-full rounded border border-brand-border px-2 py-1 text-sm"
+                        className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
                         defaultValue={r.childPrice}
                         onBlur={(e) => {
                           if (e.target.value !== r.childPrice) void updateRule(r.id, { childPrice: e.target.value });
                         }}
                       />
                     </label>
-                    <label className="text-xs text-brand-muted">
-                      Infant type
+                    <label className="text-xs font-medium text-brand-muted">
+                      Infant pricing type
                       <select
-                        className="mt-1 w-full rounded border border-brand-border px-2 py-1 text-sm"
+                        className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
                         defaultValue={r.infantPricingType}
                         onChange={(e) => void updateRule(r.id, { infantPricingType: e.target.value })}
                       >
-                        <option value="free">free</option>
-                        <option value="fixed">fixed</option>
-                        <option value="not_allowed">not_allowed</option>
+                        <option value="free">Free</option>
+                        <option value="fixed">Fixed</option>
+                        <option value="not_allowed">Not allowed</option>
                       </select>
                     </label>
-                    <label className="text-xs text-brand-muted">
+                    <label className="text-xs font-medium text-brand-muted">
                       Priority
                       <input
                         type="number"
-                        className="mt-1 w-full rounded border border-brand-border px-2 py-1 text-sm"
+                        className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
                         defaultValue={r.priority}
                         onBlur={(e) => void updateRule(r.id, { priority: Number(e.target.value) })}
                       />
                     </label>
-                    <label className="flex items-center gap-2 text-xs text-brand-muted">
+                    <label className="flex items-center gap-2 text-xs font-medium text-brand-muted">
                       <input
                         type="checkbox"
                         defaultChecked={r.isActive}
@@ -572,91 +566,109 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
         <TourMediaSection tourId={tour.id} isAdmin={isAdmin} />
       </Tabs.Content>
 
-      <Tabs.Content value="settings" className="space-y-4 rounded-sm border border-brand-border bg-white p-6">
+      <Tabs.Content value="settings" className="space-y-6 rounded-sm border border-brand-border bg-white p-6">
         {!isAdmin ? (
           <p className="text-sm text-brand-body">Settings are admin-only.</p>
         ) : (
           <>
-            <label className="flex items-center gap-2 text-sm text-brand-body">
-              <input
-                type="checkbox"
-                checked={content.booking_enabled}
-                onChange={(e) => setContent((c) => ({ ...c, booking_enabled: e.target.checked }))}
-                disabled={pending}
-              />
-              Booking enabled
-            </label>
-            <label className="flex items-center gap-2 text-sm text-brand-body">
-              <input
-                type="checkbox"
-                checked={content.is_active}
-                onChange={(e) => setContent((c) => ({ ...c, is_active: e.target.checked }))}
-                disabled={pending}
-              />
-              Tour active
-            </label>
-            <label className="flex items-center gap-2 text-sm text-brand-body">
-              <input
-                type="checkbox"
-                checked={content.is_featured}
-                onChange={(e) => setContent((c) => ({ ...c, is_featured: e.target.checked }))}
-                disabled={pending}
-              />
-              Featured
-            </label>
-            <label className="text-xs font-medium text-brand-muted">
-              Status
-              <select
-                className="mt-1 block rounded-sm border border-brand-border px-3 py-2 text-sm"
-                value={content.status}
-                onChange={(e) =>
-                  setContent((c) => ({ ...c, status: e.target.value as "draft" | "published" | "archived" }))
-                }
-                disabled={pending}
-              >
-                <option value="draft">draft</option>
-                <option value="published">published</option>
-                <option value="archived">archived</option>
-              </select>
-            </label>
-            <label className="text-xs font-medium text-brand-muted">
-              Display order
-              <input
-                type="number"
-                className="mt-1 w-full max-w-xs rounded-sm border border-brand-border px-3 py-2 text-sm"
-                value={content.display_order}
-                onChange={(e) => setContent((c) => ({ ...c, display_order: Number(e.target.value) }))}
-                disabled={pending}
-              />
-            </label>
-            <label className="text-xs font-medium text-brand-muted">
-              Booking cutoff (hours)
-              <input
-                type="number"
-                className="mt-1 w-full max-w-xs rounded-sm border border-brand-border px-3 py-2 text-sm"
-                value={content.booking_cutoff_hours}
-                onChange={(e) => setContent((c) => ({ ...c, booking_cutoff_hours: Number(e.target.value) }))}
-                disabled={pending}
-              />
-            </label>
-            <label className="text-xs font-medium text-brand-muted md:block">
-              SEO title
-              <input
-                className="mt-1 w-full max-w-xl rounded-sm border border-brand-border px-3 py-2 text-sm"
-                value={content.seo_title}
-                onChange={(e) => setContent((c) => ({ ...c, seo_title: e.target.value }))}
-                disabled={pending}
-              />
-            </label>
-            <label className="text-xs font-medium text-brand-muted md:block">
-              SEO description
-              <textarea
-                className="mt-1 min-h-[64px] w-full max-w-xl rounded-sm border border-brand-border px-3 py-2 text-sm"
-                value={content.seo_description}
-                onChange={(e) => setContent((c) => ({ ...c, seo_description: e.target.value }))}
-                disabled={pending}
-              />
-            </label>
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-brand-heading">Toggles</h3>
+              <div className="flex flex-wrap gap-6">
+                <label className="flex items-center gap-2 text-sm text-brand-body">
+                  <input
+                    type="checkbox"
+                    checked={content.booking_enabled}
+                    onChange={(e) => setContent((c) => ({ ...c, booking_enabled: e.target.checked }))}
+                    disabled={pending}
+                  />
+                  Booking enabled
+                </label>
+                <label className="flex items-center gap-2 text-sm text-brand-body">
+                  <input
+                    type="checkbox"
+                    checked={content.is_active}
+                    onChange={(e) => setContent((c) => ({ ...c, is_active: e.target.checked }))}
+                    disabled={pending}
+                  />
+                  Tour active
+                </label>
+                <label className="flex items-center gap-2 text-sm text-brand-body">
+                  <input
+                    type="checkbox"
+                    checked={content.is_featured}
+                    onChange={(e) => setContent((c) => ({ ...c, is_featured: e.target.checked }))}
+                    disabled={pending}
+                  />
+                  Featured
+                </label>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-brand-heading">Publishing</h3>
+              <div className="grid gap-4 md:grid-cols-3">
+                <label className="text-xs font-medium text-brand-muted">
+                  Status
+                  <select
+                    className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                    value={content.status}
+                    onChange={(e) =>
+                      setContent((c) => ({ ...c, status: e.target.value as "draft" | "published" | "archived" }))
+                    }
+                    disabled={pending}
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </label>
+                <label className="text-xs font-medium text-brand-muted">
+                  Display order
+                  <input
+                    type="number"
+                    className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                    value={content.display_order}
+                    onChange={(e) => setContent((c) => ({ ...c, display_order: Number(e.target.value) }))}
+                    disabled={pending}
+                  />
+                </label>
+                <label className="text-xs font-medium text-brand-muted">
+                  Booking cutoff (hours)
+                  <input
+                    type="number"
+                    className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                    value={content.booking_cutoff_hours}
+                    onChange={(e) => setContent((c) => ({ ...c, booking_cutoff_hours: Number(e.target.value) }))}
+                    disabled={pending}
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-brand-heading">SEO</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="text-xs font-medium text-brand-muted">
+                  SEO title
+                  <input
+                    className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                    value={content.seo_title}
+                    onChange={(e) => setContent((c) => ({ ...c, seo_title: e.target.value }))}
+                    disabled={pending}
+                  />
+                </label>
+                <label className="text-xs font-medium text-brand-muted">
+                  SEO description
+                  <textarea
+                    className="mt-1 min-h-[80px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                    value={content.seo_description}
+                    onChange={(e) => setContent((c) => ({ ...c, seo_description: e.target.value }))}
+                    disabled={pending}
+                  />
+                </label>
+              </div>
+            </div>
+
             <Button type="button" onClick={() => void saveContent()} disabled={pending}>
               Save settings
             </Button>

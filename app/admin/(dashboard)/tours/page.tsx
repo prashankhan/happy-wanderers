@@ -3,6 +3,7 @@ import { asc, isNull } from "drizzle-orm";
 
 import { auth } from "@/auth";
 import { CreateTourButton } from "@/components/admin/create-tour-button";
+import { StatusBadge, FeaturedBadge } from "@/components/admin/status-badge";
 import { db } from "@/lib/db";
 import { tours } from "@/lib/db/schema";
 
@@ -25,7 +26,7 @@ export default async function AdminToursPage() {
       </div>
 
       {rows.length === 0 ? (
-        <div className="rounded-sm border border-dashed border-brand-border bg-white p-12 text-center">
+        <div className="rounded-sm border border-dashed border-brand-border bg-white p-8 md:p-12 text-center">
           <p className="text-sm text-brand-muted">No tours yet.</p>
           {isAdmin ? (
             <p className="mt-2 text-sm text-brand-muted">
@@ -36,7 +37,7 @@ export default async function AdminToursPage() {
           )}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-sm border border-brand-border bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-sm border border-brand-border bg-white shadow-sm">
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-brand-border bg-brand-surface text-xs font-bold uppercase tracking-normal text-brand-muted">
               <tr>
@@ -51,8 +52,8 @@ export default async function AdminToursPage() {
               {rows.map((t) => (
                 <tr key={t.id} className="border-b border-brand-border/50 hover:bg-brand-surface-soft">
                   <td className="px-4 py-3 font-medium text-brand-heading">{t.title}</td>
-                  <td className="px-4 py-3 text-brand-body">{t.status}</td>
-                  <td className="px-4 py-3 text-brand-body">{t.isFeatured ? "Yes" : "—"}</td>
+                  <td className="px-4 py-3"><StatusBadge status={t.status} /></td>
+                  <td className="px-4 py-3"><FeaturedBadge featured={t.isFeatured} /></td>
                   <td className="px-4 py-3 text-brand-body">{t.defaultCapacity}</td>
                   <td className="px-4 py-3 text-right">
                     <Link href={`/admin/tours/${t.id}`} className="text-brand-primary hover:underline">

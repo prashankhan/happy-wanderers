@@ -58,12 +58,12 @@ export function AdminManifestPanel({ tours }: AdminManifestPanelProps) {
 
   return (
     <div className="space-y-4 print:space-y-2">
-      <div className="flex flex-wrap items-end gap-4 print:hidden">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end print:hidden">
         <label className="text-xs font-medium text-brand-muted">
           Date
           <input
             type="date"
-            className="mt-1 block rounded-lg border border-brand-border px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-sm border border-brand-border px-3 py-2 text-sm sm:w-auto"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
@@ -71,7 +71,7 @@ export function AdminManifestPanel({ tours }: AdminManifestPanelProps) {
         <label className="text-xs font-medium text-brand-muted">
           Tour (optional)
           <select
-            className="mt-1 block min-w-[200px] rounded-lg border border-brand-border px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-sm border border-brand-border px-3 py-2 text-sm sm:min-w-[200px] sm:w-auto"
             value={tourId}
             onChange={(e) => setTourId(e.target.value)}
           >

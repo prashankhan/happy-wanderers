@@ -212,7 +212,7 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                     </span>
                   </div>
                   {row.cutoff_passed ? (
-                    <div className="mt-0.5 text-[10px] font-bold text-red-600">Cutoff</div>
+                    <div className="mt-0.5 text-[10px] font-bold text-red-600">Booking blocked</div>
                   ) : null}
                   {isFull ? (
                     <div className="mt-0.5 text-[10px] font-bold text-red-600">Full</div>

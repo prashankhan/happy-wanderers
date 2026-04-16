@@ -55,12 +55,12 @@ export function AdminReportsPanel({ tours }: AdminReportsPanelProps) {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-end gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
         <label className="text-xs font-medium text-brand-muted">
           From
           <input
             type="date"
-            className="mt-1 block rounded-lg border border-brand-border px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-sm border border-brand-border px-3 py-2 text-sm sm:w-auto"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
           />
@@ -69,7 +69,7 @@ export function AdminReportsPanel({ tours }: AdminReportsPanelProps) {
           To
           <input
             type="date"
-            className="mt-1 block rounded-lg border border-brand-border px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-sm border border-brand-border px-3 py-2 text-sm sm:w-auto"
             value={to}
             onChange={(e) => setTo(e.target.value)}
           />
@@ -77,7 +77,7 @@ export function AdminReportsPanel({ tours }: AdminReportsPanelProps) {
         <label className="text-xs font-medium text-brand-muted">
           Tour
           <select
-            className="mt-1 block min-w-[200px] rounded-lg border border-brand-border px-3 py-2 text-sm"
+            className="mt-1 block w-full rounded-sm border border-brand-border px-3 py-2 text-sm sm:min-w-[160px] sm:w-auto"
             value={tourId}
             onChange={(e) => setTourId(e.target.value)}
           >
@@ -92,7 +92,7 @@ export function AdminReportsPanel({ tours }: AdminReportsPanelProps) {
         <label className="text-xs font-medium text-brand-muted">
           Status (bookings report)
           <select
-            className="mt-1 block rounded-lg border border-brand-border px-3 py-2 text-sm"
+            className="mt-1 block rounded-sm border border-brand-border px-3 py-2 text-sm"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
