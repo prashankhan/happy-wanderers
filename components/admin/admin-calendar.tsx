@@ -237,7 +237,11 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                 <div className={`font-bold ${isToday ? "bg-brand-primary text-white rounded-full w-6 h-6 flex items-center justify-center" : ""}`}>
                   {format(d, "d")}
                 </div>
-                {hasBookings && !(isPast && !isToday) && (
+                {isToday && !hasBookings ? (
+                  <span className="rounded-full bg-brand-surface px-1.5 py-0.5 text-[10px] font-medium text-brand-muted">
+                    No bookings
+                  </span>
+                ) : hasBookings && !(isPast && !isToday) ? (
                   <button
                     type="button"
                     onClick={(e) => {
@@ -249,7 +253,7 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                   >
                     {bookingCount} booking{bookingCount !== 1 ? "s" : ""}
                   </button>
-                )}
+                ) : null}
               </div>
               {!isAllTours && row ? (
                 <>
@@ -278,9 +282,6 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                 >
                   Edit day
                 </button>
-              )}
-              {isToday && !hasBookings && (
-                <div className="mt-1 text-[10px] text-brand-muted">No bookings</div>
               )}
             </div>
           );
