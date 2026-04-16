@@ -227,7 +227,7 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
             <div
               key={key}
               className={[
-                "min-h-[80px] bg-white p-1.5 text-left text-xs transition",
+                "min-h-[80px] bg-white p-1.5 text-left text-xs transition flex flex-col justify-between",
                 !inMonth && "bg-brand-surface/50 text-brand-muted/50",
                 isToday ? "ring-2 ring-inset ring-brand-primary" : "",
                 isPast && !isToday ? "opacity-60" : "",
@@ -256,7 +256,7 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                 ) : null}
               </div>
               {!isAllTours && row ? (
-                <>
+                <div className="flex-1">
                   <div className="mt-1 flex items-center gap-1">
                     <div className={`h-2 w-2 shrink-0 rounded-full ${row.remaining_capacity > 0 ? "bg-green-500" : "bg-gray-400"}`} />
                     <span className="truncate text-[11px]">
@@ -272,7 +272,7 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                   ) : isFull ? (
                     <div className="mt-0.5 text-[10px] font-bold text-amber-600">Full</div>
                   ) : null}
-                </>
+                </div>
               ) : null}
               {!isAllTours && row && !(isPast && !isToday) && (
                 <button
