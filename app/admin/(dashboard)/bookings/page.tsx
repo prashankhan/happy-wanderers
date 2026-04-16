@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { and, asc, desc, eq, ilike, isNull, sql } from "drizzle-orm";
 
+import { BookingStatusBadge, PaymentStatusBadge } from "@/components/admin/booking-status-badge";
 import { ManualBookingForm } from "@/components/admin/manual-booking-form";
 import { db } from "@/lib/db";
 import { bookings, departureLocations, tours } from "@/lib/db/schema";
@@ -83,7 +84,7 @@ export default async function AdminBookingsPage({
         className="flex flex-wrap items-end gap-3 rounded-sm border border-brand-border bg-white p-4 text-sm shadow-sm"
         action="/admin/bookings"
       >
-        <label className="text-xs font-bold uppercase tracking-normal text-brand-muted">
+        <label className="text-xs font-medium text-brand-muted">
           Date
           <input
             type="date"
@@ -92,7 +93,7 @@ export default async function AdminBookingsPage({
             className="mt-1 block w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
           />
         </label>
-        <label className="text-xs font-bold uppercase tracking-normal text-brand-muted">
+        <label className="text-xs font-medium text-brand-muted">
           Status
           <select name="status" defaultValue={status} className="mt-1 block w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10">
             <option value="">Any</option>
@@ -104,7 +105,7 @@ export default async function AdminBookingsPage({
             <option value="refunded">refunded</option>
           </select>
         </label>
-        <label className="text-xs font-bold uppercase tracking-normal text-brand-muted">
+        <label className="text-xs font-medium text-brand-muted">
           Tour
           <select name="tour_id" defaultValue={tourId} className="mt-1 block w-full min-w-[160px] rounded-sm border border-brand-border bg-white px-3 py-2 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10">
             <option value="">Any</option>
@@ -115,7 +116,7 @@ export default async function AdminBookingsPage({
             ))}
           </select>
         </label>
-        <label className="text-xs font-bold uppercase tracking-normal text-brand-muted">
+        <label className="text-xs font-medium text-brand-muted">
           Customer email
           <input
             type="search"
@@ -136,6 +137,11 @@ export default async function AdminBookingsPage({
       </form>
 
       <div className="overflow-x-auto rounded-sm border border-brand-border bg-white shadow-sm">
+        {rows.length > 0 && (
+          <div className="border-b border-brand-border px-4 py-2 text-xs text-brand-muted">
+            Showing {rows.length} booking{rows.length !== 1 ? "s" : ""}
+          </div>
+        )}
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-brand-border bg-brand-surface text-xs font-bold uppercase tracking-normal text-brand-muted">
             <tr>
@@ -155,8 +161,12 @@ export default async function AdminBookingsPage({
                 <td className="px-4 py-3 text-brand-body">{tourTitle}</td>
                 <td className="px-4 py-3 text-brand-body">{String(booking.bookingDate)}</td>
                 <td className="px-4 py-3 text-brand-body">{booking.guestTotal}</td>
-                <td className="px-4 py-3 text-brand-body">{booking.status}</td>
-                <td className="px-4 py-3 text-brand-body">{booking.paymentStatus}</td>
+                <td className="px-4 py-3">
+                  <BookingStatusBadge status={booking.status as "pending" | "confirmed" | "failed" | "expired" | "cancelled" | "refunded"} />
+                </td>
+                <td className="px-4 py-3">
+                  <PaymentStatusBadge status={booking.paymentStatus} />
+                </td>
                 <td className="px-4 py-3 text-right">
                   <Link href={`/admin/bookings/${booking.id}`} className="text-brand-primary hover:underline">
                     View
@@ -166,6 +176,11 @@ export default async function AdminBookingsPage({
             ))}
           </tbody>
         </table>
+        {rows.length === 0 && (
+          <div className="p-8 text-center text-sm text-brand-muted">
+            No bookings found.
+          </div>
+        )}
       </div>
     </div>
   );

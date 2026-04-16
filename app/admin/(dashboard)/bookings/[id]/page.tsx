@@ -3,9 +3,20 @@ import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 
 import { auth } from "@/auth";
+import { BookingStatusBadge, PaymentStatusBadge } from "@/components/admin/booking-status-badge";
 import { BookingDetailActions } from "@/components/admin/booking-detail-actions";
 import { db } from "@/lib/db";
 import { bookingActivityLog, bookings, departureLocations } from "@/lib/db/schema";
+
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat("en-AU", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
 
 export default async function AdminBookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -35,9 +46,11 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
       </Link>
       <div>
         <h1 className="text-2xl font-bold text-brand-heading">{b.bookingReference}</h1>
-        <p className="mt-1 text-sm text-brand-muted">
-          {b.status} · {b.paymentStatus}
-        </p>
+        <div className="mt-1 flex items-center gap-2">
+          <BookingStatusBadge status={b.status as "pending" | "confirmed" | "failed" | "expired" | "cancelled" | "refunded"} />
+          <span className="text-brand-muted">·</span>
+          <PaymentStatusBadge status={b.paymentStatus} />
+        </div>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="rounded-sm border border-brand-border bg-white p-6 shadow-sm">
@@ -87,14 +100,18 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
 
       <div>
         <h2 className="text-sm font-bold text-brand-heading">Activity</h2>
-        <ul className="mt-3 space-y-2 text-sm text-brand-body">
-          {log.map((entry) => (
-            <li key={entry.id}>
-              <span className="font-medium">{entry.actionType}</span> · {entry.performedBy} ·{" "}
-              {entry.createdAt.toISOString()}
-            </li>
-          ))}
-        </ul>
+        {log.length === 0 ? (
+          <p className="mt-3 text-sm text-brand-muted">No activity recorded.</p>
+        ) : (
+          <ul className="mt-3 space-y-2 text-sm text-brand-body">
+            {log.map((entry) => (
+              <li key={entry.id}>
+                <span className="font-medium">{entry.actionType}</span> · {entry.performedBy} ·{" "}
+                {formatDate(entry.createdAt)}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Toast, useToast } from "@/components/admin/toast";
 
 export interface BookingDetailActionsProps {
   bookingId: string;
@@ -36,13 +37,12 @@ export function BookingDetailActions({
   departures,
 }: BookingDetailActionsProps) {
   const router = useRouter();
-  const [message, setMessage] = useState<string | null>(null);
+  const { toast, showToast, hideToast } = useToast();
   const [pending, setPending] = useState(false);
   const [form, setForm] = useState(initial);
 
   async function patchUpdate(body: Record<string, unknown>) {
     setPending(true);
-    setMessage(null);
     try {
       const res = await fetch("/api/admin/bookings/update", {
         method: "PATCH",
@@ -51,10 +51,10 @@ export function BookingDetailActions({
       });
       const data = (await res.json()) as { success?: boolean; message?: string };
       if (!res.ok) {
-        setMessage(data.message ?? "Request failed");
+        showToast(data.message ?? "Request failed", "error");
         return;
       }
-      setMessage("Saved.");
+      showToast("Booking details saved");
       router.refresh();
     } finally {
       setPending(false);
@@ -79,7 +79,6 @@ export function BookingDetailActions({
   async function cancelBooking() {
     if (!confirm("Cancel this booking?")) return;
     setPending(true);
-    setMessage(null);
     try {
       const res = await fetch("/api/admin/bookings/cancel", {
         method: "PATCH",
@@ -88,9 +87,10 @@ export function BookingDetailActions({
       });
       const data = (await res.json()) as { success?: boolean; message?: string };
       if (!res.ok) {
-        setMessage(data.message ?? "Request failed");
+        showToast(data.message ?? "Request failed", "error");
         return;
       }
+      showToast("Booking cancelled");
       router.refresh();
     } finally {
       setPending(false);
@@ -100,7 +100,6 @@ export function BookingDetailActions({
   async function refundBooking() {
     if (!confirm("Issue a Stripe refund? Final state syncs from webhooks.")) return;
     setPending(true);
-    setMessage(null);
     try {
       const res = await fetch("/api/admin/bookings/refund", {
         method: "PATCH",
@@ -109,10 +108,10 @@ export function BookingDetailActions({
       });
       const data = (await res.json()) as { success?: boolean; message?: string };
       if (!res.ok) {
-        setMessage(data.message ?? "Request failed");
+        showToast(data.message ?? "Request failed", "error");
         return;
       }
-      setMessage("Refund initiated.");
+      showToast("Refund initiated");
       router.refresh();
     } finally {
       setPending(false);
@@ -124,8 +123,8 @@ export function BookingDetailActions({
 
   return (
     <div className="space-y-6 rounded-sm border border-brand-border bg-white p-6 shadow-sm">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <h2 className="text-sm font-semibold text-brand-heading">Edit booking</h2>
-      {message ? <p className="text-sm text-brand-body">{message}</p> : null}
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block text-xs font-medium text-brand-muted">
           Adults

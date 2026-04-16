@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Toast, useToast } from "@/components/admin/toast";
 
 export interface TourOption {
   id: string;
@@ -23,9 +24,9 @@ export interface ManualBookingFormProps {
 
 export function ManualBookingForm({ tours, departures }: ManualBookingFormProps) {
   const router = useRouter();
+  const { toast, showToast, hideToast } = useToast();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const [tourId, setTourId] = useState(tours[0]?.id ?? "");
   const [bookingDate, setBookingDate] = useState("");
   const [departureId, setDepartureId] = useState("");
@@ -39,6 +40,26 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
   const [customerNotes, setCustomerNotes] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<"unpaid" | "paid">("paid");
 
+  function resetForm() {
+    setTourId(tours[0]?.id ?? "");
+    setBookingDate("");
+    setDepartureId("");
+    setAdults(2);
+    setChildren(0);
+    setInfants(0);
+    setCustomerFirstName("");
+    setCustomerLastName("");
+    setCustomerEmail("");
+    setCustomerPhone("");
+    setCustomerNotes("");
+    setPaymentStatus("paid");
+  }
+
+  function handleClose() {
+    resetForm();
+    setOpen(false);
+  }
+
   const depsForTour = useMemo(
     () => departures.filter((d) => d.tourId === tourId),
     [departures, tourId]
@@ -46,11 +67,10 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
 
   async function submit() {
     if (!tourId || !bookingDate || !departureId) {
-      setMessage("Select tour, date, and departure.");
+      showToast("Select tour, date, and departure.", "error");
       return;
     }
     setPending(true);
-    setMessage(null);
     try {
       const res = await fetch("/api/admin/bookings/manual", {
         method: "POST",
@@ -77,10 +97,11 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
         booking_reference?: string;
       };
       if (!res.ok) {
-        setMessage(data.message ?? "Failed");
+        showToast(data.message ?? "Failed", "error");
         return;
       }
-      setOpen(false);
+      showToast("Booking created successfully");
+      handleClose();
       router.push(`/admin/bookings/${data.booking_id}`);
       router.refresh();
     } finally {
@@ -100,11 +121,11 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
         </Button>
       ) : (
         <div className="rounded-sm border border-brand-border bg-white p-6 shadow-sm">
+          {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
           <h2 className="text-sm font-bold text-brand-heading">Manual confirmed booking</h2>
           <p className="mt-1 text-xs text-brand-muted">
             Creates a confirmed booking, snapshots pricing, and sends confirmation emails.
           </p>
-          {message ? <p className="mt-2 text-sm text-red-600">{message}</p> : null}
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div>
               <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Tour</label>
@@ -234,7 +255,7 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
             <Button type="button" onClick={() => void submit()} disabled={pending}>
               Create booking
             </Button>
-            <Button type="button" variant="secondary" onClick={() => setOpen(false)} disabled={pending}>
+            <Button type="button" variant="secondary" onClick={handleClose} disabled={pending}>
               Cancel
             </Button>
           </div>
