@@ -216,7 +216,8 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
           const row = dayMap.get(key);
           const inMonth = isSameMonth(d, cursor);
           const isToday = format(d, "yyyy-MM-dd") === format(today, "yyyy-MM-dd");
-          const isPast = !isAllTours && row && !row.is_available;
+          const isPast = !isAllTours && d < today;
+          const isBlocked = !isAllTours && row && !row.is_available;
           const isFuture = !isAllTours && row && row.is_available && !isToday && d > today;
           const isFull = !isAllTours && row && row.remaining_capacity === 0 && row.is_available;
           const bookingCount = totalBookings[key] ?? 0;
@@ -229,14 +230,14 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                 "min-h-[80px] bg-white p-1.5 text-left text-xs transition",
                 !inMonth && "bg-brand-surface/50 text-brand-muted/50",
                 isToday ? "ring-2 ring-inset ring-brand-primary" : "",
-                isPast ? "opacity-60" : "",
+                isPast && !isToday ? "opacity-60" : "",
               ].join(" ")}
             >
               <div className="flex items-start justify-between">
                 <div className={`font-bold ${isToday ? "bg-brand-primary text-white rounded-full w-6 h-6 flex items-center justify-center" : ""}`}>
                   {format(d, "d")}
                 </div>
-                {hasBookings && !isPast && (
+                {hasBookings && !(isPast && !isToday) && (
                   <button
                     type="button"
                     onClick={(e) => {
@@ -258,8 +259,10 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                       {row.remaining_capacity}/{row.total_capacity}
                     </span>
                   </div>
-                  {isPast ? (
+                  {isPast && !isToday ? (
                     <div className="mt-0.5 text-[10px] font-medium text-brand-muted">Past</div>
+                  ) : isBlocked ? (
+                    <div className="mt-0.5 text-[10px] font-bold text-amber-600">Blocked</div>
                   ) : row.cutoff_passed ? (
                     <div className="mt-0.5 text-[10px] font-bold text-amber-600">Booking blocked</div>
                   ) : isFull ? (
@@ -267,7 +270,7 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                   ) : null}
                 </>
               ) : null}
-              {!isAllTours && row && !isPast && (
+              {!isAllTours && row && !(isPast && !isToday) && (
                 <button
                   type="button"
                   onClick={() => openModal(d)}
@@ -276,7 +279,7 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                   Edit day
                 </button>
               )}
-              {!hasBookings && !isPast && isToday && (
+              {isToday && !hasBookings && (
                 <div className="mt-1 text-[10px] text-brand-muted">No bookings</div>
               )}
             </div>
