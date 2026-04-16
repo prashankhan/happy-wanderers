@@ -29,30 +29,32 @@ export function ConfirmDialog({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-sm border border-brand-border bg-white p-6 shadow-xl">
-          <Dialog.Title className="text-lg font-semibold text-brand-heading">{title}</Dialog.Title>
-          {description && (
-            <Dialog.Description className="mt-2 text-sm text-brand-muted">
-              {description}
-            </Dialog.Description>
-          )}
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-sm border border-brand-border bg-white p-6 shadow-xl overflow-hidden">
+          <div className="space-y-4">
+            <Dialog.Title className="text-lg font-semibold text-brand-heading pr-6">{title}</Dialog.Title>
+            {description && (
+              <Dialog.Description className="text-sm text-brand-muted">
+                {description}
+              </Dialog.Description>
+            )}
 
-          <div className="mt-6 flex justify-end gap-3">
-            <Dialog.Close asChild>
-              <Button type="button" variant="secondary">
-                {cancelLabel}
+            <div className="flex justify-end gap-3 pt-2">
+              <Dialog.Close asChild>
+                <Button type="button" variant="secondary">
+                  {cancelLabel}
+                </Button>
+              </Dialog.Close>
+              <Button
+                type="button"
+                variant={variant === "danger" ? "danger" : "primary"}
+                onClick={() => {
+                  onConfirm();
+                  onOpenChange(false);
+                }}
+              >
+                {confirmLabel}
               </Button>
-            </Dialog.Close>
-            <Button
-              type="button"
-              variant={variant === "danger" ? "danger" : "primary"}
-              onClick={() => {
-                onConfirm();
-                onOpenChange(false);
-              }}
-            >
-              {confirmLabel}
-            </Button>
+            </div>
           </div>
 
           <Dialog.Close asChild>
