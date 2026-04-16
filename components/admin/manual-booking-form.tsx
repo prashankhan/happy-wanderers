@@ -42,6 +42,10 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
   const [paymentStatus, setPaymentStatus] = useState<"unpaid" | "paid">("paid");
   const today = new Date().toISOString().split("T")[0];
 
+  function isValidDate(dateStr: string): boolean {
+    return dateStr >= today;
+  }
+
   function resetForm() {
     setTourId(tours[0]?.id ?? "");
     setBookingDate("");
@@ -170,7 +174,12 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
                   min={today}
                   className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                   value={bookingDate}
-                  onChange={(e) => setBookingDate(e.target.value)}
+                  onChange={(e) => {
+                    const newDate = e.target.value;
+                    if (isValidDate(newDate)) {
+                      setBookingDate(newDate);
+                    }
+                  }}
                 />
               </div>
             </div>
