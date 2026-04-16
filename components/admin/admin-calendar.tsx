@@ -217,8 +217,8 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
           const inMonth = isSameMonth(d, cursor);
           const isToday = format(d, "yyyy-MM-dd") === format(today, "yyyy-MM-dd");
           const isPast = !isAllTours && d < today;
+          const isAllToursPast = isAllTours && d < today;
           const isBlocked = !isAllTours && row && !row.is_available;
-          const isFuture = !isAllTours && row && row.is_available && !isToday && d > today;
           const isFull = !isAllTours && row && row.remaining_capacity === 0 && row.is_available;
           const bookingCount = totalBookings[key] ?? 0;
           const hasBookings = bookingCount > 0;
@@ -230,7 +230,7 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                 "min-h-[80px] bg-white p-1.5 text-left text-xs transition flex flex-col justify-between",
                 !inMonth && "bg-brand-surface/50 text-brand-muted/50",
                 isToday ? "ring-2 ring-inset ring-brand-primary" : "",
-                isPast && !isToday ? "opacity-60" : "",
+                (isPast || isAllToursPast) && !isToday ? "opacity-60" : "",
               ].join(" ")}
             >
               <div className="flex items-start justify-between">
@@ -241,7 +241,7 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                   <span className="rounded-full bg-brand-surface px-1.5 py-0.5 text-[10px] font-medium text-brand-muted">
                     No bookings
                   </span>
-                ) : hasBookings && !(isPast && !isToday) ? (
+                ) : hasBookings && !isPast && !isAllToursPast ? (
                   <button
                     type="button"
                     onClick={(e) => {
@@ -273,8 +273,12 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                     <div className="mt-0.5 text-[10px] font-bold text-amber-600">Full</div>
                   ) : null}
                 </div>
+              ) : isAllTours && isAllToursPast && !isToday ? (
+                <div className="flex-1">
+                  <div className="mt-1 text-[10px] font-medium text-brand-muted">Past</div>
+                </div>
               ) : null}
-              {!isAllTours && row && !(isPast && !isToday) && (
+              {!isAllTours && row && !isPast && (
                 <button
                   type="button"
                   onClick={() => openModal(d)}
