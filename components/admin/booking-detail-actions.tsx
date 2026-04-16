@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Toast, useToast } from "@/components/admin/toast";
 
@@ -40,6 +41,8 @@ export function BookingDetailActions({
   const { toast, showToast, hideToast } = useToast();
   const [pending, setPending] = useState(false);
   const [form, setForm] = useState(initial);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [refundDialogOpen, setRefundDialogOpen] = useState(false);
 
   async function patchUpdate(body: Record<string, unknown>) {
     setPending(true);
@@ -77,7 +80,6 @@ export function BookingDetailActions({
   }
 
   async function cancelBooking() {
-    if (!confirm("Cancel this booking?")) return;
     setPending(true);
     try {
       const res = await fetch("/api/admin/bookings/cancel", {
@@ -98,7 +100,6 @@ export function BookingDetailActions({
   }
 
   async function refundBooking() {
-    if (!confirm("Issue a Stripe refund? Final state syncs from webhooks.")) return;
     setPending(true);
     try {
       const res = await fetch("/api/admin/bookings/refund", {
@@ -240,11 +241,11 @@ export function BookingDetailActions({
         </Button>
         {showAdminActions ? (
           <>
-            <Button type="button" variant="danger" onClick={() => void cancelBooking()} disabled={pending}>
+            <Button type="button" variant="danger" onClick={() => setCancelDialogOpen(true)} disabled={pending}>
               Cancel booking
             </Button>
             {paymentStatus === "paid" && hasStripePayment ? (
-              <Button type="button" variant="secondary" onClick={() => void refundBooking()} disabled={pending}>
+              <Button type="button" variant="secondary" onClick={() => setRefundDialogOpen(true)} disabled={pending}>
                 Refund via Stripe
               </Button>
             ) : null}
@@ -255,6 +256,28 @@ export function BookingDetailActions({
         Status {status} · Payment {paymentStatus}. Refunds update rows when Stripe sends{" "}
         <code className="rounded bg-brand-surface px-1">charge.refunded</code>.
       </p>
+
+      <ConfirmDialog
+        open={cancelDialogOpen}
+        onOpenChange={setCancelDialogOpen}
+        title="Cancel booking?"
+        description="This action cannot be undone. The booking will be marked as cancelled."
+        confirmLabel="Cancel booking"
+        cancelLabel="Keep booking"
+        onConfirm={cancelBooking}
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        open={refundDialogOpen}
+        onOpenChange={setRefundDialogOpen}
+        title="Issue a Stripe refund?"
+        description="The refund will be processed by Stripe. Final state syncs from webhooks."
+        confirmLabel="Issue refund"
+        cancelLabel="Cancel"
+        onConfirm={refundBooking}
+        variant="danger"
+      />
     </div>
   );
 }
