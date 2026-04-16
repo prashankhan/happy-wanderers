@@ -276,7 +276,7 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                   Edit day
                 </button>
               )}
-              {isAllTours && !hasBookings && (
+              {!hasBookings && !isPast && (
                 <div className="mt-1 text-[10px] text-brand-muted">No bookings</div>
               )}
             </div>
