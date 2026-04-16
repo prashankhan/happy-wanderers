@@ -40,7 +40,7 @@ export interface AdminCalendarProps {
 
 export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
-  const [tourId, setTourId] = useState(tours[0]?.id ?? "");
+  const [tourId, setTourId] = useState("all");
   const [days, setDays] = useState<DayPayload[]>([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<DayPayload | null>(null);
