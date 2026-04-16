@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -21,12 +21,19 @@ export async function GET(request: Request) {
     date: searchParams.get("date") ?? undefined,
   });
   const date = searchParams.get("date");
+  const month = searchParams.get("month");
   const tourId = searchParams.get("tour_id");
   const status = searchParams.get("status");
   const email = searchParams.get("customer_email");
 
   const conditions = [];
   if (date) conditions.push(sql`${bookings.bookingDate}::text = ${date}`);
+  if (month) {
+    const startDate = `${month}-01`;
+    const endDate = `${month}-31`;
+    conditions.push(sql`${bookings.bookingDate}::text >= ${startDate}`);
+    conditions.push(sql`${bookings.bookingDate}::text <= ${endDate}`);
+  }
   if (tourId) conditions.push(eq(bookings.tourId, tourId));
   if (status) conditions.push(eq(bookings.status, status));
   if (email) conditions.push(eq(bookings.customerEmail, email));
@@ -40,7 +47,7 @@ export async function GET(request: Request) {
     .leftJoin(tours, eq(bookings.tourId, tours.id))
     .where(conditions.length ? and(...conditions) : sql`true`)
     .orderBy(desc(bookings.createdAt))
-    .limit(200);
+    .limit(500);
 
   return NextResponse.json(rows);
 }
