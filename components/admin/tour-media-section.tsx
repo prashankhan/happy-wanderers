@@ -141,13 +141,13 @@ export function TourMediaSection({ tourId, isAdmin }: TourMediaSectionProps) {
   }
 
   if (loading) {
-    return <p className="text-sm text-gray-500">Loading gallery…</p>;
+    return <p className="text-sm text-brand-muted">Loading gallery…</p>;
   }
 
   return (
     <div className="space-y-4">
       {msg ? <p className="text-sm text-red-600">{msg}</p> : null}
-      <label className="block text-xs font-medium text-gray-500">
+      <label className="block text-xs font-medium text-brand-muted">
         Upload image
         <input
           type="file"
@@ -162,7 +162,7 @@ export function TourMediaSection({ tourId, isAdmin }: TourMediaSectionProps) {
         />
       </label>
       {isAdmin ? (
-        <label className="block text-xs font-medium text-gray-500">
+        <label className="block text-xs font-medium text-brand-muted">
           Upload as hero
           <input
             type="file"
@@ -177,15 +177,15 @@ export function TourMediaSection({ tourId, isAdmin }: TourMediaSectionProps) {
           />
         </label>
       ) : (
-        <p className="text-xs text-gray-500">Staff can upload gallery images; hero and delete are admin-only.</p>
+        <p className="text-xs text-brand-muted">Staff can upload gallery images; hero and delete are admin-only.</p>
       )}
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {images.map((img, idx) => (
-          <li key={img.id} className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+          <li key={img.id} className="overflow-hidden rounded-sm border border-brand-border bg-white shadow-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={img.imageUrl} alt={img.altText ?? ""} className="h-40 w-full object-cover" />
-            <div className="space-y-2 p-3 text-xs text-gray-600">
-              {img.isHero ? <span className="font-semibold text-blue-900">Hero</span> : null}
+            <div className="space-y-2 p-3 text-xs text-brand-body">
+              {img.isHero ? <span className="font-semibold text-brand-primary">Hero</span> : null}
               <div className="flex flex-wrap gap-2">
                 {isAdmin ? (
                   <>

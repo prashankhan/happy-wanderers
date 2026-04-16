@@ -123,48 +123,48 @@ export function BookingDetailActions({
   const showAdminActions = role === "admin" && canEditLifecycle;
 
   return (
-    <div className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-      <h2 className="text-sm font-semibold text-gray-900">Edit booking</h2>
-      {message ? <p className="text-sm text-gray-600">{message}</p> : null}
+    <div className="space-y-6 rounded-sm border border-brand-border bg-white p-6 shadow-sm">
+      <h2 className="text-sm font-semibold text-brand-heading">Edit booking</h2>
+      {message ? <p className="text-sm text-brand-body">{message}</p> : null}
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="block text-xs font-medium text-gray-500">
+        <label className="block text-xs font-medium text-brand-muted">
           Adults
           <input
             type="number"
             min={0}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
             value={form.adults}
             onChange={(e) => setForm((f) => ({ ...f, adults: Number(e.target.value) }))}
             disabled={!canEditLifecycle || pending}
           />
         </label>
-        <label className="block text-xs font-medium text-gray-500">
+        <label className="block text-xs font-medium text-brand-muted">
           Children
           <input
             type="number"
             min={0}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
             value={form.children}
             onChange={(e) => setForm((f) => ({ ...f, children: Number(e.target.value) }))}
             disabled={!canEditLifecycle || pending}
           />
         </label>
-        <label className="block text-xs font-medium text-gray-500">
+        <label className="block text-xs font-medium text-brand-muted">
           Infants
           <input
             type="number"
             min={0}
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
             value={form.infants}
             onChange={(e) => setForm((f) => ({ ...f, infants: Number(e.target.value) }))}
             disabled={!canEditLifecycle || pending}
           />
         </label>
         {role === "admin" ? (
-          <label className="block text-xs font-medium text-gray-500 md:col-span-2">
+          <label className="block text-xs font-medium text-brand-muted md:col-span-2">
             Departure pickup
             <select
-              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={form.departureLocationId}
               onChange={(e) => setForm((f) => ({ ...f, departureLocationId: e.target.value }))}
               disabled={!canEditLifecycle || pending}
@@ -177,57 +177,57 @@ export function BookingDetailActions({
             </select>
           </label>
         ) : null}
-        <label className="block text-xs font-medium text-gray-500">
+        <label className="block text-xs font-medium text-brand-muted">
           First name
           <input
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
             value={form.customerFirstName}
             onChange={(e) => setForm((f) => ({ ...f, customerFirstName: e.target.value }))}
             disabled={pending}
           />
         </label>
-        <label className="block text-xs font-medium text-gray-500">
+        <label className="block text-xs font-medium text-brand-muted">
           Last name
           <input
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
             value={form.customerLastName}
             onChange={(e) => setForm((f) => ({ ...f, customerLastName: e.target.value }))}
             disabled={pending}
           />
         </label>
-        <label className="block text-xs font-medium text-gray-500 md:col-span-2">
+        <label className="block text-xs font-medium text-brand-muted md:col-span-2">
           Email
           <input
             type="email"
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
             value={form.customerEmail}
             onChange={(e) => setForm((f) => ({ ...f, customerEmail: e.target.value }))}
             disabled={pending}
           />
         </label>
-        <label className="block text-xs font-medium text-gray-500 md:col-span-2">
+        <label className="block text-xs font-medium text-brand-muted md:col-span-2">
           Phone
           <input
-            className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
             value={form.customerPhone}
             onChange={(e) => setForm((f) => ({ ...f, customerPhone: e.target.value }))}
             disabled={pending}
           />
         </label>
-        <label className="block text-xs font-medium text-gray-500 md:col-span-2">
+        <label className="block text-xs font-medium text-brand-muted md:col-span-2">
           Customer notes
           <textarea
-            className="mt-1 min-h-[72px] w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            className="mt-1 min-h-[72px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
             value={form.customerNotes ?? ""}
             onChange={(e) => setForm((f) => ({ ...f, customerNotes: e.target.value || null }))}
             disabled={pending}
           />
         </label>
         {role === "admin" ? (
-          <label className="block text-xs font-medium text-gray-500 md:col-span-2">
+          <label className="block text-xs font-medium text-brand-muted md:col-span-2">
             Internal notes
             <textarea
-              className="mt-1 min-h-[72px] w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 min-h-[72px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={form.internalNotes ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, internalNotes: e.target.value || null }))}
               disabled={pending}
@@ -252,9 +252,9 @@ export function BookingDetailActions({
           </>
         ) : null}
       </div>
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-brand-muted">
         Status {status} · Payment {paymentStatus}. Refunds update rows when Stripe sends{" "}
-        <code className="rounded bg-gray-100 px-1">charge.refunded</code>.
+        <code className="rounded bg-brand-surface px-1">charge.refunded</code>.
       </p>
     </div>
   );

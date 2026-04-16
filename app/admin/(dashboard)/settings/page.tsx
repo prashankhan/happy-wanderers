@@ -9,9 +9,9 @@ export default async function AdminSettingsPage() {
   if (!isAdmin) {
     return (
       <div className="space-y-4">
-        <h1 className="font-serif text-3xl font-semibold">Settings</h1>
-        <p className="text-sm text-gray-600">System configuration is restricted to administrators.</p>
-        <div className="rounded-2xl border border-gray-200 bg-white p-8 text-sm text-gray-600 shadow-sm">
+        <h1 className="text-2xl font-bold text-brand-heading">Settings</h1>
+        <p className="text-sm text-brand-muted">System configuration is restricted to administrators.</p>
+        <div className="rounded-sm border border-brand-border bg-white p-8 text-sm text-brand-body shadow-sm">
           Your account does not have permission to change global settings. Contact an admin if something needs
           updating.
         </div>
@@ -24,10 +24,10 @@ export default async function AdminSettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-3xl font-semibold">Settings</h1>
-        <p className="text-sm text-gray-600">
+        <h1 className="text-2xl font-bold text-brand-heading">Settings</h1>
+        <p className="mt-1 text-sm text-brand-muted">
           Global booking defaults, currency, timezone, and contact details stored in{" "}
-          <code className="rounded bg-gray-100 px-1 text-xs">system_settings</code>.
+          <code className="rounded bg-brand-surface px-1 py-0.5 text-xs font-mono text-brand-primary">system_settings</code>.
         </p>
       </div>
       <SystemSettingsForm

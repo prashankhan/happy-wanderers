@@ -18,15 +18,15 @@ export function AdminMediaLibrary({ tours, isAdmin }: AdminMediaLibraryProps) {
   const [tourId, setTourId] = useState(tours[0]?.id ?? "");
 
   if (!tourId) {
-    return <p className="text-sm text-gray-600">No tours yet.</p>;
+    return <p className="text-sm text-brand-muted">No tours yet.</p>;
   }
 
   return (
     <div className="space-y-4">
-      <label className="text-xs font-medium text-gray-500">
+      <label className="text-xs font-medium text-brand-muted">
         Tour
         <select
-          className="mt-1 block max-w-md rounded-lg border border-gray-200 px-3 py-2 text-sm"
+          className="mt-1 block max-w-md rounded-sm border border-brand-border px-3 py-2 text-sm"
           value={tourId}
           onChange={(e) => setTourId(e.target.value)}
         >

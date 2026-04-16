@@ -28,21 +28,21 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="font-serif text-3xl font-semibold">Dashboard</h1>
-        <p className="text-sm text-gray-600">Operational snapshot — confirmed bookings and live holds.</p>
+        <h1 className="text-2xl font-bold text-brand-heading">Dashboard</h1>
+        <p className="mt-1 text-sm text-brand-muted">Operational snapshot — confirmed bookings and live holds.</p>
       </div>
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Today confirmed</p>
-          <p className="mt-2 text-3xl font-semibold">{Number(confirmedToday[0]?.c ?? 0)}</p>
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="rounded-sm border border-brand-border bg-white p-4 md:p-6 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-normal text-brand-muted">Today confirmed</p>
+          <p className="mt-2 text-2xl md:text-3xl font-bold text-brand-heading">{Number(confirmedToday[0]?.c ?? 0)}</p>
         </div>
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Pending holds</p>
-          <p className="mt-2 text-3xl font-semibold">{Number(pending[0]?.c ?? 0)}</p>
+        <div className="rounded-sm border border-brand-border bg-white p-4 md:p-6 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-normal text-brand-muted">Pending holds</p>
+          <p className="mt-2 text-2xl md:text-3xl font-bold text-brand-heading">{Number(pending[0]?.c ?? 0)}</p>
         </div>
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Month revenue (confirmed)</p>
-          <p className="mt-2 text-3xl font-semibold">${revenue[0]?.sum ?? "0"}</p>
+        <div className="rounded-sm border border-brand-border bg-white p-4 md:p-6 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-normal text-brand-muted">Month revenue (confirmed)</p>
+          <p className="mt-2 text-2xl md:text-3xl font-bold text-brand-heading">${revenue[0]?.sum ?? "0"}</p>
         </div>
       </div>
     </div>

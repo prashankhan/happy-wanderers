@@ -70,12 +70,12 @@ export default async function AdminTourEditorPage({ params }: { params: Promise<
 
   return (
     <div className="space-y-6">
-      <Link href="/admin/tours" className="text-sm text-blue-900 hover:underline">
+      <Link href="/admin/tours" className="text-sm text-brand-primary hover:underline">
         ← Tours
       </Link>
       <div>
-        <h1 className="font-serif text-3xl font-semibold">{tour.title}</h1>
-        <p className="text-sm text-gray-600">
+        <h1 className="text-2xl font-bold text-brand-heading">{tour.title}</h1>
+        <p className="mt-1 text-sm text-brand-muted">
           Content, pricing, weekday availability, media, and publishing — saved via admin APIs.
         </p>
       </div>

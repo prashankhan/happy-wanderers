@@ -59,19 +59,19 @@ export function AdminManifestPanel({ tours }: AdminManifestPanelProps) {
   return (
     <div className="space-y-4 print:space-y-2">
       <div className="flex flex-wrap items-end gap-4 print:hidden">
-        <label className="text-xs font-medium text-gray-500">
+        <label className="text-xs font-medium text-brand-muted">
           Date
           <input
             type="date"
-            className="mt-1 block rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            className="mt-1 block rounded-lg border border-brand-border px-3 py-2 text-sm"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
         </label>
-        <label className="text-xs font-medium text-gray-500">
+        <label className="text-xs font-medium text-brand-muted">
           Tour (optional)
           <select
-            className="mt-1 block min-w-[200px] rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            className="mt-1 block min-w-[200px] rounded-lg border border-brand-border px-3 py-2 text-sm"
             value={tourId}
             onChange={(e) => setTourId(e.target.value)}
           >
@@ -91,9 +91,9 @@ export function AdminManifestPanel({ tours }: AdminManifestPanelProps) {
         </Button>
       </div>
       {msg ? <p className="text-sm text-red-600 print:hidden">{msg}</p> : null}
-      <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm print:border-gray-400 print:shadow-none">
+      <div className="overflow-x-auto rounded-sm border border-brand-border bg-white shadow-sm print:border-brand-border print:shadow-none">
         <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wide text-gray-500 print:bg-white">
+          <thead className="border-b border-brand-border bg-brand-surface text-xs uppercase tracking-wide text-brand-muted print:bg-white">
             <tr>
               <th className="px-3 py-2">Ref</th>
               <th className="px-3 py-2">Guest</th>
@@ -105,27 +105,27 @@ export function AdminManifestPanel({ tours }: AdminManifestPanelProps) {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.booking_reference} className="border-b border-gray-100">
+              <tr key={r.booking_reference} className="border-b border-brand-border">
                 <td className="px-3 py-2 font-mono text-xs">{r.booking_reference}</td>
-                <td className="px-3 py-2 text-gray-800">
+                <td className="px-3 py-2 text-brand-heading">
                   {r.customer_first_name} {r.customer_last_name}
-                  <div className="text-xs text-gray-500">{r.tour_title}</div>
+                  <div className="text-xs text-brand-muted">{r.tour_title}</div>
                 </td>
-                <td className="px-3 py-2 text-gray-700">{r.customer_phone}</td>
-                <td className="px-3 py-2 text-gray-700">
+                <td className="px-3 py-2 text-brand-body">{r.customer_phone}</td>
+                <td className="px-3 py-2 text-brand-body">
                   {r.pickup_location}
-                  <div className="text-xs text-gray-500">{r.pickup_time}</div>
+                  <div className="text-xs text-brand-muted">{r.pickup_time}</div>
                 </td>
-                <td className="px-3 py-2 text-gray-700">
+                <td className="px-3 py-2 text-brand-body">
                   {r.guest_total} ({r.adults}A/{r.children}C/{r.infants}I)
                 </td>
-                <td className="max-w-xs px-3 py-2 text-xs text-gray-600">{r.customer_notes ?? "—"}</td>
+                <td className="max-w-xs px-3 py-2 text-xs text-brand-body">{r.customer_notes ?? "—"}</td>
               </tr>
             ))}
           </tbody>
         </table>
         {!rows.length && !loading ? (
-          <p className="p-6 text-center text-sm text-gray-500 print:hidden">Load a date to see confirmed bookings.</p>
+          <p className="p-6 text-center text-sm text-brand-muted print:hidden">Load a date to see confirmed bookings.</p>
         ) : null}
       </div>
     </div>

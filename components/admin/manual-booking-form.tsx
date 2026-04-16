@@ -99,17 +99,17 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
           New manual booking
         </Button>
       ) : (
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-900">Manual confirmed booking</h2>
-          <p className="mt-1 text-xs text-gray-500">
+        <div className="rounded-sm border border-brand-border bg-white p-6 shadow-sm">
+          <h2 className="text-sm font-bold text-brand-heading">Manual confirmed booking</h2>
+          <p className="mt-1 text-xs text-brand-muted">
             Creates a confirmed booking, snapshots pricing, and sends confirmation emails.
           </p>
-          {message ? <p className="mt-2 text-sm text-red-700">{message}</p> : null}
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <label className="text-xs font-medium text-gray-500">
-              Tour
+          {message ? <p className="mt-2 text-sm text-red-600">{message}</p> : null}
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Tour</label>
               <select
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={tourId}
                 onChange={(e) => {
                   setTourId(e.target.value);
@@ -122,20 +122,20 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="text-xs font-medium text-gray-500">
-              Date
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Date</label>
               <input
                 type="date"
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={bookingDate}
                 onChange={(e) => setBookingDate(e.target.value)}
               />
-            </label>
-            <label className="text-xs font-medium text-gray-500 md:col-span-2">
-              Departure
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Departure</label>
               <select
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={departureId}
                 onChange={(e) => setDepartureId(e.target.value)}
               >
@@ -146,89 +146,89 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="text-xs font-medium text-gray-500">
-              Adults
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Adults</label>
               <input
                 type="number"
                 min={0}
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={adults}
                 onChange={(e) => setAdults(Number(e.target.value))}
               />
-            </label>
-            <label className="text-xs font-medium text-gray-500">
-              Children
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Children</label>
               <input
                 type="number"
                 min={0}
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={children}
                 onChange={(e) => setChildren(Number(e.target.value))}
               />
-            </label>
-            <label className="text-xs font-medium text-gray-500">
-              Infants
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Infants</label>
               <input
                 type="number"
                 min={0}
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={infants}
                 onChange={(e) => setInfants(Number(e.target.value))}
               />
-            </label>
-            <label className="text-xs font-medium text-gray-500">
-              Payment
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Payment</label>
               <select
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={paymentStatus}
                 onChange={(e) => setPaymentStatus(e.target.value as "unpaid" | "paid")}
               >
                 <option value="paid">Paid (offline)</option>
                 <option value="unpaid">Unpaid</option>
               </select>
-            </label>
-            <label className="text-xs font-medium text-gray-500">
-              First name
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">First name</label>
               <input
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={customerFirstName}
                 onChange={(e) => setCustomerFirstName(e.target.value)}
               />
-            </label>
-            <label className="text-xs font-medium text-gray-500">
-              Last name
+            </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Last name</label>
               <input
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={customerLastName}
                 onChange={(e) => setCustomerLastName(e.target.value)}
               />
-            </label>
-            <label className="text-xs font-medium text-gray-500 md:col-span-2">
-              Email
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Email</label>
               <input
                 type="email"
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={customerEmail}
                 onChange={(e) => setCustomerEmail(e.target.value)}
               />
-            </label>
-            <label className="text-xs font-medium text-gray-500 md:col-span-2">
-              Phone
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Phone</label>
               <input
-                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
               />
-            </label>
-            <label className="text-xs font-medium text-gray-500 md:col-span-2">
-              Notes
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Notes</label>
               <textarea
-                className="mt-1 min-h-[64px] w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="min-h-[64px] w-full rounded-sm border border-brand-border bg-white px-3 py-2.5 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                 value={customerNotes}
                 onChange={(e) => setCustomerNotes(e.target.value)}
               />
-            </label>
+            </div>
           </div>
           <div className="mt-4 flex gap-3">
             <Button type="button" onClick={() => void submit()} disabled={pending}>

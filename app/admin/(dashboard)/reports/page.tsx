@@ -12,9 +12,9 @@ export default async function AdminReportsPage() {
     .orderBy(asc(tours.title));
 
   return (
-    <div className="space-y-4">
-      <h1 className="font-serif text-3xl font-semibold">Reports</h1>
-      <p className="text-sm text-gray-600">Passenger and revenue totals from booking snapshot fields.</p>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-brand-heading">Reports</h1>
+      <p className="text-sm text-brand-muted">Passenger and revenue totals from booking snapshot fields.</p>
       <AdminReportsPanel tours={tourRows} />
     </div>
   );

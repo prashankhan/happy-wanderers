@@ -22,7 +22,7 @@ interface SystemSettingsFormProps {
 }
 
 const inputClass =
-  "mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm outline-none ring-blue-900/15 focus:border-blue-900/30 focus:ring-2";
+  "w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10";
 
 export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
   const [values, setValues] = useState<SystemSettingsFormValues>(initial);
@@ -76,15 +76,15 @@ export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-8">
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="font-serif text-lg font-semibold text-gray-900">Booking defaults</h2>
-        <p className="mt-1 text-sm text-gray-600">
+    <form onSubmit={onSubmit} className="space-y-6">
+      <div className="rounded-sm border border-brand-border bg-white p-6 shadow-sm">
+        <h2 className="text-sm font-bold text-brand-heading">Booking defaults</h2>
+        <p className="mt-1 text-sm text-brand-muted">
           Reference prefix, payment hold length, and default cutoff (tours can override).
         </p>
-        <div className="mt-6 grid gap-6 sm:grid-cols-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Booking reference prefix
+        <div className="mt-6 grid gap-4 md:gap-6 md:grid-cols-2">
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Booking reference prefix</label>
             <input
               className={inputClass}
               value={values.booking_reference_prefix}
@@ -94,9 +94,9 @@ export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
               maxLength={16}
               required
             />
-          </label>
-          <label className="block text-sm font-medium text-gray-700">
-            Default cutoff (hours before departure)
+          </div>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Default cutoff (hours before departure)</label>
             <input
               type="number"
               className={inputClass}
@@ -108,9 +108,9 @@ export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
               }
               required
             />
-          </label>
-          <label className="block text-sm font-medium text-gray-700">
-            Pending hold expiry (minutes)
+          </div>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Pending hold expiry (minutes)</label>
             <input
               type="number"
               className={inputClass}
@@ -122,9 +122,9 @@ export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
               }
               required
             />
-          </label>
-          <label className="block text-sm font-medium text-gray-700">
-            Default currency (ISO)
+          </div>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Default currency (ISO)</label>
             <input
               className={inputClass}
               value={values.currency_code}
@@ -134,9 +134,9 @@ export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
               maxLength={3}
               required
             />
-          </label>
-          <label className="block text-sm font-medium text-gray-700 sm:col-span-2">
-            Timezone (IANA)
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Timezone (IANA)</label>
             <input
               className={inputClass}
               value={values.timezone}
@@ -144,61 +144,61 @@ export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
               placeholder="Australia/Brisbane"
               required
             />
-          </label>
+          </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="font-serif text-lg font-semibold text-gray-900">Business & contact</h2>
-        <p className="mt-1 text-sm text-gray-600">Shown in emails and customer-facing copy where used.</p>
-        <div className="mt-6 grid gap-6 sm:grid-cols-2">
-          <label className="block text-sm font-medium text-gray-700 sm:col-span-2">
-            Business name
+      <div className="rounded-sm border border-brand-border bg-white p-6 shadow-sm">
+        <h2 className="text-sm font-bold text-brand-heading">Business & contact</h2>
+        <p className="mt-1 text-sm text-brand-muted">Shown in emails and customer-facing copy where used.</p>
+        <div className="mt-6 grid gap-4 md:gap-6 md:grid-cols-2">
+          <div className="md:col-span-2">
+            <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Business name</label>
             <input
               className={inputClass}
               value={values.business_name ?? ""}
               onChange={(e) => setValues((v) => ({ ...v, business_name: e.target.value || null }))}
             />
-          </label>
-          <label className="block text-sm font-medium text-gray-700">
-            Support email
+          </div>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Support email</label>
             <input
               type="email"
               className={inputClass}
               value={values.support_email ?? ""}
               onChange={(e) => setValues((v) => ({ ...v, support_email: e.target.value || null }))}
             />
-          </label>
-          <label className="block text-sm font-medium text-gray-700">
-            Support phone
+          </div>
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Support phone</label>
             <input
               className={inputClass}
               value={values.support_phone ?? ""}
               onChange={(e) => setValues((v) => ({ ...v, support_phone: e.target.value || null }))}
             />
-          </label>
-          <label className="block text-sm font-medium text-gray-700 sm:col-span-2">
-            Resend &quot;from&quot; address
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Resend &quot;from&quot; address</label>
             <input
               className={inputClass}
               value={values.resend_from_email ?? ""}
               onChange={(e) => setValues((v) => ({ ...v, resend_from_email: e.target.value || null }))}
               placeholder={"Happy Wanderers <hello@yourdomain.com>"}
             />
-            <span className="mt-1 block text-xs text-gray-500">
+            <span className="mt-1 block text-xs text-brand-muted">
               Must use a domain verified in Resend. If set, this overrides the EMAIL_FROM / RESEND_FROM
               environment variables (recommended for production on Vercel).
             </span>
-          </label>
-          <label className="block text-sm font-medium text-gray-700 sm:col-span-2">
-            Admin alert email (new bookings, contact form)
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Admin alert email (new bookings, contact form)</label>
             <input
               type="email"
               className={inputClass}
               value={values.admin_alert_email ?? ""}
               onChange={(e) => setValues((v) => ({ ...v, admin_alert_email: e.target.value || null }))}
             />
-          </label>
+          </div>
         </div>
       </div>
 
@@ -207,7 +207,7 @@ export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
           {pending ? "Saving…" : "Save settings"}
         </Button>
         {message ? (
-          <p className={`text-sm ${message === "Saved." ? "text-green-700" : "text-red-600"}`}>{message}</p>
+          <p className={`text-sm ${message === "Saved." ? "text-green-600" : "text-red-600"}`}>{message}</p>
         ) : null}
       </div>
     </form>

@@ -31,28 +31,28 @@ export default function AdminLoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-6">
-      <Card className="w-full max-w-md border-gray-200">
+      <Card className="w-full max-w-md border-brand-border">
         <CardHeader>
-          <CardTitle className="font-serif text-2xl">Admin sign in</CardTitle>
+          <CardTitle className="text-2xl">Admin sign in</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-brand-body">
               Email
               <input
                 type="email"
                 required
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-1 w-full rounded-lg border border-brand-border px-3 py-2"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </label>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-brand-body">
               Password
               <input
                 type="password"
                 required
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2"
+                className="mt-1 w-full rounded-lg border border-brand-border px-3 py-2"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />

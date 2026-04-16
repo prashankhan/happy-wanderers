@@ -30,19 +30,19 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
 
   return (
     <div className="space-y-8">
-      <Link href="/admin/bookings" className="text-sm text-blue-900 hover:underline">
+      <Link href="/admin/bookings" className="text-sm text-brand-primary hover:underline">
         ← Bookings
       </Link>
       <div>
-        <h1 className="font-serif text-3xl font-semibold">{b.bookingReference}</h1>
-        <p className="text-sm text-gray-600">
+        <h1 className="text-2xl font-bold text-brand-heading">{b.bookingReference}</h1>
+        <p className="mt-1 text-sm text-brand-muted">
           {b.status} · {b.paymentStatus}
         </p>
       </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-900">Customer</h2>
-          <p className="mt-2 text-sm text-gray-600">
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="rounded-sm border border-brand-border bg-white p-6 shadow-sm">
+          <h2 className="text-sm font-bold text-brand-heading">Customer</h2>
+          <p className="mt-2 text-sm text-brand-body">
             {b.customerFirstName} {b.customerLastName}
             <br />
             {b.customerEmail}
@@ -50,9 +50,9 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
             {b.customerPhone}
           </p>
         </div>
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-900">Snapshots</h2>
-          <p className="mt-2 text-sm text-gray-600">
+        <div className="rounded-sm border border-brand-border bg-white p-6 shadow-sm">
+          <h2 className="text-sm font-bold text-brand-heading">Snapshots</h2>
+          <p className="mt-2 text-sm text-brand-body">
             {b.tourTitleSnapshot}
             <br />
             {String(b.bookingDate)} · {b.pickupLocationNameSnapshot} @ {b.pickupTimeSnapshot}
@@ -86,8 +86,8 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
       />
 
       <div>
-        <h2 className="text-sm font-semibold text-gray-900">Activity</h2>
-        <ul className="mt-3 space-y-2 text-sm text-gray-600">
+        <h2 className="text-sm font-bold text-brand-heading">Activity</h2>
+        <ul className="mt-3 space-y-2 text-sm text-brand-body">
           {log.map((entry) => (
             <li key={entry.id}>
               <span className="font-medium">{entry.actionType}</span> · {entry.performedBy} ·{" "}

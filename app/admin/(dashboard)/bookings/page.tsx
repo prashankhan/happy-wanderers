@@ -72,29 +72,29 @@ export default async function AdminBookingsPage({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="font-serif text-3xl font-semibold">Bookings</h1>
-          <p className="text-sm text-gray-600">Filter and drill into lifecycle, snapshots, and activity.</p>
+          <h1 className="text-2xl font-bold text-brand-heading">Bookings</h1>
+          <p className="mt-1 text-sm text-brand-muted">Filter and drill into lifecycle, snapshots, and activity.</p>
         </div>
         <ManualBookingForm tours={tourRows} departures={depRows} />
       </div>
 
       <form
         method="get"
-        className="flex flex-wrap items-end gap-3 rounded-2xl border border-gray-200 bg-white p-4 text-sm shadow-sm"
+        className="flex flex-wrap items-end gap-3 rounded-sm border border-brand-border bg-white p-4 text-sm shadow-sm"
         action="/admin/bookings"
       >
-        <label className="text-xs font-medium text-gray-500">
+        <label className="text-xs font-bold uppercase tracking-normal text-brand-muted">
           Date
           <input
             type="date"
             name="date"
             defaultValue={date}
-            className="mt-1 block rounded-lg border border-gray-200 px-3 py-2"
+            className="mt-1 block w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
           />
         </label>
-        <label className="text-xs font-medium text-gray-500">
+        <label className="text-xs font-bold uppercase tracking-normal text-brand-muted">
           Status
-          <select name="status" defaultValue={status} className="mt-1 block rounded-lg border border-gray-200 px-3 py-2">
+          <select name="status" defaultValue={status} className="mt-1 block w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10">
             <option value="">Any</option>
             <option value="pending">pending</option>
             <option value="confirmed">confirmed</option>
@@ -104,9 +104,9 @@ export default async function AdminBookingsPage({
             <option value="refunded">refunded</option>
           </select>
         </label>
-        <label className="text-xs font-medium text-gray-500">
+        <label className="text-xs font-bold uppercase tracking-normal text-brand-muted">
           Tour
-          <select name="tour_id" defaultValue={tourId} className="mt-1 block min-w-[160px] rounded-lg border border-gray-200 px-3 py-2">
+          <select name="tour_id" defaultValue={tourId} className="mt-1 block w-full min-w-[160px] rounded-sm border border-brand-border bg-white px-3 py-2 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10">
             <option value="">Any</option>
             {tourRows.map((t) => (
               <option key={t.id} value={t.id}>
@@ -115,29 +115,29 @@ export default async function AdminBookingsPage({
             ))}
           </select>
         </label>
-        <label className="text-xs font-medium text-gray-500">
+        <label className="text-xs font-bold uppercase tracking-normal text-brand-muted">
           Customer email
           <input
             type="search"
             name="customer_email"
             defaultValue={customerEmail}
             placeholder="Contains…"
-            className="mt-1 block w-48 rounded-lg border border-gray-200 px-3 py-2"
+            className="mt-1 block w-48 rounded-sm border border-brand-border bg-white px-3 py-2 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
           />
         </label>
-        <button type="submit" className="rounded-xl bg-blue-900 px-4 py-2 text-white hover:bg-blue-800">
+        <button type="submit" className="rounded-sm bg-brand-primary px-4 py-2 text-sm font-bold text-white hover:bg-brand-primary-hover">
           Apply
         </button>
         {filterQuery ? (
-          <Link href="/admin/bookings" className="text-xs text-blue-900 underline">
+          <Link href="/admin/bookings" className="text-xs text-brand-primary underline">
             Clear
           </Link>
         ) : null}
       </form>
 
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-sm border border-brand-border bg-white shadow-sm">
         <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+          <thead className="border-b border-brand-border bg-brand-surface text-xs font-bold uppercase tracking-normal text-brand-muted">
             <tr>
               <th className="px-4 py-3">Reference</th>
               <th className="px-4 py-3">Tour</th>
@@ -150,15 +150,15 @@ export default async function AdminBookingsPage({
           </thead>
           <tbody>
             {rows.map(({ booking, tourTitle }) => (
-              <tr key={booking.id} className="border-b border-gray-100 hover:bg-gray-50">
-                <td className="px-4 py-3 font-mono text-xs">{booking.bookingReference}</td>
-                <td className="px-4 py-3 text-gray-700">{tourTitle}</td>
-                <td className="px-4 py-3 text-gray-600">{String(booking.bookingDate)}</td>
-                <td className="px-4 py-3 text-gray-600">{booking.guestTotal}</td>
-                <td className="px-4 py-3 text-gray-600">{booking.status}</td>
-                <td className="px-4 py-3 text-gray-600">{booking.paymentStatus}</td>
+              <tr key={booking.id} className="border-b border-brand-border/50 hover:bg-brand-surface-soft">
+                <td className="px-4 py-3 font-mono text-xs text-brand-heading">{booking.bookingReference}</td>
+                <td className="px-4 py-3 text-brand-body">{tourTitle}</td>
+                <td className="px-4 py-3 text-brand-body">{String(booking.bookingDate)}</td>
+                <td className="px-4 py-3 text-brand-body">{booking.guestTotal}</td>
+                <td className="px-4 py-3 text-brand-body">{booking.status}</td>
+                <td className="px-4 py-3 text-brand-body">{booking.paymentStatus}</td>
                 <td className="px-4 py-3 text-right">
-                  <Link href={`/admin/bookings/${booking.id}`} className="text-blue-900 hover:underline">
+                  <Link href={`/admin/bookings/${booking.id}`} className="text-brand-primary hover:underline">
                     View
                   </Link>
                 </td>

@@ -31,7 +31,7 @@ export async function TourEditorBanners({ tourId, status }: TourEditorBannersPro
     <div className="space-y-3">
       {status === "draft" ? (
         <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-950">
-          <strong>Draft tour.</strong> Finish content, weekday rules, departures, and pricing, then set{" "}
+          <strong>Draft tour.</strong> Finish content, weekday rules, departures, and pricing, then set
           <strong>Status</strong> to published when ready. Turn on <strong>Booking enabled</strong> only when
           you want this tour on the public site.
         </div>

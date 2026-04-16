@@ -16,13 +16,13 @@ export default async function AdminMediaPage() {
     .orderBy(asc(tours.displayOrder), asc(tours.title));
 
   return (
-    <div className="space-y-4">
-      <h1 className="font-serif text-3xl font-semibold">Media library</h1>
-      <p className="text-sm text-gray-600">
-        Vercel Blob paths follow <code className="rounded bg-gray-100 px-1">tours/{"{slug}"}/gallery/</code>. Staff can
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-brand-heading">Media library</h1>
+      <p className="text-sm text-brand-muted">
+        Vercel Blob paths follow <code className="rounded bg-brand-surface px-1 py-0.5 text-xs font-mono text-brand-primary">tours/{"{slug}"}/gallery/</code>. Staff can
         upload; delete, reorder, and hero are admin-only.
       </p>
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="rounded-sm border border-brand-border bg-white p-6 shadow-sm">
         <AdminMediaLibrary tours={tourRows} isAdmin={isAdmin} />
       </div>
     </div>

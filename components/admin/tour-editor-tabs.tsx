@@ -278,138 +278,138 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
 
   return (
     <Tabs.Root defaultValue="content" className="space-y-4">
-      {msg ? <p className="text-sm text-gray-600">{msg}</p> : null}
-      <Tabs.List className="flex flex-wrap gap-2 border-b border-gray-200 pb-2">
+      {msg ? <p className="text-sm text-brand-body">{msg}</p> : null}
+      <Tabs.List className="flex flex-wrap gap-2 border-b border-brand-border pb-2">
         {["content", "pricing", "availability", "media", "settings"].map((tab) => (
           <Tabs.Trigger
             key={tab}
             value={tab}
-            className="rounded-lg px-3 py-2 text-sm text-gray-600 data-[state=active]:bg-gray-100 data-[state=active]:font-semibold data-[state=active]:text-gray-900"
+            className="rounded-sm px-3 py-2 text-sm text-brand-body data-[state=active]:bg-brand-surface data-[state=active]:font-semibold data-[state=active]:text-brand-heading"
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
           </Tabs.Trigger>
         ))}
       </Tabs.List>
 
-      <Tabs.Content value="content" className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6">
+      <Tabs.Content value="content" className="space-y-4 rounded-sm border border-brand-border bg-white p-6">
         {!isAdmin ? (
-          <p className="text-sm text-gray-600">Staff have view-only access to tour content.</p>
+          <p className="text-sm text-brand-body">Staff have view-only access to tour content.</p>
         ) : null}
         <div className="grid gap-3 md:grid-cols-2">
-          <label className="text-xs font-medium text-gray-500">
+          <label className="text-xs font-medium text-brand-muted">
             Title
             <input
-              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={content.title}
               onChange={(e) => setContent((c) => ({ ...c, title: e.target.value }))}
               disabled={!isAdmin || pending}
             />
           </label>
-          <label className="text-xs font-medium text-gray-500">
+          <label className="text-xs font-medium text-brand-muted">
             Slug
             <input
-              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={content.slug}
               onChange={(e) => setContent((c) => ({ ...c, slug: e.target.value }))}
               disabled={!isAdmin || pending}
             />
           </label>
-          <label className="text-xs font-medium text-gray-500 md:col-span-2">
+          <label className="text-xs font-medium text-brand-muted md:col-span-2">
             Short description
             <textarea
-              className="mt-1 min-h-[64px] w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 min-h-[64px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={content.short_description}
               onChange={(e) => setContent((c) => ({ ...c, short_description: e.target.value }))}
               disabled={!isAdmin || pending}
             />
           </label>
-          <label className="text-xs font-medium text-gray-500 md:col-span-2">
+          <label className="text-xs font-medium text-brand-muted md:col-span-2">
             Description
             <textarea
-              className="mt-1 min-h-[120px] w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 min-h-[120px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={content.description}
               onChange={(e) => setContent((c) => ({ ...c, description: e.target.value }))}
               disabled={!isAdmin || pending}
             />
           </label>
-          <label className="text-xs font-medium text-gray-500">
+          <label className="text-xs font-medium text-brand-muted">
             Duration text
             <input
-              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={content.duration_text}
               onChange={(e) => setContent((c) => ({ ...c, duration_text: e.target.value }))}
               disabled={!isAdmin || pending}
             />
           </label>
-          <label className="text-xs font-medium text-gray-500">
+          <label className="text-xs font-medium text-brand-muted">
             Duration (minutes)
             <input
               type="number"
-              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={content.duration_minutes}
               onChange={(e) => setContent((c) => ({ ...c, duration_minutes: Number(e.target.value) }))}
               disabled={!isAdmin || pending}
             />
           </label>
-          <label className="text-xs font-medium text-gray-500">
+          <label className="text-xs font-medium text-brand-muted">
             Group size text
             <input
-              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={content.group_size_text}
               onChange={(e) => setContent((c) => ({ ...c, group_size_text: e.target.value }))}
               disabled={!isAdmin || pending}
             />
           </label>
-          <label className="text-xs font-medium text-gray-500">
+          <label className="text-xs font-medium text-brand-muted">
             Default capacity
             <input
               type="number"
-              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={content.default_capacity}
               onChange={(e) => setContent((c) => ({ ...c, default_capacity: Number(e.target.value) }))}
               disabled={!isAdmin || pending}
             />
           </label>
-          <label className="text-xs font-medium text-gray-500">
+          <label className="text-xs font-medium text-brand-muted">
             Price from text
             <input
-              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={content.price_from_text}
               onChange={(e) => setContent((c) => ({ ...c, price_from_text: e.target.value }))}
               disabled={!isAdmin || pending}
             />
           </label>
-          <label className="text-xs font-medium text-gray-500">
+          <label className="text-xs font-medium text-brand-muted">
             Region
             <input
-              className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={content.location_region}
               onChange={(e) => setContent((c) => ({ ...c, location_region: e.target.value }))}
               disabled={!isAdmin || pending}
             />
           </label>
-          <label className="text-xs font-medium text-gray-500 md:col-span-2">
+          <label className="text-xs font-medium text-brand-muted md:col-span-2">
             Inclusions (one per line)
             <textarea
-              className="mt-1 min-h-[80px] w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 min-h-[80px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={content.inclusions}
               onChange={(e) => setContent((c) => ({ ...c, inclusions: e.target.value }))}
               disabled={!isAdmin || pending}
             />
           </label>
-          <label className="text-xs font-medium text-gray-500 md:col-span-2">
+          <label className="text-xs font-medium text-brand-muted md:col-span-2">
             Exclusions (one per line)
             <textarea
-              className="mt-1 min-h-[80px] w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 min-h-[80px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={content.exclusions}
               onChange={(e) => setContent((c) => ({ ...c, exclusions: e.target.value }))}
               disabled={!isAdmin || pending}
             />
           </label>
-          <label className="text-xs font-medium text-gray-500 md:col-span-2">
+          <label className="text-xs font-medium text-brand-muted md:col-span-2">
             What to bring (one per line)
             <textarea
-              className="mt-1 min-h-[80px] w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              className="mt-1 min-h-[80px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
               value={content.what_to_bring}
               onChange={(e) => setContent((c) => ({ ...c, what_to_bring: e.target.value }))}
               disabled={!isAdmin || pending}
@@ -423,55 +423,55 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
         ) : null}
       </Tabs.Content>
 
-      <Tabs.Content value="pricing" className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6">
+      <Tabs.Content value="pricing" className="space-y-4 rounded-sm border border-brand-border bg-white p-6">
         {!isAdmin ? (
-          <p className="text-sm text-gray-600">Pricing is visible to admins only.</p>
+          <p className="text-sm text-brand-body">Pricing is visible to admins only.</p>
         ) : (
           <>
             <div className="flex items-center justify-between gap-2">
-              <p className="text-sm text-gray-600">Pricing rules for checkout and manual bookings.</p>
+              <p className="text-sm text-brand-body">Pricing rules for checkout and manual bookings.</p>
               <Button type="button" variant="secondary" size="sm" onClick={() => void createPricingRule()} disabled={pending}>
                 Add rule
               </Button>
             </div>
             <ul className="space-y-4">
               {pricing.map((r) => (
-                <li key={r.id} className="rounded-xl border border-gray-100 p-4">
+                <li key={r.id} className="rounded-sm border border-brand-border p-4">
                   <div className="grid gap-2 md:grid-cols-3">
-                    <label className="text-xs text-gray-500">
+                    <label className="text-xs text-brand-muted">
                       Label
                       <input
-                        className="mt-1 w-full rounded border border-gray-200 px-2 py-1 text-sm"
+                        className="mt-1 w-full rounded border border-brand-border px-2 py-1 text-sm"
                         defaultValue={r.label}
                         onBlur={(e) => {
                           if (e.target.value !== r.label) void updateRule(r.id, { label: e.target.value });
                         }}
                       />
                     </label>
-                    <label className="text-xs text-gray-500">
+                    <label className="text-xs text-brand-muted">
                       Adult
                       <input
-                        className="mt-1 w-full rounded border border-gray-200 px-2 py-1 text-sm"
+                        className="mt-1 w-full rounded border border-brand-border px-2 py-1 text-sm"
                         defaultValue={r.adultPrice}
                         onBlur={(e) => {
                           if (e.target.value !== r.adultPrice) void updateRule(r.id, { adultPrice: e.target.value });
                         }}
                       />
                     </label>
-                    <label className="text-xs text-gray-500">
+                    <label className="text-xs text-brand-muted">
                       Child
                       <input
-                        className="mt-1 w-full rounded border border-gray-200 px-2 py-1 text-sm"
+                        className="mt-1 w-full rounded border border-brand-border px-2 py-1 text-sm"
                         defaultValue={r.childPrice}
                         onBlur={(e) => {
                           if (e.target.value !== r.childPrice) void updateRule(r.id, { childPrice: e.target.value });
                         }}
                       />
                     </label>
-                    <label className="text-xs text-gray-500">
+                    <label className="text-xs text-brand-muted">
                       Infant type
                       <select
-                        className="mt-1 w-full rounded border border-gray-200 px-2 py-1 text-sm"
+                        className="mt-1 w-full rounded border border-brand-border px-2 py-1 text-sm"
                         defaultValue={r.infantPricingType}
                         onChange={(e) => void updateRule(r.id, { infantPricingType: e.target.value })}
                       >
@@ -480,16 +480,16 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                         <option value="not_allowed">not_allowed</option>
                       </select>
                     </label>
-                    <label className="text-xs text-gray-500">
+                    <label className="text-xs text-brand-muted">
                       Priority
                       <input
                         type="number"
-                        className="mt-1 w-full rounded border border-gray-200 px-2 py-1 text-sm"
+                        className="mt-1 w-full rounded border border-brand-border px-2 py-1 text-sm"
                         defaultValue={r.priority}
                         onBlur={(e) => void updateRule(r.id, { priority: Number(e.target.value) })}
                       />
                     </label>
-                    <label className="flex items-center gap-2 text-xs text-gray-500">
+                    <label className="flex items-center gap-2 text-xs text-brand-muted">
                       <input
                         type="checkbox"
                         defaultChecked={r.isActive}
@@ -508,25 +508,25 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
         )}
       </Tabs.Content>
 
-      <Tabs.Content value="availability" className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6">
+      <Tabs.Content value="availability" className="space-y-4 rounded-sm border border-brand-border bg-white p-6">
         {!rules ? (
-          <p className="text-sm text-gray-500">Loading rules…</p>
+          <p className="text-sm text-brand-muted">Loading rules…</p>
         ) : (
           <>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-brand-body">
               Rows follow engine weekdays (0 = Sunday through 6 = Saturday). Set capacity or leave empty to use tour
               default.
             </p>
             <div className="space-y-3">
               {rules.map((r, idx) => (
-                <div key={r.weekday} className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-100 p-3">
+                <div key={r.weekday} className="flex flex-wrap items-center gap-3 rounded-sm border border-brand-border p-3">
                   <span className="w-12 text-sm font-medium">{WEEKDAYS[r.weekday] ?? r.weekday}</span>
-                  <label className="text-xs text-gray-500">
+                  <label className="text-xs text-brand-muted">
                     Capacity
                     <input
                       type="number"
                       min={1}
-                      className="mt-1 w-24 rounded border border-gray-200 px-2 py-1 text-sm"
+                      className="mt-1 w-24 rounded border border-brand-border px-2 py-1 text-sm"
                       value={r.default_capacity ?? ""}
                       placeholder="default"
                       onChange={(e) => {
@@ -541,7 +541,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                       disabled={!isAdmin || pending}
                     />
                   </label>
-                  <label className="flex items-center gap-2 text-xs text-gray-500">
+                  <label className="flex items-center gap-2 text-xs text-brand-muted">
                     <input
                       type="checkbox"
                       checked={r.is_active}
@@ -562,22 +562,22 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                 Save weekday rules
               </Button>
             ) : (
-              <p className="text-xs text-gray-500">Staff view only.</p>
+              <p className="text-xs text-brand-muted">Staff view only.</p>
             )}
           </>
         )}
       </Tabs.Content>
 
-      <Tabs.Content value="media" className="rounded-2xl border border-gray-200 bg-white p-6">
+      <Tabs.Content value="media" className="rounded-sm border border-brand-border bg-white p-6">
         <TourMediaSection tourId={tour.id} isAdmin={isAdmin} />
       </Tabs.Content>
 
-      <Tabs.Content value="settings" className="space-y-4 rounded-2xl border border-gray-200 bg-white p-6">
+      <Tabs.Content value="settings" className="space-y-4 rounded-sm border border-brand-border bg-white p-6">
         {!isAdmin ? (
-          <p className="text-sm text-gray-600">Settings are admin-only.</p>
+          <p className="text-sm text-brand-body">Settings are admin-only.</p>
         ) : (
           <>
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2 text-sm text-brand-body">
               <input
                 type="checkbox"
                 checked={content.booking_enabled}
@@ -586,7 +586,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
               />
               Booking enabled
             </label>
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2 text-sm text-brand-body">
               <input
                 type="checkbox"
                 checked={content.is_active}
@@ -595,7 +595,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
               />
               Tour active
             </label>
-            <label className="flex items-center gap-2 text-sm text-gray-700">
+            <label className="flex items-center gap-2 text-sm text-brand-body">
               <input
                 type="checkbox"
                 checked={content.is_featured}
@@ -604,10 +604,10 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
               />
               Featured
             </label>
-            <label className="text-xs font-medium text-gray-500">
+            <label className="text-xs font-medium text-brand-muted">
               Status
               <select
-                className="mt-1 block rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="mt-1 block rounded-sm border border-brand-border px-3 py-2 text-sm"
                 value={content.status}
                 onChange={(e) =>
                   setContent((c) => ({ ...c, status: e.target.value as "draft" | "published" | "archived" }))
@@ -619,39 +619,39 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                 <option value="archived">archived</option>
               </select>
             </label>
-            <label className="text-xs font-medium text-gray-500">
+            <label className="text-xs font-medium text-brand-muted">
               Display order
               <input
                 type="number"
-                className="mt-1 w-full max-w-xs rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="mt-1 w-full max-w-xs rounded-sm border border-brand-border px-3 py-2 text-sm"
                 value={content.display_order}
                 onChange={(e) => setContent((c) => ({ ...c, display_order: Number(e.target.value) }))}
                 disabled={pending}
               />
             </label>
-            <label className="text-xs font-medium text-gray-500">
+            <label className="text-xs font-medium text-brand-muted">
               Booking cutoff (hours)
               <input
                 type="number"
-                className="mt-1 w-full max-w-xs rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="mt-1 w-full max-w-xs rounded-sm border border-brand-border px-3 py-2 text-sm"
                 value={content.booking_cutoff_hours}
                 onChange={(e) => setContent((c) => ({ ...c, booking_cutoff_hours: Number(e.target.value) }))}
                 disabled={pending}
               />
             </label>
-            <label className="text-xs font-medium text-gray-500 md:block">
+            <label className="text-xs font-medium text-brand-muted md:block">
               SEO title
               <input
-                className="mt-1 w-full max-w-xl rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="mt-1 w-full max-w-xl rounded-sm border border-brand-border px-3 py-2 text-sm"
                 value={content.seo_title}
                 onChange={(e) => setContent((c) => ({ ...c, seo_title: e.target.value }))}
                 disabled={pending}
               />
             </label>
-            <label className="text-xs font-medium text-gray-500 md:block">
+            <label className="text-xs font-medium text-brand-muted md:block">
               SEO description
               <textarea
-                className="mt-1 min-h-[64px] w-full max-w-xl rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                className="mt-1 min-h-[64px] w-full max-w-xl rounded-sm border border-brand-border px-3 py-2 text-sm"
                 value={content.seo_description}
                 onChange={(e) => setContent((c) => ({ ...c, seo_description: e.target.value }))}
                 disabled={pending}
