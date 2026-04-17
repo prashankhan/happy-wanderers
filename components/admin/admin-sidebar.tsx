@@ -175,14 +175,18 @@ export function AdminSidebar() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setMobileOpen(true)}
-        className="fixed left-3 top-3 z-50 rounded-sm border border-brand-border bg-white p-2 shadow-md lg:hidden"
-        aria-label="Open menu"
-      >
-        <MenuIcon />
-      </button>
+      <div className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b border-brand-border bg-white px-3 lg:hidden">
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          className="rounded-sm border border-brand-border bg-white p-2 text-brand-heading"
+          aria-label="Open menu"
+        >
+          <MenuIcon />
+        </button>
+        <p className="text-sm font-semibold text-brand-heading">Happy Wanderers</p>
+        <span aria-hidden className="h-9 w-9" />
+      </div>
 
       {mobileOpen && (
         <div
