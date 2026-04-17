@@ -48,8 +48,16 @@ export interface PricingRuleRow {
   label: string;
   adultPrice: string;
   childPrice: string;
+  pricingMode: "per_person" | "package";
+  includedAdults: number;
+  packageBasePrice: string;
+  extraAdultPrice: string;
+  extraChildPrice: string;
   infantPrice: string;
   infantPricingType: string;
+  minGuests: number;
+  maxGuests: number;
+  maxInfants: number | null;
   currencyCode: string;
   validFrom: string | null;
   validUntil: string | null;
@@ -249,8 +257,16 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           label: draft.label,
           adult_price: draft.adultPrice,
           child_price: draft.childPrice,
+          pricing_mode: draft.pricingMode,
+          included_adults: draft.includedAdults,
+          package_base_price: draft.packageBasePrice,
+          extra_adult_price: draft.extraAdultPrice,
+          extra_child_price: draft.extraChildPrice,
           infant_price: draft.infantPrice,
           infant_pricing_type: draft.infantPricingType,
+          min_guests: draft.minGuests,
+          max_guests: draft.maxGuests,
+          max_infants: draft.maxInfants,
           priority: draft.priority,
           is_active: draft.isActive,
         }),
@@ -275,8 +291,16 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
       draft.label !== original.label ||
       draft.adultPrice !== original.adultPrice ||
       draft.childPrice !== original.childPrice ||
+      draft.pricingMode !== original.pricingMode ||
+      draft.includedAdults !== original.includedAdults ||
+      draft.packageBasePrice !== original.packageBasePrice ||
+      draft.extraAdultPrice !== original.extraAdultPrice ||
+      draft.extraChildPrice !== original.extraChildPrice ||
       draft.infantPrice !== original.infantPrice ||
       draft.infantPricingType !== original.infantPricingType ||
+      draft.minGuests !== original.minGuests ||
+      draft.maxGuests !== original.maxGuests ||
+      draft.maxInfants !== original.maxInfants ||
       draft.priority !== original.priority ||
       draft.isActive !== original.isActive
     );
@@ -287,7 +311,14 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
     if (!confirm("Delete this pricing rule?")) return;
     setPending(true);
     try {
-      await fetch(`/api/admin/pricing/delete?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/pricing/delete?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      const data = (await res.json()) as { success?: boolean; message?: string };
+      if (!res.ok) {
+        showToast(data.message ?? "Failed to delete pricing rule", "error");
+        return;
+      }
       showToast("Pricing rule deleted");
       await loadPricing();
     } finally {
@@ -490,6 +521,56 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                       />
                     </label>
                     <label className="text-xs font-medium text-brand-muted">
+                      Pricing model
+                      <AdminCombobox
+                        className={`mt-1 ${adminFieldClass}`}
+                        value={pricingDrafts[r.id]?.pricingMode ?? r.pricingMode}
+                        onValueChange={(nextPricingMode) =>
+                          setPricingDrafts((prev) => ({
+                            ...prev,
+                            [r.id]: {
+                              ...(prev[r.id] ?? r),
+                              pricingMode: nextPricingMode as "per_person" | "package",
+                            },
+                          }))
+                        }
+                        options={[
+                          { value: "per_person", label: "Per person" },
+                          { value: "package", label: "Package" },
+                        ]}
+                      />
+                    </label>
+                    <label className="text-xs font-medium text-brand-muted">
+                      Min guests
+                      <input
+                        type="number"
+                        min={1}
+                        className={`mt-1 ${adminFieldClass}`}
+                        value={String(pricingDrafts[r.id]?.minGuests ?? r.minGuests)}
+                        onChange={(e) =>
+                          setPricingDrafts((prev) => ({
+                            ...prev,
+                            [r.id]: { ...(prev[r.id] ?? r), minGuests: Number(e.target.value) || 1 },
+                          }))
+                        }
+                      />
+                    </label>
+                    <label className="text-xs font-medium text-brand-muted">
+                      Max guests
+                      <input
+                        type="number"
+                        min={1}
+                        className={`mt-1 ${adminFieldClass}`}
+                        value={String(pricingDrafts[r.id]?.maxGuests ?? r.maxGuests)}
+                        onChange={(e) =>
+                          setPricingDrafts((prev) => ({
+                            ...prev,
+                            [r.id]: { ...(prev[r.id] ?? r), maxGuests: Number(e.target.value) || 1 },
+                          }))
+                        }
+                      />
+                    </label>
+                    <label className="text-xs font-medium text-brand-muted">
                       Adult price
                       <input
                         className={`mt-1 ${adminFieldClass}`}
@@ -515,6 +596,73 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                         }
                       />
                     </label>
+                    {(pricingDrafts[r.id]?.pricingMode ?? r.pricingMode) === "package" ? (
+                      <>
+                        <label className="text-xs font-medium text-brand-muted">
+                          Included adults
+                          <input
+                            type="number"
+                            min={1}
+                            className={`mt-1 ${adminFieldClass}`}
+                            value={String(pricingDrafts[r.id]?.includedAdults ?? r.includedAdults)}
+                            onChange={(e) =>
+                              setPricingDrafts((prev) => ({
+                                ...prev,
+                                [r.id]: { ...(prev[r.id] ?? r), includedAdults: Number(e.target.value) || 1 },
+                              }))
+                            }
+                          />
+                        </label>
+                        <label className="text-xs font-medium text-brand-muted">
+                          Package base
+                          <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            className={`mt-1 ${adminFieldClass}`}
+                            value={pricingDrafts[r.id]?.packageBasePrice ?? r.packageBasePrice}
+                            onChange={(e) =>
+                              setPricingDrafts((prev) => ({
+                                ...prev,
+                                [r.id]: { ...(prev[r.id] ?? r), packageBasePrice: e.target.value },
+                              }))
+                            }
+                          />
+                        </label>
+                        <label className="text-xs font-medium text-brand-muted">
+                          Extra adult
+                          <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            className={`mt-1 ${adminFieldClass}`}
+                            value={pricingDrafts[r.id]?.extraAdultPrice ?? r.extraAdultPrice}
+                            onChange={(e) =>
+                              setPricingDrafts((prev) => ({
+                                ...prev,
+                                [r.id]: { ...(prev[r.id] ?? r), extraAdultPrice: e.target.value },
+                              }))
+                            }
+                          />
+                        </label>
+                        <label className="text-xs font-medium text-brand-muted">
+                          Extra child
+                          <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            className={`mt-1 ${adminFieldClass}`}
+                            value={pricingDrafts[r.id]?.extraChildPrice ?? r.extraChildPrice}
+                            onChange={(e) =>
+                              setPricingDrafts((prev) => ({
+                                ...prev,
+                                [r.id]: { ...(prev[r.id] ?? r), extraChildPrice: e.target.value },
+                              }))
+                            }
+                          />
+                        </label>
+                      </>
+                    ) : null}
                     <label className="text-xs font-medium text-brand-muted">
                       Infant pricing type
                       <AdminCombobox
@@ -543,6 +691,24 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                           setPricingDrafts((prev) => ({
                             ...prev,
                             [r.id]: { ...(prev[r.id] ?? r), priority: Number(e.target.value) || 0 },
+                          }))
+                        }
+                      />
+                    </label>
+                    <label className="text-xs font-medium text-brand-muted">
+                      Max infants (optional)
+                      <input
+                        type="number"
+                        min={0}
+                        className={`mt-1 ${adminFieldClass}`}
+                        value={pricingDrafts[r.id]?.maxInfants === null ? "" : String(pricingDrafts[r.id]?.maxInfants ?? r.maxInfants ?? "")}
+                        onChange={(e) =>
+                          setPricingDrafts((prev) => ({
+                            ...prev,
+                            [r.id]: {
+                              ...(prev[r.id] ?? r),
+                              maxInfants: e.target.value === "" ? null : Number(e.target.value),
+                            },
                           }))
                         }
                       />

@@ -15,6 +15,13 @@
       "when": 1775934575225,
       "tag": "0001_add_resend_from_email",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776422400000,
+      "tag": "0002_pricing_package_mode",
+      "breakpoints": true
     }
   ]
 }

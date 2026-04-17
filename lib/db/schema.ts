@@ -96,8 +96,16 @@ export const pricingRules = pgTable(
     label: text("label").notNull(),
     adultPrice: numeric("adult_price", { precision: 12, scale: 2 }).notNull(),
     childPrice: numeric("child_price", { precision: 12, scale: 2 }).notNull(),
+    pricingMode: text("pricing_mode").notNull().default("per_person"),
+    includedAdults: integer("included_adults").notNull().default(2),
+    packageBasePrice: numeric("package_base_price", { precision: 12, scale: 2 }).notNull().default("0"),
+    extraAdultPrice: numeric("extra_adult_price", { precision: 12, scale: 2 }).notNull().default("0"),
+    extraChildPrice: numeric("extra_child_price", { precision: 12, scale: 2 }).notNull().default("0"),
     infantPrice: numeric("infant_price", { precision: 12, scale: 2 }).notNull().default("0"),
     infantPricingType: text("infant_pricing_type").notNull(),
+    minGuests: integer("min_guests").notNull().default(1),
+    maxGuests: integer("max_guests").notNull().default(12),
+    maxInfants: integer("max_infants"),
     currencyCode: text("currency_code").notNull().default("AUD"),
     validFrom: date("valid_from"),
     validUntil: date("valid_until"),
@@ -112,6 +120,14 @@ export const pricingRules = pgTable(
       "pricing_rules_infant_type_check",
       sql`${t.infantPricingType} IN ('free', 'fixed', 'not_allowed')`
     ),
+    check(
+      "pricing_rules_mode_check",
+      sql`${t.pricingMode} IN ('per_person', 'package')`
+    ),
+    check("pricing_rules_included_adults_min_check", sql`${t.includedAdults} >= 1`),
+    check("pricing_rules_min_guests_check", sql`${t.minGuests} >= 1`),
+    check("pricing_rules_max_guests_check", sql`${t.maxGuests} >= ${t.minGuests}`),
+    check("pricing_rules_max_infants_nonneg_check", sql`${t.maxInfants} IS NULL OR ${t.maxInfants} >= 0`),
   ]
 );
 

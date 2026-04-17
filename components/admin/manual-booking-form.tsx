@@ -8,6 +8,7 @@ import { AdminCombobox } from "@/components/admin/admin-combobox";
 import { adminFieldClass, adminTextareaClass } from "@/components/admin/form-field-styles";
 import { Button } from "@/components/ui/button";
 import { Toast, useToast } from "@/components/admin/toast";
+import { calendarDateTodayInTimeZone } from "@/lib/utils/dates";
 
 export interface TourOption {
   id: string;
@@ -23,9 +24,10 @@ export interface DepartureOption {
 export interface ManualBookingFormProps {
   tours: TourOption[];
   departures: DepartureOption[];
+  businessTimezone: string;
 }
 
-export function ManualBookingForm({ tours, departures }: ManualBookingFormProps) {
+export function ManualBookingForm({ tours, departures, businessTimezone }: ManualBookingFormProps) {
   const router = useRouter();
   const { toast, showToast, hideToast } = useToast();
   const [open, setOpen] = useState(false);
@@ -43,14 +45,7 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
   const [customerNotes, setCustomerNotes] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<"unpaid" | "paid">("paid");
   
-  function getBrisbaneDate(): string {
-    const now = new Date();
-    const brisbaneOffset = 10;
-    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-    const brisbane = new Date(utc + 3600000 * brisbaneOffset);
-    return brisbane.toISOString().split("T")[0];
-  }
-  const today = getBrisbaneDate();
+  const today = calendarDateTodayInTimeZone(businessTimezone);
 
   function isValidDate(dateStr: string): boolean {
     return dateStr >= today;

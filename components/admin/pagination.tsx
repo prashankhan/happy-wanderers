@@ -46,20 +46,26 @@ export function Pagination({ currentPage, totalPages, baseUrl }: PaginationProps
 
   return (
     <div className="flex items-center justify-center gap-1">
-      <Link
-        href={buildUrl(currentPage - 1)}
-        className={cn(
-          "flex h-8 w-8 items-center justify-center rounded-sm text-sm font-medium transition-colors",
-          currentPage === 1
-            ? "pointer-events-none text-brand-muted/50"
-            : "text-brand-body hover:bg-brand-surface"
-        )}
-        aria-disabled={currentPage === 1}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-      </Link>
+      {currentPage === 1 ? (
+        <span
+          aria-disabled="true"
+          className="flex h-8 w-8 items-center justify-center rounded-sm text-brand-muted/50"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </span>
+      ) : (
+        <Link
+          href={buildUrl(currentPage - 1)}
+          className="flex h-8 w-8 items-center justify-center rounded-sm text-sm font-medium text-brand-body transition-colors hover:bg-brand-surface"
+          aria-label="Go to previous page"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </Link>
+      )}
 
       {pages.map((page, idx) =>
         page === "..." ? (
@@ -82,20 +88,26 @@ export function Pagination({ currentPage, totalPages, baseUrl }: PaginationProps
         )
       )}
 
-      <Link
-        href={buildUrl(currentPage + 1)}
-        className={cn(
-          "flex h-8 w-8 items-center justify-center rounded-sm text-sm font-medium transition-colors",
-          currentPage === totalPages
-            ? "pointer-events-none text-brand-muted/50"
-            : "text-brand-body hover:bg-brand-surface"
-        )}
-        aria-disabled={currentPage === totalPages}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
-      </Link>
+      {currentPage === totalPages ? (
+        <span
+          aria-disabled="true"
+          className="flex h-8 w-8 items-center justify-center rounded-sm text-brand-muted/50"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </span>
+      ) : (
+        <Link
+          href={buildUrl(currentPage + 1)}
+          className="flex h-8 w-8 items-center justify-center rounded-sm text-sm font-medium text-brand-body transition-colors hover:bg-brand-surface"
+          aria-label="Go to next page"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </Link>
+      )}
     </div>
   );
 }

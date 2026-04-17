@@ -15,6 +15,9 @@ export async function GET(request: Request) {
   if (!session?.user) {
     return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
   }
+  if (session.user.role !== "admin") {
+    return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
+  }
 
   const { searchParams } = new URL(request.url);
   const parsed = querySchema.safeParse({

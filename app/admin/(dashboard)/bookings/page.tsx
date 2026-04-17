@@ -8,6 +8,8 @@ import { ManualBookingForm } from "@/components/admin/manual-booking-form";
 import { Pagination } from "@/components/admin/pagination";
 import { db } from "@/lib/db";
 import { bookings, departureLocations, tours } from "@/lib/db/schema";
+import { getSystemSettings } from "@/lib/services/system-settings";
+import { DEFAULT_TZ } from "@/lib/utils/dates";
 
 const PAGE_SIZE = 20;
 
@@ -81,6 +83,9 @@ export default async function AdminBookingsPage({
     .where(eq(departureLocations.isActive, true))
     .orderBy(departureLocations.displayOrder);
 
+  const settings = await getSystemSettings();
+  const businessTimezone = settings.timezone?.trim() || DEFAULT_TZ;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -88,7 +93,7 @@ export default async function AdminBookingsPage({
           <h1 className="text-2xl font-bold text-brand-heading">Bookings</h1>
           <p className="mt-1 text-sm text-brand-muted">Filter and drill into lifecycle, snapshots, and activity.</p>
         </div>
-        <ManualBookingForm tours={tourRows} departures={depRows} />
+        <ManualBookingForm tours={tourRows} departures={depRows} businessTimezone={businessTimezone} />
       </div>
 
       <AdminBookingsFilters

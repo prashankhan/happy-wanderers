@@ -19,11 +19,19 @@ function formatPrice(amount: number, currency: string): string {
 }
 
 interface PricingBreakdown {
+  pricingMode?: "per_person" | "package";
   currency: string;
   adultUnit: number;
   childUnit: number;
   infantUnit: number;
   total: number;
+  includedAdults?: number;
+  packageBase?: number;
+  extraAdultUnit?: number;
+  extraChildUnit?: number;
+  adultSubtotal?: number;
+  childSubtotal?: number;
+  infantSubtotal?: number;
   adults: number;
   children: number;
   infants: number;
@@ -61,7 +69,10 @@ export function BookingFormClient({
   const [pricing, setPricing] = useState<PricingBreakdown | null>(null);
 
   useEffect(() => {
-    if (!date || !departureId) return;
+    if (!date || !departureId) {
+      setPricing(null);
+      return;
+    }
 
     async function fetchPricing() {
       try {
@@ -78,11 +89,18 @@ export function BookingFormClient({
           }),
         });
         const json = await res.json();
-        if (json.success) {
-          setPricing(json.breakdown);
+        if (!res.ok || !json.success) {
+          setPricing(null);
+          return;
         }
+        setPricing({
+          ...json.breakdown,
+          adults,
+          children,
+          infants,
+        });
       } catch {
-        // Silently fail - pricing is optional
+        setPricing(null);
       }
     }
 
@@ -283,11 +301,36 @@ export function BookingFormClient({
                   <span className="text-2xl font-black text-brand-heading">{formatPrice(pricing.total, pricing.currency)}</span>
                 </div>
                 <div className="space-y-1 text-xs text-brand-muted">
-                  {pricing.adults > 0 && (
-                    <p>{pricing.adults} Adult{pricing.adults !== 1 ? "s" : ""} × {formatPrice(pricing.adultUnit, pricing.currency)}</p>
-                  )}
+                  {pricing.pricingMode === "package" ? (
+                    <>
+                      <p>
+                        Package ({pricing.includedAdults ?? 2} adults included){" "}
+                        {formatPrice(pricing.packageBase ?? 0, pricing.currency)}
+                      </p>
+                      {Math.max(0, pricing.adults - (pricing.includedAdults ?? 2)) > 0 ? (
+                        <p>
+                          {Math.max(0, pricing.adults - (pricing.includedAdults ?? 2))} Extra adult
+                          {Math.max(0, pricing.adults - (pricing.includedAdults ?? 2)) !== 1 ? "s" : ""} ×{" "}
+                          {formatPrice(pricing.extraAdultUnit ?? pricing.adultUnit, pricing.currency)}
+                        </p>
+                      ) : null}
+                    </>
+                  ) : pricing.adults > 0 ? (
+                    <p>
+                      {pricing.adults} Adult{pricing.adults !== 1 ? "s" : ""} ×{" "}
+                      {formatPrice(pricing.adultUnit, pricing.currency)}
+                    </p>
+                  ) : null}
                   {pricing.children > 0 && (
-                    <p>{pricing.children} Child{pricing.children !== 1 ? "ren" : ""} × {formatPrice(pricing.childUnit, pricing.currency)}</p>
+                    <p>
+                      {pricing.children} Child{pricing.children !== 1 ? "ren" : ""} ×{" "}
+                      {formatPrice(
+                        pricing.pricingMode === "package"
+                          ? pricing.extraChildUnit ?? pricing.childUnit
+                          : pricing.childUnit,
+                        pricing.currency
+                      )}
+                    </p>
                   )}
                   {pricing.infants > 0 && (
                     <p>{pricing.infants} Infant{pricing.infants !== 1 ? "s" : ""} × {formatPrice(pricing.infantUnit, pricing.currency)}</p>

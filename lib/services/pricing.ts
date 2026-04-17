@@ -5,11 +5,19 @@ import { departureLocations, pricingRules } from "@/lib/db/schema";
 
 export interface PricingBreakdown {
   ruleId: string;
+  pricingMode: "per_person" | "package";
   currency: string;
   adultUnit: number;
   childUnit: number;
   infantUnit: number;
   total: number;
+  includedAdults?: number;
+  packageBase?: number;
+  extraAdultUnit?: number;
+  extraChildUnit?: number;
+  adultSubtotal?: number;
+  childSubtotal?: number;
+  infantSubtotal?: number;
 }
 
 function num(v: string | number | null | undefined): number {
@@ -67,9 +75,20 @@ export async function resolvePricing(input: {
   const rule = rules[0];
   if (!rule) return { ok: false, message: "No pricing rule for this tour" };
 
+  const guestTotal = input.adults + input.children + input.infants;
+  if (guestTotal < rule.minGuests) {
+    return { ok: false, message: `Minimum ${rule.minGuests} guests required` };
+  }
+  if (guestTotal > rule.maxGuests) {
+    return { ok: false, message: `Maximum ${rule.maxGuests} guests allowed` };
+  }
+
   const infantType = rule.infantPricingType;
   if (infantType === "not_allowed" && input.infants > 0) {
     return { ok: false, message: "Infants are not permitted on this tour" };
+  }
+  if (rule.maxInfants !== null && input.infants > rule.maxInfants) {
+    return { ok: false, message: `Maximum ${rule.maxInfants} infants allowed` };
   }
   if (input.adults < 1) {
     return { ok: false, message: "At least one adult is required" };
@@ -82,12 +101,52 @@ export async function resolvePricing(input: {
   const adjType = loc.priceAdjustmentType;
   const adjVal = num(loc.priceAdjustmentValue);
 
-  const adultUnit = applyAdjustment(num(rule.adultPrice), adjType, adjVal);
-  const childUnit = applyAdjustment(num(rule.childPrice), adjType, adjVal);
-  const infantUnitAdj = applyAdjustment(infantUnit, adjType, adjVal);
+  let adultUnit = applyAdjustment(num(rule.adultPrice), adjType, adjVal);
+  let childUnit = applyAdjustment(num(rule.childPrice), adjType, adjVal);
+  const infantUnitAdj = infantType === "free" ? 0 : applyAdjustment(infantUnit, adjType, adjVal);
 
-  const total =
-    adultUnit * input.adults + childUnit * input.children + infantUnitAdj * input.infants;
+  const pricingMode = (rule.pricingMode === "package" ? "package" : "per_person") as
+    | "per_person"
+    | "package";
+
+  let total = 0;
+  let packageFields: Pick<
+    PricingBreakdown,
+    | "includedAdults"
+    | "packageBase"
+    | "extraAdultUnit"
+    | "extraChildUnit"
+    | "adultSubtotal"
+    | "childSubtotal"
+    | "infantSubtotal"
+  > = {};
+
+  if (pricingMode === "package") {
+    const includedAdults = Math.max(1, rule.includedAdults);
+    const packageBase = applyAdjustment(num(rule.packageBasePrice), adjType, adjVal);
+    const extraAdultUnit = applyAdjustment(num(rule.extraAdultPrice), adjType, adjVal);
+    const extraChildUnit = applyAdjustment(num(rule.extraChildPrice), adjType, adjVal);
+    const chargeableExtraAdults = Math.max(0, input.adults - includedAdults);
+
+    const adultSubtotal = packageBase + extraAdultUnit * chargeableExtraAdults;
+    const childSubtotal = extraChildUnit * input.children;
+    const infantSubtotal = infantUnitAdj * input.infants;
+    total = adultSubtotal + childSubtotal + infantSubtotal;
+
+    adultUnit = input.adults > 0 ? adultSubtotal / input.adults : 0;
+    childUnit = extraChildUnit;
+    packageFields = {
+      includedAdults,
+      packageBase,
+      extraAdultUnit,
+      extraChildUnit,
+      adultSubtotal,
+      childSubtotal,
+      infantSubtotal,
+    };
+  } else {
+    total = adultUnit * input.adults + childUnit * input.children + infantUnitAdj * input.infants;
+  }
 
   if (total <= 0) {
     return { ok: false, message: "Invalid total price" };
@@ -97,11 +156,13 @@ export async function resolvePricing(input: {
     ok: true,
     breakdown: {
       ruleId: rule.id,
+      pricingMode,
       currency: rule.currencyCode,
       adultUnit,
       childUnit,
       infantUnit: infantUnitAdj,
       total: Math.round(total * 100) / 100,
+      ...packageFields,
     },
   };
 }
