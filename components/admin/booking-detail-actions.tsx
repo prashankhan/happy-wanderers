@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AdminCombobox } from "@/components/admin/admin-combobox";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
+import { adminFieldClass, adminTextareaClass } from "@/components/admin/form-field-styles";
 import { Button } from "@/components/ui/button";
 import { Toast, useToast } from "@/components/admin/toast";
 
@@ -41,6 +43,7 @@ export function BookingDetailActions({
   const { toast, showToast, hideToast } = useToast();
   const [pending, setPending] = useState(false);
   const [form, setForm] = useState(initial);
+  const [savedForm, setSavedForm] = useState(initial);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [refundDialogOpen, setRefundDialogOpen] = useState(false);
 
@@ -55,17 +58,18 @@ export function BookingDetailActions({
       const data = (await res.json()) as { success?: boolean; message?: string };
       if (!res.ok) {
         showToast(data.message ?? "Request failed", "error");
-        return;
+        return false;
       }
       showToast("Booking details saved");
       router.refresh();
+      return true;
     } finally {
       setPending(false);
     }
   }
 
   async function saveDetails() {
-    await patchUpdate({
+    const success = await patchUpdate({
       adults: form.adults,
       children: form.children,
       infants: form.infants,
@@ -77,6 +81,9 @@ export function BookingDetailActions({
       ...(role === "admin" ? { internal_notes: form.internalNotes } : {}),
       ...(role === "admin" ? { departure_location_id: form.departureLocationId } : {}),
     });
+    if (success) {
+      setSavedForm(form);
+    }
   }
 
   async function cancelBooking() {
@@ -121,6 +128,7 @@ export function BookingDetailActions({
 
   const canEditLifecycle = status === "confirmed" || status === "pending";
   const showAdminActions = role === "admin" && canEditLifecycle;
+  const isDetailsDirty = JSON.stringify(form) !== JSON.stringify(savedForm);
 
   return (
     <div className="space-y-6 rounded-sm border border-brand-border bg-white p-6 shadow-sm">
@@ -132,7 +140,7 @@ export function BookingDetailActions({
           <input
             type="number"
             min={0}
-            className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+            className={`mt-1 ${adminFieldClass}`}
             value={form.adults}
             onChange={(e) => setForm((f) => ({ ...f, adults: Number(e.target.value) }))}
             disabled={!canEditLifecycle || pending}
@@ -143,7 +151,7 @@ export function BookingDetailActions({
           <input
             type="number"
             min={0}
-            className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+            className={`mt-1 ${adminFieldClass}`}
             value={form.children}
             onChange={(e) => setForm((f) => ({ ...f, children: Number(e.target.value) }))}
             disabled={!canEditLifecycle || pending}
@@ -154,7 +162,7 @@ export function BookingDetailActions({
           <input
             type="number"
             min={0}
-            className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+            className={`mt-1 ${adminFieldClass}`}
             value={form.infants}
             onChange={(e) => setForm((f) => ({ ...f, infants: Number(e.target.value) }))}
             disabled={!canEditLifecycle || pending}
@@ -163,24 +171,21 @@ export function BookingDetailActions({
         {role === "admin" ? (
           <label className="block text-xs font-medium text-brand-muted md:col-span-2">
             Departure pickup
-            <select
-              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+            <AdminCombobox
+              className={`mt-1 ${adminFieldClass}`}
               value={form.departureLocationId}
-              onChange={(e) => setForm((f) => ({ ...f, departureLocationId: e.target.value }))}
+              onValueChange={(nextDepartureLocationId) =>
+                setForm((prevForm) => ({ ...prevForm, departureLocationId: nextDepartureLocationId }))
+              }
               disabled={!canEditLifecycle || pending}
-            >
-              {departures.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
+              options={departures.map((departure) => ({ value: departure.id, label: departure.name }))}
+            />
           </label>
         ) : null}
         <label className="block text-xs font-medium text-brand-muted">
           First name
           <input
-            className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+            className={`mt-1 ${adminFieldClass}`}
             value={form.customerFirstName}
             onChange={(e) => setForm((f) => ({ ...f, customerFirstName: e.target.value }))}
             disabled={pending}
@@ -189,7 +194,7 @@ export function BookingDetailActions({
         <label className="block text-xs font-medium text-brand-muted">
           Last name
           <input
-            className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+            className={`mt-1 ${adminFieldClass}`}
             value={form.customerLastName}
             onChange={(e) => setForm((f) => ({ ...f, customerLastName: e.target.value }))}
             disabled={pending}
@@ -199,7 +204,7 @@ export function BookingDetailActions({
           Email
           <input
             type="email"
-            className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+            className={`mt-1 ${adminFieldClass}`}
             value={form.customerEmail}
             onChange={(e) => setForm((f) => ({ ...f, customerEmail: e.target.value }))}
             disabled={pending}
@@ -208,7 +213,7 @@ export function BookingDetailActions({
         <label className="block text-xs font-medium text-brand-muted md:col-span-2">
           Phone
           <input
-            className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+            className={`mt-1 ${adminFieldClass}`}
             value={form.customerPhone}
             onChange={(e) => setForm((f) => ({ ...f, customerPhone: e.target.value }))}
             disabled={pending}
@@ -217,7 +222,7 @@ export function BookingDetailActions({
         <label className="block text-xs font-medium text-brand-muted md:col-span-2">
           Customer notes
           <textarea
-            className="mt-1 min-h-[72px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+            className={`mt-1 ${adminTextareaClass}`}
             value={form.customerNotes ?? ""}
             onChange={(e) => setForm((f) => ({ ...f, customerNotes: e.target.value || null }))}
             disabled={pending}
@@ -227,7 +232,7 @@ export function BookingDetailActions({
           <label className="block text-xs font-medium text-brand-muted md:col-span-2">
             Internal notes
             <textarea
-              className="mt-1 min-h-[72px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+              className={`mt-1 ${adminTextareaClass}`}
               value={form.internalNotes ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, internalNotes: e.target.value || null }))}
               disabled={pending}
@@ -236,7 +241,11 @@ export function BookingDetailActions({
         ) : null}
       </div>
       <div className="flex flex-wrap gap-3">
-        <Button type="button" onClick={() => void saveDetails()} disabled={pending || !canEditLifecycle}>
+        <Button
+          type="button"
+          onClick={() => void saveDetails()}
+          disabled={pending || !canEditLifecycle || !isDetailsDirty}
+        >
           Save changes
         </Button>
         {showAdminActions ? (

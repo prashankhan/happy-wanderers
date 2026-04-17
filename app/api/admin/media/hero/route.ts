@@ -37,10 +37,15 @@ export async function PATCH(request: Request) {
     tour_id: parsed.data.tour_id,
   });
 
-  const result = await setTourHeroImage({
-    tourId: parsed.data.tour_id,
-    imageId: parsed.data.image_id,
-  });
+  let result: Awaited<ReturnType<typeof setTourHeroImage>>;
+  try {
+    result = await setTourHeroImage({
+      tourId: parsed.data.tour_id,
+      imageId: parsed.data.image_id,
+    });
+  } catch {
+    return NextResponse.json({ success: false, message: "Failed to update cover image" }, { status: 500 });
+  }
 
   if (!result.ok) {
     return NextResponse.json({ success: false, message: result.message }, { status: 400 });

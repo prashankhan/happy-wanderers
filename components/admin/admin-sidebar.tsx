@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils/cn";
 
@@ -17,6 +17,8 @@ const items = [
   { href: "/admin/media", label: "Media", icon: MediaIcon },
   { href: "/admin/settings", label: "Settings", icon: SettingsIcon },
 ];
+
+const SIDEBAR_COLLAPSED_STORAGE_KEY = "admin_sidebar_collapsed";
 
 function MenuIcon() {
   return (
@@ -151,6 +153,25 @@ export function AdminSidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY);
+      if (stored === "true") {
+        setCollapsed(true);
+      }
+    } catch {
+      // Ignore storage access failures and keep default expanded state.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(collapsed));
+    } catch {
+      // Ignore storage write failures.
+    }
+  }, [collapsed]);
 
   return (
     <>

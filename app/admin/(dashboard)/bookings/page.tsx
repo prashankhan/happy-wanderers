@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { and, asc, count, desc, eq, ilike, isNull, sql } from "drizzle-orm";
 
+import { AdminBookingsFilters } from "@/components/admin/admin-bookings-filters";
 import { BookingStatusBadge, PaymentStatusBadge } from "@/components/admin/booking-status-badge";
 import { ManualBookingForm } from "@/components/admin/manual-booking-form";
 import { Pagination } from "@/components/admin/pagination";
@@ -79,13 +81,6 @@ export default async function AdminBookingsPage({
     .where(eq(departureLocations.isActive, true))
     .orderBy(departureLocations.displayOrder);
 
-  const qs = new URLSearchParams();
-  if (date) qs.set("date", date);
-  if (status) qs.set("status", status);
-  if (customerEmail) qs.set("customer_email", customerEmail);
-  if (tourId) qs.set("tour_id", tourId);
-  const filterQuery = qs.toString();
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -96,62 +91,13 @@ export default async function AdminBookingsPage({
         <ManualBookingForm tours={tourRows} departures={depRows} />
       </div>
 
-      <form
-        method="get"
-        className="flex flex-wrap items-end gap-3 rounded-sm border border-brand-border bg-white p-4 text-sm shadow-sm"
-        action="/admin/bookings"
-      >
-        <label className="text-xs font-medium text-brand-muted">
-          Date
-          <input
-            type="date"
-            name="date"
-            defaultValue={date}
-            className="mt-1 block w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
-          />
-        </label>
-        <label className="text-xs font-medium text-brand-muted">
-          Status
-          <select name="status" defaultValue={status} className="mt-1 block w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10">
-            <option value="">Any</option>
-            <option value="pending">pending</option>
-            <option value="confirmed">confirmed</option>
-            <option value="failed">failed</option>
-            <option value="expired">expired</option>
-            <option value="cancelled">cancelled</option>
-            <option value="refunded">refunded</option>
-          </select>
-        </label>
-        <label className="text-xs font-medium text-brand-muted">
-          Tour
-          <select name="tour_id" defaultValue={tourId} className="mt-1 block w-full min-w-[160px] rounded-sm border border-brand-border bg-white px-3 py-2 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10">
-            <option value="">Any</option>
-            {tourRows.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.title}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-xs font-medium text-brand-muted">
-          Customer email
-          <input
-            type="search"
-            name="customer_email"
-            defaultValue={customerEmail}
-            placeholder="Contains…"
-            className="mt-1 block w-48 rounded-sm border border-brand-border bg-white px-3 py-2 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
-          />
-        </label>
-        <button type="submit" className="rounded-sm bg-brand-primary px-4 py-2 text-sm font-bold text-white hover:bg-brand-primary-hover">
-          Apply
-        </button>
-        {filterQuery ? (
-          <Link href="/admin/bookings" className="text-xs text-brand-primary underline">
-            Clear
-          </Link>
-        ) : null}
-      </form>
+      <AdminBookingsFilters
+        date={date}
+        status={status}
+        customerEmail={customerEmail}
+        tourId={tourId}
+        tours={tourRows}
+      />
 
       <div className="overflow-x-auto rounded-sm border border-brand-border bg-white shadow-sm">
         {rows.length > 0 && (
@@ -202,7 +148,9 @@ export default async function AdminBookingsPage({
 
       {totalPages > 1 && (
         <div className="flex justify-center py-4">
-          <Pagination currentPage={page} totalPages={totalPages} />
+          <Suspense fallback={<div className="h-8" aria-hidden />}>
+            <Pagination currentPage={page} totalPages={totalPages} />
+          </Suspense>
         </div>
       )}
     </div>

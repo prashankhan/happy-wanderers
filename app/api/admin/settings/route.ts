@@ -7,13 +7,39 @@ import { setAdminOperationContext } from "@/lib/sentry/context";
 
 const optionalEmail = z.union([z.string().email(), z.literal(""), z.null()]).optional();
 const optionalResendFrom = z.union([z.string().max(280), z.literal(""), z.null()]).optional();
+const supportedCurrencies = new Set(
+  typeof Intl.supportedValuesOf === "function"
+    ? Intl.supportedValuesOf("currency").map((code) => code.toUpperCase())
+    : ["AUD", "USD", "EUR", "GBP", "NZD", "CAD", "SGD", "JPY"]
+);
+const optionalIsoCurrency = z
+  .string()
+  .trim()
+  .length(3)
+  .transform((value) => value.toUpperCase())
+  .refine((value) => supportedCurrencies.has(value), "Currency must be a valid ISO code (e.g. AUD)")
+  .optional();
+const optionalIanaTimezone = z
+  .string()
+  .trim()
+  .min(1)
+  .max(64)
+  .refine((value) => {
+    try {
+      Intl.DateTimeFormat("en-US", { timeZone: value }).format(new Date());
+      return true;
+    } catch {
+      return false;
+    }
+  }, "Timezone must be a valid IANA zone (e.g. Australia/Brisbane)")
+  .optional();
 
 const patchSchema = z.object({
   booking_reference_prefix: z.string().min(1).max(16).optional(),
   default_cutoff_hours: z.coerce.number().int().min(0).max(168).optional(),
   hold_expiry_minutes: z.coerce.number().int().min(1).max(1440).optional(),
-  currency_code: z.string().length(3).optional(),
-  timezone: z.string().min(1).max(64).optional(),
+  currency_code: optionalIsoCurrency,
+  timezone: optionalIanaTimezone,
   business_name: z.string().max(200).nullable().optional(),
   support_email: optionalEmail,
   support_phone: z.string().max(40).nullable().optional(),
@@ -71,7 +97,8 @@ export async function PATCH(request: Request) {
 
   const parsed = patchSchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ success: false, message: "Validation failed" }, { status: 400 });
+    const message = parsed.error.issues[0]?.message ?? "Validation failed";
+    return NextResponse.json({ success: false, message }, { status: 400 });
   }
 
   setAdminOperationContext({

@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 
+import { AdminCombobox } from "@/components/admin/admin-combobox";
+import { adminFieldClass } from "@/components/admin/form-field-styles";
 import { Button } from "@/components/ui/button";
+import { calendarDateTodayInTimeZone } from "@/lib/utils/dates";
 
 export interface ReportTourOption {
   id: string;
@@ -11,11 +14,13 @@ export interface ReportTourOption {
 
 export interface AdminReportsPanelProps {
   tours: ReportTourOption[];
+  /** IANA zone from Admin → Settings (`system_settings.timezone`). */
+  businessTimezone: string;
 }
 
-export function AdminReportsPanel({ tours }: AdminReportsPanelProps) {
-  const today = new Date().toISOString().slice(0, 10);
-  const monthStart = today.slice(0, 8) + "01";
+export function AdminReportsPanel({ tours, businessTimezone }: AdminReportsPanelProps) {
+  const today = calendarDateTodayInTimeZone(businessTimezone);
+  const monthStart = `${today.slice(0, 7)}-01`;
   const [from, setFrom] = useState(monthStart);
   const [to, setTo] = useState(today);
   const [tourId, setTourId] = useState("");
@@ -36,6 +41,10 @@ export function AdminReportsPanel({ tours }: AdminReportsPanelProps) {
     setLoading(true);
     setMsg(null);
     try {
+      if (from > to) {
+        setMsg("“From” date must be on or before “To”.");
+        return;
+      }
       const q1 = new URLSearchParams({ from, to, status });
       if (tourId) q1.set("tour_id", tourId);
       const [res1, res2] = await Promise.all([
@@ -60,7 +69,7 @@ export function AdminReportsPanel({ tours }: AdminReportsPanelProps) {
           From
           <input
             type="date"
-            className="mt-1 block w-full rounded-sm border border-brand-border px-3 py-2 text-sm sm:w-auto"
+            className={`mt-1 block sm:w-auto ${adminFieldClass}`}
             value={from}
             onChange={(e) => setFrom(e.target.value)}
           />
@@ -69,38 +78,38 @@ export function AdminReportsPanel({ tours }: AdminReportsPanelProps) {
           To
           <input
             type="date"
-            className="mt-1 block w-full rounded-sm border border-brand-border px-3 py-2 text-sm sm:w-auto"
+            className={`mt-1 block sm:w-auto ${adminFieldClass}`}
             value={to}
             onChange={(e) => setTo(e.target.value)}
           />
         </label>
         <label className="text-xs font-medium text-brand-muted">
           Tour
-          <select
-            className="mt-1 block w-full rounded-sm border border-brand-border px-3 py-2 text-sm sm:min-w-[160px] sm:w-auto"
+          <AdminCombobox
+            className="mt-1 block sm:min-w-[160px] sm:w-auto"
             value={tourId}
-            onChange={(e) => setTourId(e.target.value)}
-          >
-            <option value="">All</option>
-            {tours.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.title}
-              </option>
-            ))}
-          </select>
+            onValueChange={setTourId}
+            options={[
+              { value: "", label: "All" },
+              ...tours.map((tour) => ({ value: tour.id, label: tour.title })),
+            ]}
+          />
         </label>
         <label className="text-xs font-medium text-brand-muted">
           Status (bookings report)
-          <select
-            className="mt-1 block rounded-sm border border-brand-border px-3 py-2 text-sm"
+          <AdminCombobox
+            className="mt-1 block"
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <option value="confirmed">confirmed</option>
-            <option value="pending">pending</option>
-            <option value="cancelled">cancelled</option>
-            <option value="refunded">refunded</option>
-          </select>
+            onValueChange={setStatus}
+            options={[
+              { value: "confirmed", label: "confirmed" },
+              { value: "pending", label: "pending" },
+              { value: "failed", label: "failed" },
+              { value: "expired", label: "expired" },
+              { value: "cancelled", label: "cancelled" },
+              { value: "refunded", label: "refunded" },
+            ]}
+          />
         </label>
         <Button type="button" onClick={() => void load()} disabled={loading}>
           Run report

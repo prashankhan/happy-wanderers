@@ -16,7 +16,7 @@ const bodySchema = z
     customer_first_name: z.string().min(1),
     customer_last_name: z.string().min(1),
     customer_email: z.string().email(),
-    customer_phone: z.string().min(1),
+    customer_phone: z.union([z.string(), z.null()]).optional(),
     customer_notes: z.string().nullable().optional(),
     payment_status: z.enum(["unpaid", "paid"]),
   })
@@ -47,6 +47,8 @@ export async function POST(request: Request) {
     date: parsed.data.booking_date,
   });
 
+  const customerPhone = String(parsed.data.customer_phone ?? "").trim();
+
   const result = await createManualBooking({
     tourId: parsed.data.tour_id,
     bookingDate: parsed.data.booking_date,
@@ -57,7 +59,7 @@ export async function POST(request: Request) {
     customerFirstName: parsed.data.customer_first_name,
     customerLastName: parsed.data.customer_last_name,
     customerEmail: parsed.data.customer_email,
-    customerPhone: parsed.data.customer_phone,
+    customerPhone,
     customerNotes: parsed.data.customer_notes ?? null,
     paymentStatus: parsed.data.payment_status,
     performedBy: session.user.email,

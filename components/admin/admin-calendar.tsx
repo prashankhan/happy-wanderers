@@ -14,7 +14,9 @@ import {
 } from "date-fns";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { AdminCombobox } from "@/components/admin/admin-combobox";
 import { BookingListModal } from "@/components/admin/booking-list-modal";
+import { adminFieldClass, adminTextareaClass } from "@/components/admin/form-field-styles";
 import { Button } from "@/components/ui/button";
 import { Toast, useToast } from "@/components/admin/toast";
 
@@ -57,6 +59,12 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
 
   const isAllTours = tourId === "all";
   const monthKey = format(cursor, "yyyy-MM");
+  const isOverrideDirty = selected
+    ? blockBookings !== !selected.is_available ||
+      capacityOverride !== "" ||
+      cutoffOverride !== "" ||
+      note.trim() !== ""
+    : false;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -172,124 +180,137 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-      <div className="flex flex-wrap items-end gap-4">
-        <label className="text-xs font-medium text-brand-muted">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:gap-4">
+        <label className="text-xs font-medium text-brand-muted sm:min-w-[260px]">
           Tour
-          <select
-            className="mt-1 block w-full rounded-sm border border-brand-border px-3 py-2 text-sm sm:w-auto"
+          <AdminCombobox
+            className="mt-1 block w-full sm:w-auto"
             value={tourId}
-            onChange={(e) => setTourId(e.target.value)}
-          >
-            <option value="all">All tours</option>
-            {tours.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.title}
-              </option>
-            ))}
-          </select>
+            onValueChange={setTourId}
+            options={[
+              { value: "all", label: "All tours" },
+              ...tours.map((tour) => ({ value: tour.id, label: tour.title })),
+            ]}
+          />
         </label>
-        <div className="flex items-center gap-2">
-          <Button type="button" variant="secondary" size="sm" onClick={() => setCursor((c) => addMonths(c, -1))}>
+        <div className="grid w-full grid-cols-[auto,1fr,auto] items-center gap-2 sm:flex sm:w-auto sm:justify-start">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="h-11 px-3 text-sm font-bold sm:h-12 sm:px-4 sm:text-base"
+            onClick={() => setCursor((c) => addMonths(c, -1))}
+          >
             Previous
           </Button>
-          <span className="min-w-[140px] text-center text-sm font-medium text-brand-heading">{format(cursor, "MMMM yyyy")}</span>
-          <Button type="button" variant="secondary" size="sm" onClick={() => setCursor((c) => addMonths(c, 1))}>
+          <span className="min-w-0 text-center text-sm font-bold text-brand-heading sm:min-w-[140px] sm:text-base">
+            {format(cursor, "MMMM yyyy")}
+          </span>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="h-11 px-3 text-sm font-bold sm:h-12 sm:px-4 sm:text-base"
+            onClick={() => setCursor((c) => addMonths(c, 1))}
+          >
             Next
           </Button>
         </div>
         {loading ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 sm:ml-auto">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-brand-border border-t-brand-primary" />
             <span className="text-xs text-brand-muted">Loading…</span>
           </div>
         ) : null}
       </div>
 
-      <div className={`grid min-w-[700px] grid-cols-7 gap-1 rounded-sm border border-brand-border bg-brand-border ${loading ? "opacity-50" : ""}`}>
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-          <div key={d} className="bg-brand-surface py-2 text-center text-xs font-bold uppercase tracking-normal text-brand-muted">
-            {d}
-          </div>
-        ))}
-        {gridDays.map((d) => {
-          const key = format(d, "yyyy-MM-dd");
-          const row = dayMap.get(key);
-          const inMonth = isSameMonth(d, cursor);
-          const isToday = format(d, "yyyy-MM-dd") === format(today, "yyyy-MM-dd");
-          const isPast = !isAllTours && d < today;
-          const isAllToursPast = isAllTours && d < today;
-          const isBlocked = !isAllTours && row && !row.is_available;
-          const isFull = !isAllTours && row && row.remaining_capacity === 0 && row.is_available;
-          const bookingCount = totalBookings[key] ?? 0;
-          const hasBookings = bookingCount > 0;
+      <div className={`overflow-x-auto rounded-sm border border-brand-border bg-brand-border ${loading ? "opacity-50" : ""}`}>
+        <div className="grid min-w-[700px] grid-cols-7 gap-1">
+          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+            <div key={d} className="bg-brand-surface py-2 text-center text-xs font-bold uppercase tracking-normal text-brand-muted">
+              {d}
+            </div>
+          ))}
+          {gridDays.map((d) => {
+            const key = format(d, "yyyy-MM-dd");
+            const row = dayMap.get(key);
+            const inMonth = isSameMonth(d, cursor);
+            const isToday = format(d, "yyyy-MM-dd") === format(today, "yyyy-MM-dd");
+            const isPast = !isAllTours && d < today;
+            const isAllToursPast = isAllTours && d < today;
+            const isBlocked = !isAllTours && row && !row.is_available;
+            const isFull = !isAllTours && row && row.remaining_capacity === 0 && row.is_available;
+            const bookingCount = totalBookings[key] ?? 0;
+            const hasBookings = bookingCount > 0;
 
-          return (
-            <div
-              key={key}
-              className={[
-                "min-h-[80px] bg-white p-1.5 text-left text-xs transition flex flex-col justify-between",
-                !inMonth && "bg-brand-surface/50 text-brand-muted/50",
-                isToday ? "ring-2 ring-inset ring-brand-primary" : "",
-                (isPast || isAllToursPast) && !isToday ? "opacity-60" : "",
-              ].join(" ")}
-            >
-              <div className="flex items-start justify-between">
-                <div className={`font-bold ${isToday ? "bg-brand-primary text-white rounded-full w-6 h-6 flex items-center justify-center" : ""}`}>
-                  {format(d, "d")}
-                </div>
-                {isToday && !hasBookings ? (
-                  <span className="rounded-full bg-brand-surface px-1.5 py-0.5 text-[10px] font-medium text-brand-muted">
-                    No bookings
-                  </span>
-                ) : hasBookings && !isPast && !isAllToursPast ? (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setBookingListDate(key);
-                      setBookingListOpen(true);
-                    }}
-                    className="rounded-full bg-brand-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-brand-primary hover:bg-brand-primary/20"
-                  >
-                    {bookingCount} booking{bookingCount !== 1 ? "s" : ""}
-                  </button>
-                ) : null}
-              </div>
-              {!isAllTours && row ? (
-                <div className="flex-1">
-                  <div className="mt-1 flex items-center gap-1">
-                    <div className={`h-2 w-2 shrink-0 rounded-full ${row.remaining_capacity > 0 ? "bg-green-500" : "bg-gray-400"}`} />
-                    <span className="truncate text-[11px]">
-                      {row.remaining_capacity}/{row.total_capacity}
-                    </span>
+            return (
+              <div
+                key={key}
+                className={[
+                  "min-h-[86px] bg-white p-1.5 text-left text-xs transition flex flex-col justify-between",
+                  !inMonth && "bg-brand-surface/50 text-brand-muted/50",
+                  isToday ? "ring-2 ring-inset ring-brand-primary" : "",
+                  (isPast || isAllToursPast) && !isToday ? "opacity-60" : "",
+                ].join(" ")}
+              >
+                <div className="flex items-start justify-between gap-1">
+                  <div className={`font-bold ${isToday ? "bg-brand-primary text-white rounded-full w-6 h-6 flex items-center justify-center" : ""}`}>
+                    {format(d, "d")}
                   </div>
-                  {isPast && !isToday ? (
-                    <div className="mt-0.5 text-[10px] font-medium text-brand-muted">Past</div>
-                  ) : isBlocked ? (
-                    <div className="mt-0.5 text-[10px] font-bold text-amber-600">Blocked booking</div>
-                  ) : row.cutoff_passed ? (
-                    <div className="mt-0.5 text-[10px] font-bold text-amber-600">Booking blocked</div>
-                  ) : isFull ? (
-                    <div className="mt-0.5 text-[10px] font-bold text-amber-600">Full</div>
+                  {isToday && !hasBookings ? (
+                    <span className="rounded-full bg-brand-surface px-1.5 py-0.5 text-[10px] font-medium text-brand-muted">
+                      No bookings
+                    </span>
+                  ) : hasBookings && !isPast && !isAllToursPast ? (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setBookingListDate(key);
+                        setBookingListOpen(true);
+                      }}
+                      className="max-w-full truncate rounded-full bg-brand-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-brand-primary hover:bg-brand-primary/20"
+                    >
+                      {bookingCount} booking{bookingCount !== 1 ? "s" : ""}
+                    </button>
                   ) : null}
                 </div>
-              ) : isAllTours && isAllToursPast && !isToday ? (
-                <div className="flex-1">
-                  <div className="mt-1 text-[10px] font-medium text-brand-muted">Past</div>
-                </div>
-              ) : null}
-              {!isAllTours && row && !isPast && (
-                <button
-                  type="button"
-                  onClick={() => openModal(d)}
-                  className="mt-1 w-full rounded-sm border border-brand-border bg-brand-surface px-2 py-1 text-[10px] text-brand-muted hover:border-brand-primary hover:text-brand-primary"
-                >
-                  Edit day
-                </button>
-              )}
-            </div>
-          );
-        })}
+                {!isAllTours && row ? (
+                  <div className="flex-1">
+                    <div className="mt-1 flex items-center gap-1">
+                      <div className={`h-2 w-2 shrink-0 rounded-full ${row.remaining_capacity > 0 ? "bg-green-500" : "bg-gray-400"}`} />
+                      <span className="truncate text-[11px]">
+                        {row.remaining_capacity}/{row.total_capacity}
+                      </span>
+                    </div>
+                    {isPast && !isToday ? (
+                      <div className="mt-0.5 text-[10px] font-medium text-brand-muted">Past</div>
+                    ) : isBlocked ? (
+                      <div className="mt-0.5 truncate text-[10px] font-bold text-amber-600">Blocked booking</div>
+                    ) : row.cutoff_passed ? (
+                      <div className="mt-0.5 truncate text-[10px] font-bold text-amber-600">Booking blocked</div>
+                    ) : isFull ? (
+                      <div className="mt-0.5 text-[10px] font-bold text-amber-600">Full</div>
+                    ) : null}
+                  </div>
+                ) : isAllTours && isAllToursPast && !isToday ? (
+                  <div className="flex-1">
+                    <div className="mt-1 text-[10px] font-medium text-brand-muted">Past</div>
+                  </div>
+                ) : null}
+                {!isAllTours && row && !isPast && (
+                  <button
+                    type="button"
+                    onClick={() => openModal(d)}
+                    className="mt-1 w-full rounded-sm border border-brand-border bg-brand-surface px-2 py-1 text-[10px] text-brand-muted hover:border-brand-primary hover:text-brand-primary"
+                  >
+                    Edit day
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {!isAdmin ? (
@@ -336,7 +357,7 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                   <input
                     type="number"
                     min={1}
-                    className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                    className={`mt-1 ${adminFieldClass}`}
                     value={capacityOverride}
                     onChange={(e) => setCapacityOverride(e.target.value)}
                     placeholder="Use default capacity"
@@ -347,7 +368,7 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                   <input
                     type="number"
                     min={1}
-                    className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                    className={`mt-1 ${adminFieldClass}`}
                     value={cutoffOverride}
                     onChange={(e) => setCutoffOverride(e.target.value)}
                     placeholder="e.g. 24"
@@ -356,14 +377,14 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                 <label className="block text-xs font-medium text-brand-muted">
                   Internal note (optional)
                   <textarea
-                    className="mt-1 min-h-[64px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                    className={`mt-1 ${adminTextareaClass}`}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="Why is this day different?"
                   />
                 </label>
                 <div className="flex flex-wrap gap-2 border-t border-brand-border pt-4">
-                  <Button type="button" onClick={() => void saveOverride()}>
+                  <Button type="button" onClick={() => void saveOverride()} disabled={!isOverrideDirty}>
                     Save
                   </Button>
                   {selected?.override_exists ? (

@@ -99,16 +99,16 @@ export async function uploadTourImage(input: {
 }
 
 async function setHeroImageInternal(tourId: string, imageId: string) {
-  await db.transaction(async (tx) => {
-    await tx
-      .update(tourImages)
-      .set({ isHero: false })
-      .where(and(eq(tourImages.tourId, tourId), isNull(tourImages.deletedAt)));
-    await tx
-      .update(tourImages)
-      .set({ isHero: true, sortOrder: 0 })
-      .where(and(eq(tourImages.id, imageId), eq(tourImages.tourId, tourId)));
-  });
+  // Neon HTTP driver does not support transactions in this runtime.
+  await db
+    .update(tourImages)
+    .set({ isHero: false })
+    .where(and(eq(tourImages.tourId, tourId), isNull(tourImages.deletedAt)));
+
+  await db
+    .update(tourImages)
+    .set({ isHero: true, sortOrder: 0 })
+    .where(and(eq(tourImages.id, imageId), eq(tourImages.tourId, tourId), isNull(tourImages.deletedAt)));
 }
 
 export async function reorderTourImages(input: {

@@ -4,7 +4,9 @@ import * as Tabs from "@radix-ui/react-tabs";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
+import { AdminCombobox } from "@/components/admin/admin-combobox";
 import { AddPricingRuleModal } from "@/components/admin/add-pricing-rule-modal";
+import { adminFieldBaseClass, adminFieldClass, adminTextareaClass } from "@/components/admin/form-field-styles";
 import { Toast, useToast } from "@/components/admin/toast";
 import { TourMediaSection } from "@/components/admin/tour-media-section";
 import { Button } from "@/components/ui/button";
@@ -68,6 +70,33 @@ export interface TourEditorTabsProps {
   initialPricingRules?: PricingRuleRow[];
 }
 
+interface TourEditorContentState {
+  title: string;
+  slug: string;
+  short_description: string;
+  description: string;
+  duration_text: string;
+  duration_minutes: number;
+  group_size_text: string;
+  default_capacity: number;
+  price_from_text: string;
+  location_region: string;
+  pickup_notes: string;
+  cancellation_policy: string;
+  hero_badge: string;
+  booking_cutoff_hours: number;
+  booking_enabled: boolean;
+  is_active: boolean;
+  status: "draft" | "published" | "archived";
+  is_featured: boolean;
+  display_order: number;
+  seo_title: string;
+  seo_description: string;
+  inclusions: string;
+  exclusions: string;
+  what_to_bring: string;
+}
+
 export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTabsProps) {
   const router = useRouter();
   const isAdmin = role === "admin";
@@ -84,41 +113,20 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
       .trim();
   }
 
-  const [content, setContent] = useState({
-    title: tour.title,
-    slug: tour.slug,
-    short_description: tour.shortDescription,
-    description: tour.description,
-    duration_text: tour.durationText,
-    duration_minutes: tour.durationMinutes,
-    group_size_text: tour.groupSizeText,
-    default_capacity: tour.defaultCapacity,
-    price_from_text: tour.priceFromText ?? "",
-    location_region: tour.locationRegion,
-    pickup_notes: tour.pickupNotes ?? "",
-    cancellation_policy: tour.cancellationPolicy ?? "",
-    hero_badge: tour.heroBadge ?? "",
-    booking_cutoff_hours: tour.bookingCutoffHours,
-    booking_enabled: tour.bookingEnabled,
-    is_active: tour.isActive,
-    status: tour.status as "draft" | "published" | "archived",
-    is_featured: tour.isFeatured,
-    display_order: tour.displayOrder,
-    seo_title: tour.seoTitle ?? "",
-    seo_description: tour.seoDescription ?? "",
-    inclusions: (tour.inclusions ?? []).join("\n"),
-    exclusions: (tour.exclusions ?? []).join("\n"),
-    what_to_bring: (tour.whatToBring ?? []).join("\n"),
-  });
+  const [content, setContent] = useState<TourEditorContentState>(() => buildTourEditorContentState(tour));
+  const [savedContent, setSavedContent] = useState<TourEditorContentState>(() => buildTourEditorContentState(tour));
 
   const [rules, setRules] = useState<AvailabilityRuleRow[] | null>(null);
+  const [savedRules, setSavedRules] = useState<AvailabilityRuleRow[] | null>(null);
   const [pricing, setPricing] = useState<PricingRuleRow[]>(initialPricingRules ?? []);
+  const [pricingDrafts, setPricingDrafts] = useState<Record<string, PricingRuleRow>>({});
 
   const loadRules = useCallback(async () => {
     const res = await fetch(`/api/admin/tours/${tour.id}/availability-rules`);
     if (!res.ok) return;
     const data = (await res.json()) as { rules: AvailabilityRuleRow[] };
     setRules(data.rules);
+    setSavedRules(data.rules);
   }, [tour.id]);
 
   useEffect(() => {
@@ -136,6 +144,16 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
   useEffect(() => {
     if (initialPricingRules === undefined && isAdmin) void loadPricing();
   }, [initialPricingRules, isAdmin, loadPricing]);
+
+  useEffect(() => {
+    setPricingDrafts(() => {
+      const next: Record<string, PricingRuleRow> = {};
+      pricing.forEach((rule) => {
+        next[rule.id] = { ...rule };
+      });
+      return next;
+    });
+  }, [pricing]);
 
   async function saveContent() {
     if (!isAdmin) return;
@@ -187,6 +205,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
         return;
       }
       showToast("Content saved successfully");
+      setSavedContent(content);
       router.refresh();
     } finally {
       setPending(false);
@@ -208,14 +227,18 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
         return;
       }
       showToast("Availability rules saved");
+      setSavedRules(rules);
       router.refresh();
     } finally {
       setPending(false);
     }
   }
 
-  async function updateRule(id: string, patch: Partial<PricingRuleRow>) {
+  async function savePricingRule(id: string) {
     if (!isAdmin) return;
+    const original = pricing.find((rule) => rule.id === id);
+    const draft = pricingDrafts[id];
+    if (!original || !draft) return;
     setPending(true);
     try {
       const res = await fetch("/api/admin/pricing/update", {
@@ -223,13 +246,13 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id,
-          ...(patch.label !== undefined ? { label: patch.label } : {}),
-          ...(patch.adultPrice !== undefined ? { adult_price: patch.adultPrice } : {}),
-          ...(patch.childPrice !== undefined ? { child_price: patch.childPrice } : {}),
-          ...(patch.infantPrice !== undefined ? { infant_price: patch.infantPrice } : {}),
-          ...(patch.infantPricingType !== undefined ? { infant_pricing_type: patch.infantPricingType } : {}),
-          ...(patch.priority !== undefined ? { priority: patch.priority } : {}),
-          ...(patch.isActive !== undefined ? { is_active: patch.isActive } : {}),
+          label: draft.label,
+          adult_price: draft.adultPrice,
+          child_price: draft.childPrice,
+          infant_price: draft.infantPrice,
+          infant_pricing_type: draft.infantPricingType,
+          priority: draft.priority,
+          is_active: draft.isActive,
         }),
       });
       const data = (await res.json()) as { success?: boolean; message?: string };
@@ -244,6 +267,21 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
     }
   }
 
+  function isPricingRuleDirty(id: string): boolean {
+    const original = pricing.find((rule) => rule.id === id);
+    const draft = pricingDrafts[id];
+    if (!original || !draft) return false;
+    return (
+      draft.label !== original.label ||
+      draft.adultPrice !== original.adultPrice ||
+      draft.childPrice !== original.childPrice ||
+      draft.infantPrice !== original.infantPrice ||
+      draft.infantPricingType !== original.infantPricingType ||
+      draft.priority !== original.priority ||
+      draft.isActive !== original.isActive
+    );
+  }
+
   async function deleteRule(id: string) {
     if (!isAdmin) return;
     if (!confirm("Delete this pricing rule?")) return;
@@ -256,6 +294,9 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
       setPending(false);
     }
   }
+
+  const isContentDirty = JSON.stringify(content) !== JSON.stringify(savedContent);
+  const isAvailabilityDirty = JSON.stringify(serializeRules(rules)) !== JSON.stringify(serializeRules(savedRules));
 
   return (
     <Tabs.Root defaultValue="content" className="space-y-4">
@@ -280,7 +321,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           <label className="text-xs font-medium text-brand-muted">
             Title
             <input
-              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+              className={`mt-1 ${adminFieldClass}`}
               value={content.title}
               onChange={(e) => {
                 const newTitle = e.target.value;
@@ -296,7 +337,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           <label className="text-xs font-medium text-brand-muted">
             Slug
             <input
-              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+              className={`mt-1 ${adminFieldClass}`}
               value={content.slug}
               onChange={(e) => {
                 setSlugManuallyEdited(true);
@@ -308,7 +349,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           <label className="text-xs font-medium text-brand-muted md:col-span-2">
             Short description
             <textarea
-              className="mt-1 min-h-[64px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+              className={`mt-1 ${adminTextareaClass}`}
               value={content.short_description}
               onChange={(e) => setContent((c) => ({ ...c, short_description: e.target.value }))}
               disabled={!isAdmin || pending}
@@ -317,7 +358,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           <label className="text-xs font-medium text-brand-muted md:col-span-2">
             Description
             <textarea
-              className="mt-1 min-h-[120px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+              className={`mt-1 ${adminTextareaClass} min-h-[120px]`}
               value={content.description}
               onChange={(e) => setContent((c) => ({ ...c, description: e.target.value }))}
               disabled={!isAdmin || pending}
@@ -326,7 +367,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           <label className="text-xs font-medium text-brand-muted">
             Duration text
             <input
-              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+              className={`mt-1 ${adminFieldClass}`}
               value={content.duration_text}
               onChange={(e) => setContent((c) => ({ ...c, duration_text: e.target.value }))}
               disabled={!isAdmin || pending}
@@ -336,7 +377,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
             Duration (minutes)
             <input
               type="number"
-              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+              className={`mt-1 ${adminFieldClass}`}
               value={content.duration_minutes}
               onChange={(e) => setContent((c) => ({ ...c, duration_minutes: Number(e.target.value) }))}
               disabled={!isAdmin || pending}
@@ -345,7 +386,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           <label className="text-xs font-medium text-brand-muted">
             Group size text
             <input
-              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+              className={`mt-1 ${adminFieldClass}`}
               value={content.group_size_text}
               onChange={(e) => setContent((c) => ({ ...c, group_size_text: e.target.value }))}
               disabled={!isAdmin || pending}
@@ -355,7 +396,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
             Default capacity
             <input
               type="number"
-              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+              className={`mt-1 ${adminFieldClass}`}
               value={content.default_capacity}
               onChange={(e) => setContent((c) => ({ ...c, default_capacity: Number(e.target.value) }))}
               disabled={!isAdmin || pending}
@@ -364,7 +405,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           <label className="text-xs font-medium text-brand-muted">
             Price from text
             <input
-              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+              className={`mt-1 ${adminFieldClass}`}
               value={content.price_from_text}
               onChange={(e) => setContent((c) => ({ ...c, price_from_text: e.target.value }))}
               disabled={!isAdmin || pending}
@@ -373,7 +414,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           <label className="text-xs font-medium text-brand-muted">
             Region
             <input
-              className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+              className={`mt-1 ${adminFieldClass}`}
               value={content.location_region}
               onChange={(e) => setContent((c) => ({ ...c, location_region: e.target.value }))}
               disabled={!isAdmin || pending}
@@ -382,7 +423,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           <label className="text-xs font-medium text-brand-muted md:col-span-2">
             Inclusions (one per line)
             <textarea
-              className="mt-1 min-h-[80px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+              className={`mt-1 ${adminTextareaClass} min-h-[80px]`}
               value={content.inclusions}
               onChange={(e) => setContent((c) => ({ ...c, inclusions: e.target.value }))}
               disabled={!isAdmin || pending}
@@ -391,7 +432,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           <label className="text-xs font-medium text-brand-muted md:col-span-2">
             Exclusions (one per line)
             <textarea
-              className="mt-1 min-h-[80px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+              className={`mt-1 ${adminTextareaClass} min-h-[80px]`}
               value={content.exclusions}
               onChange={(e) => setContent((c) => ({ ...c, exclusions: e.target.value }))}
               disabled={!isAdmin || pending}
@@ -400,7 +441,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           <label className="text-xs font-medium text-brand-muted md:col-span-2">
             What to bring (one per line)
             <textarea
-              className="mt-1 min-h-[80px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+              className={`mt-1 ${adminTextareaClass} min-h-[80px]`}
               value={content.what_to_bring}
               onChange={(e) => setContent((c) => ({ ...c, what_to_bring: e.target.value }))}
               disabled={!isAdmin || pending}
@@ -408,7 +449,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           </label>
         </div>
         {isAdmin ? (
-          <Button type="button" onClick={() => void saveContent()} disabled={pending}>
+          <Button type="button" onClick={() => void saveContent()} disabled={pending || !isContentDirty}>
             Save content
           </Button>
         ) : null}
@@ -431,70 +472,109 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
             <ul className="space-y-4">
               {pricing.map((r) => (
                 <li key={r.id} className="rounded-sm border border-brand-border p-4">
+                  {isPricingRuleDirty(r.id) ? (
+                    <p className="mb-2 text-xs font-medium text-amber-700">Unsaved changes</p>
+                  ) : null}
                   <div className="grid gap-2 md:grid-cols-3">
                     <label className="text-xs font-medium text-brand-muted">
                       Label
                       <input
-                        className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
-                        defaultValue={r.label}
-                        onBlur={(e) => {
-                          if (e.target.value !== r.label) void updateRule(r.id, { label: e.target.value });
-                        }}
+                        className={`mt-1 ${adminFieldClass}`}
+                        value={pricingDrafts[r.id]?.label ?? r.label}
+                        onChange={(e) =>
+                          setPricingDrafts((prev) => ({
+                            ...prev,
+                            [r.id]: { ...(prev[r.id] ?? r), label: e.target.value },
+                          }))
+                        }
                       />
                     </label>
                     <label className="text-xs font-medium text-brand-muted">
                       Adult price
                       <input
-                        className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
-                        defaultValue={r.adultPrice}
-                        onBlur={(e) => {
-                          if (e.target.value !== r.adultPrice) void updateRule(r.id, { adultPrice: e.target.value });
-                        }}
+                        className={`mt-1 ${adminFieldClass}`}
+                        value={pricingDrafts[r.id]?.adultPrice ?? r.adultPrice}
+                        onChange={(e) =>
+                          setPricingDrafts((prev) => ({
+                            ...prev,
+                            [r.id]: { ...(prev[r.id] ?? r), adultPrice: e.target.value },
+                          }))
+                        }
                       />
                     </label>
                     <label className="text-xs font-medium text-brand-muted">
                       Child price
                       <input
-                        className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
-                        defaultValue={r.childPrice}
-                        onBlur={(e) => {
-                          if (e.target.value !== r.childPrice) void updateRule(r.id, { childPrice: e.target.value });
-                        }}
+                        className={`mt-1 ${adminFieldClass}`}
+                        value={pricingDrafts[r.id]?.childPrice ?? r.childPrice}
+                        onChange={(e) =>
+                          setPricingDrafts((prev) => ({
+                            ...prev,
+                            [r.id]: { ...(prev[r.id] ?? r), childPrice: e.target.value },
+                          }))
+                        }
                       />
                     </label>
                     <label className="text-xs font-medium text-brand-muted">
                       Infant pricing type
-                      <select
-                        className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
-                        defaultValue={r.infantPricingType}
-                        onChange={(e) => void updateRule(r.id, { infantPricingType: e.target.value })}
-                      >
-                        <option value="free">Free</option>
-                        <option value="fixed">Fixed</option>
-                        <option value="not_allowed">Not allowed</option>
-                      </select>
+                      <AdminCombobox
+                        className={`mt-1 ${adminFieldClass}`}
+                        value={pricingDrafts[r.id]?.infantPricingType ?? r.infantPricingType}
+                        onValueChange={(nextInfantPricingType) =>
+                          setPricingDrafts((prev) => ({
+                            ...prev,
+                            [r.id]: { ...(prev[r.id] ?? r), infantPricingType: nextInfantPricingType },
+                          }))
+                        }
+                        options={[
+                          { value: "free", label: "Free" },
+                          { value: "fixed", label: "Fixed" },
+                          { value: "not_allowed", label: "Not allowed" },
+                        ]}
+                      />
                     </label>
                     <label className="text-xs font-medium text-brand-muted">
                       Priority
                       <input
                         type="number"
-                        className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
-                        defaultValue={r.priority}
-                        onBlur={(e) => void updateRule(r.id, { priority: Number(e.target.value) })}
+                        className={`mt-1 ${adminFieldClass}`}
+                        value={String(pricingDrafts[r.id]?.priority ?? r.priority)}
+                        onChange={(e) =>
+                          setPricingDrafts((prev) => ({
+                            ...prev,
+                            [r.id]: { ...(prev[r.id] ?? r), priority: Number(e.target.value) || 0 },
+                          }))
+                        }
                       />
                     </label>
                     <label className="flex items-center gap-2 text-xs font-medium text-brand-muted">
                       <input
                         type="checkbox"
-                        defaultChecked={r.isActive}
-                        onChange={(e) => void updateRule(r.id, { isActive: e.target.checked })}
+                        checked={pricingDrafts[r.id]?.isActive ?? r.isActive}
+                        onChange={(e) =>
+                          setPricingDrafts((prev) => ({
+                            ...prev,
+                            [r.id]: { ...(prev[r.id] ?? r), isActive: e.target.checked },
+                          }))
+                        }
                       />
                       Active
                     </label>
                   </div>
-                  <Button type="button" variant="danger" size="sm" className="mt-2" onClick={() => void deleteRule(r.id)}>
-                    Delete
-                  </Button>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      onClick={() => void savePricingRule(r.id)}
+                      disabled={pending || !isPricingRuleDirty(r.id)}
+                    >
+                      Save changes
+                    </Button>
+                    <Button type="button" variant="danger" size="sm" onClick={() => void deleteRule(r.id)}>
+                      Delete
+                    </Button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -520,7 +600,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                     <input
                       type="number"
                       min={1}
-                      className="mt-1 w-24 rounded border border-brand-border px-2 py-1 text-sm"
+                      className={`mt-1 w-24 ${adminFieldBaseClass}`}
                       value={r.default_capacity ?? ""}
                       placeholder="default"
                       onChange={(e) => {
@@ -552,7 +632,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
               ))}
             </div>
             {isAdmin ? (
-              <Button type="button" onClick={() => void saveAvailability()} disabled={pending}>
+              <Button type="button" onClick={() => void saveAvailability()} disabled={pending || !isAvailabilityDirty}>
                 Save weekday rules
               </Button>
             ) : (
@@ -609,24 +689,25 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
               <div className="grid gap-4 md:grid-cols-3">
                 <label className="text-xs font-medium text-brand-muted">
                   Status
-                  <select
-                    className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                  <AdminCombobox
+                    className={`mt-1 ${adminFieldClass}`}
                     value={content.status}
-                    onChange={(e) =>
-                      setContent((c) => ({ ...c, status: e.target.value as "draft" | "published" | "archived" }))
+                    onValueChange={(nextStatus) =>
+                      setContent((c) => ({ ...c, status: nextStatus as "draft" | "published" | "archived" }))
                     }
                     disabled={pending}
-                  >
-                    <option value="draft">Draft</option>
-                    <option value="published">Published</option>
-                    <option value="archived">Archived</option>
-                  </select>
+                    options={[
+                      { value: "draft", label: "Draft" },
+                      { value: "published", label: "Published" },
+                      { value: "archived", label: "Archived" },
+                    ]}
+                  />
                 </label>
                 <label className="text-xs font-medium text-brand-muted">
                   Display order
                   <input
                     type="number"
-                    className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                    className={`mt-1 ${adminFieldClass}`}
                     value={content.display_order}
                     onChange={(e) => setContent((c) => ({ ...c, display_order: Number(e.target.value) }))}
                     disabled={pending}
@@ -636,7 +717,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                   Booking cutoff (hours)
                   <input
                     type="number"
-                    className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                    className={`mt-1 ${adminFieldClass}`}
                     value={content.booking_cutoff_hours}
                     onChange={(e) => setContent((c) => ({ ...c, booking_cutoff_hours: Number(e.target.value) }))}
                     disabled={pending}
@@ -651,7 +732,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                 <label className="text-xs font-medium text-brand-muted">
                   SEO title
                   <input
-                    className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                    className={`mt-1 ${adminFieldClass}`}
                     value={content.seo_title}
                     onChange={(e) => setContent((c) => ({ ...c, seo_title: e.target.value }))}
                     disabled={pending}
@@ -660,7 +741,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                 <label className="text-xs font-medium text-brand-muted">
                   SEO description
                   <textarea
-                    className="mt-1 min-h-[80px] w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                    className={`mt-1 ${adminTextareaClass} min-h-[80px]`}
                     value={content.seo_description}
                     onChange={(e) => setContent((c) => ({ ...c, seo_description: e.target.value }))}
                     disabled={pending}
@@ -669,7 +750,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
               </div>
             </div>
 
-            <Button type="button" onClick={() => void saveContent()} disabled={pending}>
+            <Button type="button" onClick={() => void saveContent()} disabled={pending || !isContentDirty}>
               Save settings
             </Button>
           </>
@@ -677,4 +758,46 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
       </Tabs.Content>
     </Tabs.Root>
   );
+}
+
+function buildTourEditorContentState(tour: SerializedTour): TourEditorContentState {
+  return {
+    title: tour.title,
+    slug: tour.slug,
+    short_description: tour.shortDescription,
+    description: tour.description,
+    duration_text: tour.durationText,
+    duration_minutes: tour.durationMinutes,
+    group_size_text: tour.groupSizeText,
+    default_capacity: tour.defaultCapacity,
+    price_from_text: tour.priceFromText ?? "",
+    location_region: tour.locationRegion,
+    pickup_notes: tour.pickupNotes ?? "",
+    cancellation_policy: tour.cancellationPolicy ?? "",
+    hero_badge: tour.heroBadge ?? "",
+    booking_cutoff_hours: tour.bookingCutoffHours,
+    booking_enabled: tour.bookingEnabled,
+    is_active: tour.isActive,
+    status: tour.status as "draft" | "published" | "archived",
+    is_featured: tour.isFeatured,
+    display_order: tour.displayOrder,
+    seo_title: tour.seoTitle ?? "",
+    seo_description: tour.seoDescription ?? "",
+    inclusions: (tour.inclusions ?? []).join("\n"),
+    exclusions: (tour.exclusions ?? []).join("\n"),
+    what_to_bring: (tour.whatToBring ?? []).join("\n"),
+  };
+}
+
+function serializeRules(rules: AvailabilityRuleRow[] | null): Array<{
+  weekday: number;
+  default_capacity: number | null;
+  is_active: boolean;
+}> {
+  if (!rules) return [];
+  return rules.map((rule) => ({
+    weekday: rule.weekday,
+    default_capacity: rule.default_capacity,
+    is_active: rule.is_active,
+  }));
 }

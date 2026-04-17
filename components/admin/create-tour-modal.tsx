@@ -4,6 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { adminFieldClass } from "@/components/admin/form-field-styles";
 import { Button } from "@/components/ui/button";
 
 export function CreateTourModal() {
@@ -65,7 +66,7 @@ export function CreateTourModal() {
               Tour title
               <input
                 type="text"
-                className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                className={`mt-1 ${adminFieldClass}`}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Sunset City Tour"

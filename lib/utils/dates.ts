@@ -10,6 +10,16 @@ import {
 
 export const DEFAULT_TZ = "Australia/Brisbane";
 
+/** Calendar date `yyyy-MM-dd` for “now” in the given IANA zone (falls back if zone is invalid). */
+export function calendarDateTodayInTimeZone(timeZone: string): string {
+  const tz = timeZone.trim() || DEFAULT_TZ;
+  try {
+    return formatInTimeZone(new Date(), tz, "yyyy-MM-dd");
+  } catch {
+    return formatInTimeZone(new Date(), DEFAULT_TZ, "yyyy-MM-dd");
+  }
+}
+
 export function formatDateInTz(date: Date, tz: string, fmt: string): string {
   return formatInTimeZone(date, tz, fmt);
 }

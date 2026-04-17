@@ -26,8 +26,7 @@ export default async function AdminSettingsPage() {
       <div>
         <h1 className="text-2xl font-bold text-brand-heading">Settings</h1>
         <p className="mt-1 text-sm text-brand-muted">
-          Global booking defaults, currency, timezone, and contact details stored in{" "}
-          <code className="rounded bg-brand-surface px-1 py-0.5 text-xs font-mono text-brand-primary">system_settings</code>.
+          Manage booking defaults, currency, timezone, and contact details for your business.
         </p>
       </div>
       <SystemSettingsForm

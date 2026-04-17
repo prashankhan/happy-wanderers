@@ -3,6 +3,8 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useState } from "react";
 
+import { AdminCombobox } from "@/components/admin/admin-combobox";
+import { adminFieldClass } from "@/components/admin/form-field-styles";
 import { Button } from "@/components/ui/button";
 
 interface AddPricingRuleModalProps {
@@ -84,7 +86,7 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
               <input
                 type="text"
                 required
-                className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                className={`mt-1 ${adminFieldClass}`}
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 placeholder="e.g. Adult, Child, Weekend"
@@ -98,7 +100,7 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
                   type="number"
                   min="0"
                   step="0.01"
-                  className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                  className={`mt-1 ${adminFieldClass}`}
                   value={adultPrice}
                   onChange={(e) => setAdultPrice(e.target.value)}
                 />
@@ -109,7 +111,7 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
                   type="number"
                   min="0"
                   step="0.01"
-                  className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                  className={`mt-1 ${adminFieldClass}`}
                   value={childPrice}
                   onChange={(e) => setChildPrice(e.target.value)}
                 />
@@ -123,22 +125,23 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
                   type="number"
                   min="0"
                   step="0.01"
-                  className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                  className={`mt-1 ${adminFieldClass}`}
                   value={infantPrice}
                   onChange={(e) => setInfantPrice(e.target.value)}
                 />
               </label>
               <label className="block text-xs font-medium text-brand-muted">
                 Infant pricing type
-                <select
-                  className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2 text-sm"
+                <AdminCombobox
+                  className={`mt-1 ${adminFieldClass}`}
                   value={infantType}
-                  onChange={(e) => setInfantType(e.target.value)}
-                >
-                  <option value="free">Free</option>
-                  <option value="fixed">Fixed amount</option>
-                  <option value="not_allowed">Not allowed</option>
-                </select>
+                  onValueChange={setInfantType}
+                  options={[
+                    { value: "free", label: "Free" },
+                    { value: "fixed", label: "Fixed amount" },
+                    { value: "not_allowed", label: "Not allowed" },
+                  ]}
+                />
               </label>
             </div>
 

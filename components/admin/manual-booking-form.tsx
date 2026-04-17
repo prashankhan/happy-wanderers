@@ -4,6 +4,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { AdminCombobox } from "@/components/admin/admin-combobox";
+import { adminFieldClass, adminTextareaClass } from "@/components/admin/form-field-styles";
 import { Button } from "@/components/ui/button";
 import { Toast, useToast } from "@/components/admin/toast";
 
@@ -158,20 +160,15 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
                 <label className="block text-xs font-medium text-brand-muted mb-1">
                   Tour <span className="text-red-500">*</span>
                 </label>
-                <select
-                  className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                <AdminCombobox
+                  className={adminFieldClass}
                   value={tourId}
-                  onChange={(e) => {
-                    setTourId(e.target.value);
+                  onValueChange={(nextTourId) => {
+                    setTourId(nextTourId);
                     setDepartureId("");
                   }}
-                >
-                  {tours.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.title}
-                    </option>
-                  ))}
-                </select>
+                  options={tours.map((tour) => ({ value: tour.id, label: tour.title }))}
+                />
               </div>
               <div>
                 <label className="block text-xs font-medium text-brand-muted mb-1">
@@ -180,7 +177,7 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
                 <input
                   type="date"
                   min={today}
-                  className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  className={adminFieldClass}
                   value={bookingDate}
                   onChange={(e) => {
                     const newDate = e.target.value;
@@ -196,18 +193,15 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
               <label className="block text-xs font-medium text-brand-muted mb-1">
                 Departure <span className="text-red-500">*</span>
               </label>
-              <select
-                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+              <AdminCombobox
+                className={adminFieldClass}
                 value={departureId}
-                onChange={(e) => setDepartureId(e.target.value)}
-              >
-                <option value="">Select…</option>
-                {depsForTour.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
+                onValueChange={setDepartureId}
+                options={[
+                  { value: "", label: "Select..." },
+                  ...depsForTour.map((departure) => ({ value: departure.id, label: departure.name })),
+                ]}
+              />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
@@ -216,7 +210,7 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
                 <input
                   type="number"
                   min={1}
-                  className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  className={adminFieldClass}
                   value={adults}
                   onChange={(e) => setAdults(Math.max(1, Number(e.target.value)))}
                 />
@@ -226,7 +220,7 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
                 <input
                   type="number"
                   min={0}
-                  className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  className={adminFieldClass}
                   value={children}
                   onChange={(e) => setChildren(Number(e.target.value))}
                 />
@@ -236,7 +230,7 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
                 <input
                   type="number"
                   min={0}
-                  className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  className={adminFieldClass}
                   value={infants}
                   onChange={(e) => setInfants(Number(e.target.value))}
                 />
@@ -245,14 +239,15 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
 
             <div>
               <label className="block text-xs font-medium text-brand-muted mb-1">Payment</label>
-              <select
-                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+              <AdminCombobox
+                className={adminFieldClass}
                 value={paymentStatus}
-                onChange={(e) => setPaymentStatus(e.target.value as "unpaid" | "paid")}
-              >
-                <option value="paid">Paid (offline)</option>
-                <option value="unpaid">Unpaid</option>
-              </select>
+                onValueChange={(nextStatus) => setPaymentStatus(nextStatus as "unpaid" | "paid")}
+                options={[
+                  { value: "paid", label: "Paid (offline)" },
+                  { value: "unpaid", label: "Unpaid" },
+                ]}
+              />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -261,7 +256,7 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
                   First name <span className="text-red-500">*</span>
                 </label>
                 <input
-                  className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  className={adminFieldClass}
                   value={customerFirstName}
                   onChange={(e) => setCustomerFirstName(e.target.value)}
                 />
@@ -271,7 +266,7 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
                   Last name <span className="text-red-500">*</span>
                 </label>
                 <input
-                  className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  className={adminFieldClass}
                   value={customerLastName}
                   onChange={(e) => setCustomerLastName(e.target.value)}
                 />
@@ -284,7 +279,7 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
               </label>
               <input
                 type="email"
-                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                className={adminFieldClass}
                 value={customerEmail}
                 onChange={(e) => setCustomerEmail(e.target.value)}
               />
@@ -293,7 +288,7 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
             <div>
               <label className="block text-xs font-medium text-brand-muted mb-1">Phone</label>
               <input
-                className="w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                className={adminFieldClass}
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
               />
@@ -302,7 +297,7 @@ export function ManualBookingForm({ tours, departures }: ManualBookingFormProps)
             <div>
               <label className="block text-xs font-medium text-brand-muted mb-1">Notes</label>
               <textarea
-                className="min-h-[64px] w-full rounded-sm border border-brand-border bg-white px-3 py-2 text-sm text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                className={`${adminTextareaClass} min-h-[64px]`}
                 value={customerNotes}
                 onChange={(e) => setCustomerNotes(e.target.value)}
               />

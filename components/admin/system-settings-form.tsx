@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -26,13 +26,78 @@ const inputClass =
 
 export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
   const [values, setValues] = useState<SystemSettingsFormValues>(initial);
+  const [savedValues, setSavedValues] = useState<SystemSettingsFormValues>(initial);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof SystemSettingsFormValues, string>>>({});
+  const timezoneOptions = getTimezoneOptions(values.timezone);
+  const currencyOptions = getCurrencyOptions(values.currency_code);
+  const [timezoneQuery, setTimezoneQuery] = useState(initial.timezone);
+  const [timezoneOpen, setTimezoneOpen] = useState(false);
+  const [timezoneActiveIndex, setTimezoneActiveIndex] = useState(0);
+  const [currencyQuery, setCurrencyQuery] = useState(initial.currency_code);
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+  const [currencyActiveIndex, setCurrencyActiveIndex] = useState(0);
+  const filteredTimezones = useMemo(() => {
+    const q = timezoneQuery.trim().toLowerCase();
+    if (!q) return timezoneOptions.slice(0, 200);
+    return timezoneOptions.filter((tz) => tz.toLowerCase().includes(q)).slice(0, 200);
+  }, [timezoneOptions, timezoneQuery]);
+  const filteredCurrencies = useMemo(() => {
+    const q = currencyQuery.trim().toLowerCase();
+    if (!q) return currencyOptions.slice(0, 120);
+    return currencyOptions.filter((code) => code.toLowerCase().includes(q)).slice(0, 120);
+  }, [currencyOptions, currencyQuery]);
+
+  useEffect(() => {
+    setTimezoneQuery(values.timezone);
+  }, [values.timezone]);
+  useEffect(() => {
+    setCurrencyQuery(values.currency_code);
+  }, [values.currency_code]);
+  useEffect(() => {
+    if (!timezoneOpen) return;
+    const selectedIndex = filteredTimezones.findIndex((tz) => tz === values.timezone);
+    setTimezoneActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
+  }, [timezoneOpen, filteredTimezones, values.timezone]);
+  useEffect(() => {
+    if (!currencyOpen) return;
+    const selectedIndex = filteredCurrencies.findIndex((code) => code === values.currency_code);
+    setCurrencyActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
+  }, [currencyOpen, filteredCurrencies, values.currency_code]);
+
+  function selectCurrency(code: string) {
+    setValues((v) => ({ ...v, currency_code: code }));
+    setCurrencyQuery(code);
+    setCurrencyOpen(false);
+  }
+
+  function selectTimezone(tz: string) {
+    setValues((v) => ({ ...v, timezone: tz }));
+    setTimezoneQuery(tz);
+    setTimezoneOpen(false);
+  }
+
+  const isDirty = useMemo(
+    () => JSON.stringify(normalizeSettings(values)) !== JSON.stringify(normalizeSettings(savedValues)),
+    [values, savedValues]
+  );
+
+  useEffect(() => {
+    if (!isDirty || pending) return;
+    function onBeforeUnload(event: BeforeUnloadEvent) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [isDirty, pending]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPending(true);
     setMessage(null);
+    setFieldErrors({});
     try {
       const res = await fetch("/api/admin/settings", {
         method: "PATCH",
@@ -56,18 +121,25 @@ export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
         settings?: SystemSettingsFormValues;
       };
       if (!res.ok || !data.success) {
-        setMessage(data.message ?? "Save failed");
+        const errorMessage = data.message ?? "Save failed";
+        setMessage(errorMessage);
+        const field = getFieldFromApiMessage(errorMessage);
+        if (field) {
+          setFieldErrors((prev) => ({ ...prev, [field]: errorMessage }));
+        }
         return;
       }
       if (data.settings) {
-        setValues({
+        const nextValues = {
           ...data.settings,
           business_name: data.settings.business_name ?? null,
           support_email: data.settings.support_email ?? null,
           support_phone: data.settings.support_phone ?? null,
           resend_from_email: data.settings.resend_from_email ?? null,
           admin_alert_email: data.settings.admin_alert_email ?? null,
-        });
+        };
+        setValues(nextValues);
+        setSavedValues(nextValues);
       }
       setMessage("Saved.");
     } finally {
@@ -125,25 +197,192 @@ export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
           </div>
           <div>
             <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Default currency (ISO)</label>
-            <input
-              className={inputClass}
-              value={values.currency_code}
-              onChange={(e) =>
-                setValues((v) => ({ ...v, currency_code: e.target.value.toUpperCase().slice(0, 3) }))
-              }
-              maxLength={3}
-              required
-            />
+            <div className="relative">
+              <input
+                className={inputClass}
+                value={currencyQuery}
+                onChange={(e) => {
+                  const next = e.target.value.toUpperCase().slice(0, 3);
+                  setCurrencyQuery(next);
+                  setValues((v) => ({ ...v, currency_code: next }));
+                  setCurrencyOpen(true);
+                }}
+                onFocus={() => setCurrencyOpen(true)}
+                onBlur={() => {
+                  setTimeout(() => setCurrencyOpen(false), 120);
+                }}
+                onKeyDown={(e) => {
+                  if (!currencyOpen && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+                    e.preventDefault();
+                    setCurrencyOpen(true);
+                    return;
+                  }
+                  if (!currencyOpen) return;
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setCurrencyActiveIndex((i) => Math.min(i + 1, filteredCurrencies.length - 1));
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setCurrencyActiveIndex((i) => Math.max(i - 1, 0));
+                  } else if (e.key === "Enter") {
+                    e.preventDefault();
+                    const current = filteredCurrencies[currencyActiveIndex];
+                    if (current) selectCurrency(current);
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    setCurrencyOpen(false);
+                  }
+                }}
+                placeholder="Search currency code (e.g. AUD)"
+                maxLength={3}
+                required
+                role="combobox"
+                aria-expanded={currencyOpen}
+                aria-controls="currency-listbox"
+                aria-autocomplete="list"
+                aria-haspopup="listbox"
+                aria-activedescendant={
+                  currencyOpen && filteredCurrencies[currencyActiveIndex]
+                    ? getOptionId("currency", filteredCurrencies[currencyActiveIndex])
+                    : undefined
+                }
+                aria-invalid={Boolean(fieldErrors.currency_code)}
+                aria-describedby={fieldErrors.currency_code ? "settings-currency-error" : undefined}
+              />
+              {currencyOpen ? (
+                <div
+                  id="currency-listbox"
+                  role="listbox"
+                  className="absolute z-20 mt-2 max-h-56 w-full overflow-y-auto rounded-sm border border-brand-border bg-white shadow-lg"
+                >
+                  {filteredCurrencies.length > 0 ? (
+                    filteredCurrencies.map((code, idx) => (
+                      <button
+                        key={code}
+                        id={getOptionId("currency", code)}
+                        type="button"
+                        className={`block w-full px-3 py-2 text-left text-sm hover:bg-brand-surface ${
+                          code === values.currency_code || idx === currencyActiveIndex
+                            ? "bg-brand-surface-soft font-semibold text-brand-heading"
+                            : "text-brand-body"
+                        }`}
+                        role="option"
+                        aria-selected={code === values.currency_code}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          selectCurrency(code);
+                        }}
+                      >
+                        {code}
+                      </button>
+                    ))
+                  ) : (
+                    <p className="px-3 py-2 text-sm text-brand-muted">No currency matches your search.</p>
+                  )}
+                </div>
+              ) : null}
+            </div>
+            <span className="mt-1 block text-xs text-brand-muted">Search and select a 3-letter ISO currency code.</span>
+            {fieldErrors.currency_code ? (
+              <p id="settings-currency-error" className="mt-1 text-xs text-red-600">
+                {fieldErrors.currency_code}
+              </p>
+            ) : null}
           </div>
           <div className="md:col-span-2">
             <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Timezone (IANA)</label>
-            <input
-              className={inputClass}
-              value={values.timezone}
-              onChange={(e) => setValues((v) => ({ ...v, timezone: e.target.value }))}
-              placeholder="Australia/Brisbane"
-              required
-            />
+            <div className="relative">
+              <input
+                className={inputClass}
+                value={timezoneQuery}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setTimezoneQuery(next);
+                  setValues((v) => ({ ...v, timezone: next }));
+                  setTimezoneOpen(true);
+                }}
+                onFocus={() => setTimezoneOpen(true)}
+                onBlur={() => {
+                  setTimeout(() => setTimezoneOpen(false), 120);
+                }}
+                onKeyDown={(e) => {
+                  if (!timezoneOpen && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+                    e.preventDefault();
+                    setTimezoneOpen(true);
+                    return;
+                  }
+                  if (!timezoneOpen) return;
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setTimezoneActiveIndex((i) => Math.min(i + 1, filteredTimezones.length - 1));
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setTimezoneActiveIndex((i) => Math.max(i - 1, 0));
+                  } else if (e.key === "Enter") {
+                    e.preventDefault();
+                    const current = filteredTimezones[timezoneActiveIndex];
+                    if (current) selectTimezone(current);
+                  } else if (e.key === "Escape") {
+                    e.preventDefault();
+                    setTimezoneOpen(false);
+                  }
+                }}
+                placeholder="Search timezone (e.g. Australia/Brisbane)"
+                required
+                role="combobox"
+                aria-expanded={timezoneOpen}
+                aria-controls="timezone-listbox"
+                aria-autocomplete="list"
+                aria-haspopup="listbox"
+                aria-activedescendant={
+                  timezoneOpen && filteredTimezones[timezoneActiveIndex]
+                    ? getOptionId("timezone", filteredTimezones[timezoneActiveIndex])
+                    : undefined
+                }
+                aria-invalid={Boolean(fieldErrors.timezone)}
+                aria-describedby={fieldErrors.timezone ? "settings-timezone-error" : undefined}
+              />
+              {timezoneOpen ? (
+                <div
+                  id="timezone-listbox"
+                  role="listbox"
+                  className="absolute z-20 mt-2 max-h-64 w-full overflow-y-auto rounded-sm border border-brand-border bg-white shadow-lg"
+                >
+                  {filteredTimezones.length > 0 ? (
+                    filteredTimezones.map((tz, idx) => (
+                      <button
+                        key={tz}
+                        id={getOptionId("timezone", tz)}
+                        type="button"
+                        className={`block w-full px-3 py-2 text-left text-sm hover:bg-brand-surface ${
+                          tz === values.timezone || idx === timezoneActiveIndex
+                            ? "bg-brand-surface-soft font-semibold text-brand-heading"
+                            : "text-brand-body"
+                        }`}
+                        role="option"
+                        aria-selected={tz === values.timezone}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          selectTimezone(tz);
+                        }}
+                      >
+                        {tz}
+                      </button>
+                    ))
+                  ) : (
+                    <p className="px-3 py-2 text-sm text-brand-muted">No timezone matches your search.</p>
+                  )}
+                </div>
+              ) : null}
+            </div>
+            <span className="mt-1 block text-xs text-brand-muted">
+              Search and select a standard IANA timezone used for booking dates and emails.
+            </span>
+            {fieldErrors.timezone ? (
+              <p id="settings-timezone-error" className="mt-1 text-xs text-red-600">
+                {fieldErrors.timezone}
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
@@ -203,7 +442,7 @@ export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
       </div>
 
       <div className="flex flex-wrap items-center gap-4">
-        <Button type="submit" variant="primary" disabled={pending}>
+        <Button type="submit" variant="primary" disabled={pending || !isDirty}>
           {pending ? "Saving…" : "Save settings"}
         </Button>
         {message ? (
@@ -212,4 +451,64 @@ export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
       </div>
     </form>
   );
+}
+
+const fallbackTimezones = [
+  "Australia/Brisbane",
+  "Australia/Sydney",
+  "Pacific/Auckland",
+  "Asia/Singapore",
+  "Europe/London",
+  "America/New_York",
+  "America/Los_Angeles",
+  "UTC",
+];
+
+function getTimezoneOptions(current: string): string[] {
+  const supported =
+    typeof Intl.supportedValuesOf === "function"
+      ? Intl.supportedValuesOf("timeZone")
+      : fallbackTimezones;
+  const merged = supported.includes(current) ? supported : [current, ...supported];
+  return Array.from(new Set(merged)).sort((a, b) => a.localeCompare(b));
+}
+
+const fallbackCurrencies = ["AUD", "USD", "EUR", "GBP", "NZD", "CAD", "SGD", "JPY"];
+
+function getCurrencyOptions(current: string): string[] {
+  const supported =
+    typeof Intl.supportedValuesOf === "function"
+      ? Intl.supportedValuesOf("currency").map((code) => code.toUpperCase())
+      : fallbackCurrencies;
+  const normalized = current.toUpperCase();
+  const merged = supported.includes(normalized) ? supported : [normalized, ...supported];
+  return Array.from(new Set(merged)).sort((a, b) => a.localeCompare(b));
+}
+
+function getFieldFromApiMessage(message: string): keyof SystemSettingsFormValues | null {
+  const m = message.toLowerCase();
+  if (m.includes("timezone")) return "timezone";
+  if (m.includes("currency")) return "currency_code";
+  if (m.includes("support email")) return "support_email";
+  if (m.includes("admin alert")) return "admin_alert_email";
+  if (m.includes("resend")) return "resend_from_email";
+  return null;
+}
+
+function normalizeSettings(values: SystemSettingsFormValues): SystemSettingsFormValues {
+  return {
+    ...values,
+    booking_reference_prefix: values.booking_reference_prefix.trim(),
+    currency_code: values.currency_code.trim().toUpperCase(),
+    timezone: values.timezone.trim(),
+    business_name: values.business_name?.trim() || null,
+    support_email: values.support_email?.trim() || null,
+    support_phone: values.support_phone?.trim() || null,
+    resend_from_email: values.resend_from_email?.trim() || null,
+    admin_alert_email: values.admin_alert_email?.trim() || null,
+  };
+}
+
+function getOptionId(prefix: "currency" | "timezone", value: string): string {
+  return `${prefix}-option-${value.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 }

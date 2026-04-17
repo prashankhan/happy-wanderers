@@ -13,7 +13,7 @@ const bodySchema = z.object({
   customer_first_name: z.string().min(1).optional(),
   customer_last_name: z.string().min(1).optional(),
   customer_email: z.string().email().optional(),
-  customer_phone: z.string().min(1).optional(),
+  customer_phone: z.union([z.string(), z.null()]).optional(),
   customer_notes: z.string().nullable().optional(),
   internal_notes: z.string().nullable().optional(),
   departure_location_id: z.string().uuid().optional(),
@@ -48,6 +48,11 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: false, message: "Forbidden" }, { status: 403 });
   }
 
+  const customerPhone =
+    parsed.data.customer_phone === undefined || parsed.data.customer_phone === null
+      ? undefined
+      : parsed.data.customer_phone.trim();
+
   const result = await updateBookingRecord({
     bookingId: parsed.data.booking_id,
     performedBy: session.user.email,
@@ -59,7 +64,7 @@ export async function PATCH(request: Request) {
       customerFirstName: parsed.data.customer_first_name,
       customerLastName: parsed.data.customer_last_name,
       customerEmail: parsed.data.customer_email,
-      customerPhone: parsed.data.customer_phone,
+      customerPhone,
       customerNotes: parsed.data.customer_notes,
       internalNotes: parsed.data.internal_notes,
       departureLocationId: parsed.data.departure_location_id,

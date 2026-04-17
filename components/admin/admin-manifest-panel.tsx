@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 
+import { AdminCombobox } from "@/components/admin/admin-combobox";
+import { adminFieldClass } from "@/components/admin/form-field-styles";
 import { Button } from "@/components/ui/button";
+import { calendarDateTodayInTimeZone } from "@/lib/utils/dates";
 
 export interface ManifestTourOption {
   id: string;
@@ -26,10 +29,12 @@ interface ManifestRow {
 
 export interface AdminManifestPanelProps {
   tours: ManifestTourOption[];
+  /** IANA zone from Admin → Settings (`system_settings.timezone`). */
+  businessTimezone: string;
 }
 
-export function AdminManifestPanel({ tours }: AdminManifestPanelProps) {
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+export function AdminManifestPanel({ tours, businessTimezone }: AdminManifestPanelProps) {
+  const [date, setDate] = useState(() => calendarDateTodayInTimeZone(businessTimezone));
   const [tourId, setTourId] = useState<string>("");
   const [rows, setRows] = useState<ManifestRow[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
@@ -63,25 +68,22 @@ export function AdminManifestPanel({ tours }: AdminManifestPanelProps) {
           Date
           <input
             type="date"
-            className="mt-1 block w-full rounded-sm border border-brand-border px-3 py-2 text-sm sm:w-auto"
+            className={`mt-1 block sm:w-auto ${adminFieldClass}`}
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
         </label>
         <label className="text-xs font-medium text-brand-muted">
           Tour (optional)
-          <select
-            className="mt-1 block w-full rounded-sm border border-brand-border px-3 py-2 text-sm sm:min-w-[200px] sm:w-auto"
+          <AdminCombobox
+            className="mt-1 block sm:min-w-[200px] sm:w-auto"
             value={tourId}
-            onChange={(e) => setTourId(e.target.value)}
-          >
-            <option value="">All tours</option>
-            {tours.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.title}
-              </option>
-            ))}
-          </select>
+            onValueChange={setTourId}
+            options={[
+              { value: "", label: "All tours" },
+              ...tours.map((tour) => ({ value: tour.id, label: tour.title })),
+            ]}
+          />
         </label>
         <Button type="button" onClick={() => void load()} disabled={loading}>
           Load

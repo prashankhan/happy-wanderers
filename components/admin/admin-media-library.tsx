@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { AdminCombobox } from "@/components/admin/admin-combobox";
 import { TourMediaSection } from "@/components/admin/tour-media-section";
 
 export interface MediaLibraryTourOption {
@@ -25,17 +26,12 @@ export function AdminMediaLibrary({ tours, isAdmin }: AdminMediaLibraryProps) {
     <div className="space-y-4">
       <label className="text-xs font-medium text-brand-muted">
         Tour
-        <select
-          className="mt-1 block max-w-md rounded-sm border border-brand-border px-3 py-2 text-sm"
+        <AdminCombobox
+          className="mt-1 block max-w-md"
           value={tourId}
-          onChange={(e) => setTourId(e.target.value)}
-        >
-          {tours.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.title}
-            </option>
-          ))}
-        </select>
+          onValueChange={setTourId}
+          options={tours.map((tour) => ({ value: tour.id, label: tour.title }))}
+        />
       </label>
       <TourMediaSection key={tourId} tourId={tourId} isAdmin={isAdmin} />
     </div>
