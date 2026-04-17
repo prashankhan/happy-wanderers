@@ -24,16 +24,19 @@ const pillars = [
     icon: Shield,
     title: "Operator discipline",
     body: "Capacity, cutoffs, and confirmations are handled with the same rigour we expect when booking our own travel — no surprises at the pickup.",
+    image: "https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=600&h=400&fit=crop&q=80",
   },
   {
     icon: Globe2,
     title: "Destination authority",
     body: "We speak in specifics — which creek is running clear, which canopy loop is quieter in wet season, where cassowary crossings need extra care.",
+    image: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=600&h=400&fit=crop&q=80",
   },
   {
     icon: HeartHandshake,
     title: "Guest dignity",
     body: "Small groups, honest infant capacity, and guides who know when to narrate and when to let the forest speak.",
+    image: "https://images.unsplash.com/photo-1544985361-b420d7a77043?w=600&h=400&fit=crop&q=80",
   },
 ];
 
@@ -82,16 +85,25 @@ export default function AboutPage() {
           </div>
 
           <div className="mx-auto mt-16 grid max-w-6xl gap-8 md:mt-20 md:grid-cols-3">
-            {pillars.map(({ icon: Icon, title, body }) => (
+            {pillars.map(({ icon: Icon, title, body, image }) => (
               <div
                 key={title}
-                className="group rounded-sm border border-brand-border bg-white p-8 text-left shadow-sm transition-shadow hover:shadow-md md:p-10"
+                className="group overflow-hidden rounded-sm border border-brand-border bg-white text-left shadow-sm transition-shadow hover:shadow-md"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-brand-primary/10 text-brand-primary">
-                  <Icon className="size-6" aria-hidden />
+                <div className="relative h-48 w-full overflow-hidden">
+                  <img
+                    src={image}
+                    alt={title}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
                 </div>
-                <h3 className="mt-7 text-lg font-bold tracking-tight text-brand-heading md:mt-8 md:text-xl">{title}</h3>
-                <p className="mt-4 text-sm leading-relaxed text-brand-body/70 md:text-base">{body}</p>
+                <div className="p-8 md:p-10">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-sm bg-brand-primary/10 text-brand-primary">
+                    <Icon className="size-5" aria-hidden />
+                  </div>
+                  <h3 className="mt-5 text-lg font-bold tracking-tight text-brand-heading md:text-xl">{title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-brand-body/70 md:text-base">{body}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -120,6 +132,16 @@ export default function AboutPage() {
           </div>
           
           <div className="relative overflow-hidden rounded-sm border border-brand-border bg-brand-heading p-10 text-white shadow-lg md:p-14 lg:p-16">
+            {/* Background image */}
+            <div className="absolute inset-0 z-0">
+              <img
+                src="https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1200&h=800&fit=crop&q=80"
+                alt="Daintree Rainforest"
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40" />
+            </div>
+            
             <div className="relative z-10">
               <div className="flex items-center gap-3 text-brand-primary">
                 <MapPin className="size-6" aria-hidden />
@@ -138,8 +160,8 @@ export default function AboutPage() {
                 </Button>
               </div>
             </div>
-            {/* Subtle background accent */}
-            <div className="absolute -right-20 -bottom-20 size-96 bg-brand-primary/10 rounded-full blur-[100px] pointer-events-none" />
+            {/* Subtle overlay accent */}
+            <div className="absolute -right-20 -bottom-20 size-96 bg-brand-primary/20 rounded-full blur-[100px] pointer-events-none" />
           </div>
         </Container>
       </section>
