@@ -3,6 +3,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { Container } from "@/components/layout/container";
+import { Button } from "@/components/ui/button";
+import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
 import { getPublishedTourById, listPublishedTours } from "@/lib/services/tours-public";
 
 import { BookingFormClient } from "./booking-form-client";
@@ -33,12 +35,9 @@ export default async function BookingPage({
               We are currently finalizing our seasonal field schedules. Please check back shortly or connect with our team for private arrangements.
             </p>
             <div className="mt-10">
-              <Link 
-                href="/contact" 
-                className="inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover active:scale-[0.98]"
-              >
-                Connect with our team
-              </Link>
+              <Button asChild variant="primary" className={primaryTourCtaClassName}>
+                <Link href="/contact">Connect with our team</Link>
+              </Button>
             </div>
           </div>
         </Container>
@@ -49,6 +48,13 @@ export default async function BookingPage({
   const tourId = tourIdParam ?? published[0]!.id;
   const resolved = await getPublishedTourById(tourId);
   if (!resolved) redirect("/tours");
+  if (!date || !dep) {
+    const params = new URLSearchParams({ tour_id: resolved.tour.id });
+    if (dep) {
+      params.set("departure_location_id", dep);
+    }
+    redirect(`/availability?${params.toString()}`);
+  }
 
   const pickups = resolved.pickups.map((p) => ({
     id: p.id,

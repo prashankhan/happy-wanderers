@@ -3,7 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, Variants } from "framer-motion";
+
+import { Button } from "@/components/ui/button";
 import { Container } from "@/components/layout/container";
+import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
 
 interface DestinationShowcaseProps {
   imageSrc: string;
@@ -93,12 +96,9 @@ export function DestinationShowcase({ imageSrc }: DestinationShowcaseProps) {
           </motion.div>
 
           <motion.div variants={itemVariants} className="pt-4">
-            <Link 
-              href="/tours" 
-              className="inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-md active:scale-[0.98]"
-            >
-              Explore our journeys
-            </Link>
+            <Button asChild variant="primary" className={primaryTourCtaClassName}>
+              <Link href="/tours">Explore our journeys</Link>
+            </Button>
           </motion.div>
         </motion.div>
       </Container>

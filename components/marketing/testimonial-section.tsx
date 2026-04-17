@@ -16,7 +16,7 @@ const TESTIMONIALS: TestimonialItem[] = [
     id: "1",
     quote: "The pacing was perfect. We never felt rushed, and our guide's knowledge of the hidden Daintree tracks made the day truly exceptional.",
     attribution: "Sarah & David",
-    context: "Private Daintree Departure",
+    context: "Daintree departure",
   },
   {
     id: "2",
@@ -57,7 +57,7 @@ export function TestimonialSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6 }}
-          className="mx-auto mb-16 max-w-3xl text-center"
+          className="mx-auto mb-12 max-w-3xl text-center md:mb-16"
         >
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary">Voices</p>
           <h2 className="mt-4 font-serif text-3xl font-bold tracking-tight text-brand-heading md:text-4xl lg:text-5xl">
@@ -73,13 +73,13 @@ export function TestimonialSection() {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, amount: 0.1 }}
-          className="grid gap-8 md:grid-cols-2 lg:grid-cols-3"
+          className="mx-auto grid max-w-6xl gap-8 md:grid-cols-2 lg:grid-cols-3"
         >
           {TESTIMONIALS.map((t) => (
             <motion.figure
               key={t.id}
               variants={itemVariants}
-              className="group flex flex-col rounded-md border border-brand-border/60 bg-white p-8 shadow-sm transition-all duration-500 hover:shadow-xl hover:ring-1 hover:ring-brand-border/80"
+              className="group flex flex-col rounded-sm border border-brand-border bg-white p-8 shadow-sm transition-[box-shadow,transform] duration-300 hover:shadow-md motion-safe:hover:-translate-y-px"
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary/5 text-brand-primary transition-transform duration-500 group-hover:scale-110">
                 <Quote className="h-5 w-5 fill-current" />

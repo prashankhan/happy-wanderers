@@ -6,6 +6,8 @@ import { useState } from "react";
 import { TourNextOpenChip } from "@/components/tours/tour-next-open-chip";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
+import { cn } from "@/lib/utils/cn";
 
 interface PickupData {
   id: string;
@@ -29,6 +31,9 @@ export function TourBookingSidebar({
   cancellationPolicy,
 }: TourBookingSidebarProps) {
   const [pickupId, setPickupId] = useState<string | undefined>(defaultPickupId);
+  const availabilityHref = pickupId
+    ? `/availability?tour_id=${tourId}&departure_location_id=${pickupId}`
+    : `/availability?tour_id=${tourId}`;
 
   return (
     <aside className="lg:sticky lg:top-24">
@@ -59,8 +64,8 @@ export function TourBookingSidebar({
             </select>
           </div>
 
-          <Button asChild variant="primary" className="w-full rounded-sm h-auto py-4 md:py-5 text-lg md:text-xl font-bold tracking-tighter">
-            <Link href={`/availability?tour_id=${tourId}`}>
+          <Button asChild variant="primary" className={cn("w-full", primaryTourCtaClassName)}>
+            <Link href={availabilityHref}>
               Check dates & book
             </Link>
           </Button>

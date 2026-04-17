@@ -3,7 +3,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
+
+import { Button } from "@/components/ui/button";
 import { Container } from "@/components/layout/container";
+import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
 
 interface CtaSectionProps {
   imageSrc: string;
@@ -60,7 +63,8 @@ export function CtaSection({ imageSrc }: CtaSectionProps) {
               variants={itemVariants}
               className="text-lg leading-relaxed text-white/80 md:text-xl"
             >
-              Choose a scheduled departure or speak with us about a private charter — then checkout securely with Stripe.
+              Pick a departure that suits you, then checkout securely with Stripe. Prefer to chat first? We reply
+              personally — no automated scripts.
             </motion.p>
           </div>
 
@@ -68,17 +72,14 @@ export function CtaSection({ imageSrc }: CtaSectionProps) {
             variants={itemVariants}
             className="relative z-10 flex w-full shrink-0 flex-col gap-4 sm:flex-row sm:w-auto"
           >
-            <Link 
-              href="/booking" 
-              className="group inline-flex items-center justify-center rounded-sm bg-brand-primary px-10 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-md active:scale-[0.98]"
+            <Button asChild variant="primary" className={primaryTourCtaClassName}>
+              <Link href="/booking">Book a tour</Link>
+            </Button>
+            <Link
+              href="/contact"
+              className="group inline-flex items-center justify-center rounded-sm border border-white/30 bg-white/5 px-8 py-4 text-lg font-bold tracking-tighter text-white backdrop-blur-sm transition-all hover:bg-white/15 hover:border-white/50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-heading md:py-5 md:text-xl"
             >
-              Book a tour
-            </Link>
-            <Link 
-              href="/private-tours" 
-              className="group inline-flex items-center justify-center rounded-sm border border-white/30 bg-white/5 px-10 py-5 text-2xl font-bold tracking-tight text-white backdrop-blur-sm transition-all hover:bg-white/15 hover:border-white/50 active:scale-[0.98]"
-            >
-              Private tours
+              Contact us
             </Link>
           </motion.div>
         </motion.div>

@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Container } from "@/components/layout/container";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils/cn";
+import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
 
 import { AvailabilityExplorer } from "./availability-explorer";
 import { listPublishedTours, getPublishedTourById } from "@/lib/services/tours-public";
@@ -18,6 +21,8 @@ export default async function AvailabilityPage({
 }) {
   const sp = await searchParams;
   const tourId = typeof sp.tour_id === "string" ? sp.tour_id : undefined;
+  const departureLocationId =
+    typeof sp.departure_location_id === "string" ? sp.departure_location_id : undefined;
   const tours = await listPublishedTours({});
   const initialTourId = tourId ?? tours[0]?.id;
 
@@ -36,6 +41,7 @@ export default async function AvailabilityPage({
             tours={tours as any} 
             initialTourId={initialTourId}
             initialPickups={tourPickups}
+            initialDepartureId={departureLocationId}
           />
         ) : (
           <div className="mx-auto max-w-2xl rounded-sm border border-brand-border bg-white px-10 py-20 text-center shadow-sm">
@@ -43,12 +49,9 @@ export default async function AvailabilityPage({
             <p className="mt-6 text-xl leading-relaxed text-brand-body/70 font-medium">
               Live seats and field cutoffs will appear here shortly. For urgent inquiries or private bookings, please connect with our team.
             </p>
-            <Link 
-              href="/contact"
-              className="mt-12 inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover active:scale-[0.98]"
-            >
-              Contact our team
-            </Link>
+            <Button asChild variant="primary" className={cn("mt-12", primaryTourCtaClassName)}>
+              <Link href="/contact">Contact our team</Link>
+            </Button>
           </div>
         )}
       </Container>

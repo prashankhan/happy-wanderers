@@ -10,21 +10,20 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Container } from "@/components/layout/container";
 import { brandLogoPath } from "@/lib/branding";
+import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
 import { cn } from "@/lib/utils/cn";
 
 const SCROLL_THRESHOLD_PX = 12;
 
 /**
- * Logo fits inside the bar: never exceed row height (`max-h-24` / `lg:max-h-28`).
+ * Logo fits inside the bar: cap height on small screens (`max-h-24`), then scale up on desktop within the nav row (`h-24` / 96px).
  * Use `h-auto` + `max-h-*` + `max-w-*` so `next/image` cannot expand like a square poster.
  */
 const LOGO_FULL_CLASS =
-  "h-auto max-h-24 w-auto max-w-[min(240px,calc(100vw-6.5rem))] object-contain object-left sm:max-w-[min(300px,calc(100vw-7rem))] lg:max-h-28 lg:max-w-[min(480px,42vw)]";
+  "h-auto max-h-24 w-auto max-w-[min(240px,calc(100vw-6.5rem))] object-contain object-left sm:max-w-[min(300px,calc(100vw-7rem))] lg:max-h-[84px] lg:max-w-[min(520px,52vw)]";
 const links = [
   { href: "/", label: "Home" },
   { href: "/tours", label: "Tours" },
-  { href: "/availability", label: "Availability" },
-  { href: "/private-tours", label: "Private tours" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
@@ -34,6 +33,9 @@ const policyLinks = [
   { href: "/terms", label: "Terms" },
   { href: "/cancellation-policy", label: "Cancellation Policy" },
 ];
+
+/** Header primary CTA — desktop + mobile drawer (kept in sync). */
+const NAV_BOOK_CTA_LABEL = "Book an adventure";
 
 function isNavLinkActive(href: string, pathname: string) {
   if (href === "/") return pathname === "/";
@@ -59,9 +61,16 @@ const DRAWER_POLICY_STAGGER = [
   "motion-safe:delay-[300ms]",
 ] as const;
 
-/** Book CTA: primary brand orange, exact typography styling as the rest of the site but custom nav padding. */
-const navBookTourClassName =
-  "bg-brand-primary text-white hover:bg-brand-primary-hover focus-visible:ring-brand-primary";
+/** Mobile drawer: one shared row style for main + policy links (matches desktop nav type scale). */
+const MOBILE_DRAWER_LINK_ROW =
+  "rounded-sm px-3 py-3 font-sans text-lg font-bold tracking-tighter transition-[background-color,color,transform] duration-200 ease-out motion-safe:active:scale-[0.99] md:text-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent focus-visible:ring-offset-2 focus-visible:ring-offset-brand-surface";
+
+/** Matches desktop header nav: primary orange for current + hover emphasis, neutral row otherwise. */
+function mobileDrawerLinkTone(isActive: boolean) {
+  return isActive
+    ? "bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/15 hover:text-brand-primary-hover focus-visible:bg-brand-primary/10 focus-visible:text-brand-primary"
+    : "text-brand-heading hover:bg-brand-surface-soft hover:text-brand-primary active:bg-brand-surface-soft focus-visible:bg-brand-surface-soft focus-visible:text-brand-primary";
+}
 
 export function Navbar() {
   const pathname = usePathname();
@@ -88,17 +97,17 @@ export function Navbar() {
         isHome && isScrolled ? "border-brand-border bg-brand-surface shadow-sm" : isHome ? "border-transparent bg-transparent" : ""
       )}
     >
-      <Container className="flex h-24 items-center justify-between gap-4 transition-[height,gap] duration-300 ease-out lg:h-36">
+      <Container className="flex h-24 w-full items-center gap-4 transition-[height,gap] duration-300 ease-out">
         <Link
           href="/"
-          className="flex min-w-0 max-w-[min(100%,calc(100%-3.5rem))] shrink-0 items-center gap-2 rounded-md outline-none ring-brand-accent/20 transition-transform duration-300 ease-out focus-visible:ring-2 motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98] lg:max-w-[55%]"
+          className="flex min-w-0 flex-1 max-w-[min(100%,calc(100%-3.5rem))] items-center gap-2 rounded-md outline-none ring-brand-accent/20 transition-transform duration-300 ease-out focus-visible:ring-2 motion-safe:hover:scale-[1.02] motion-safe:active:scale-[0.98] lg:max-w-[65%]"
         >
           <Image
             src={brandLogoPath}
             alt="Happy Wanderers"
             width={768}
             height={216}
-            sizes="(max-width: 1023px) 240px, 480px"
+            sizes="(max-width: 1023px) 280px, 520px"
             className={cn(
               "w-auto object-contain object-left transition-[max-height,max-width] duration-300 ease-out",
               LOGO_FULL_CLASS,
@@ -107,44 +116,42 @@ export function Navbar() {
             priority
           />
         </Link>
-        <nav
-          className="hidden items-center gap-5 font-sans text-2xl font-bold tracking-tight lg:flex lg:gap-7"
-          aria-label="Main"
-        >
-          {links.map((l) => {
-            const isActive = isNavLinkActive(l.href, pathname);
-            return (
-              <Link
-                key={l.href}
-                href={l.href}
-                aria-current={isActive ? "page" : undefined}
-                className={cn(
-                  "whitespace-nowrap transition-[color,transform] duration-200 ease-out motion-safe:hover:-translate-y-px motion-safe:active:scale-[0.98] cursor-pointer",
-                  overHero
-                    ? isActive
-                      ? "text-brand-primary hover:text-brand-primary"
-                      : "text-white/80 hover:text-brand-primary"
-                    : isActive
-                      ? "text-brand-primary hover:text-brand-primary"
-                      : "text-brand-heading hover:text-brand-primary"
-                )}
-              >
-                {l.label}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-4 sm:gap-5 lg:gap-6">
+          <nav
+            className="hidden items-center gap-5 font-sans text-lg font-bold tracking-tighter md:text-xl lg:flex lg:gap-5"
+            aria-label="Main"
+          >
+            {links.map((l) => {
+              const isActive = isNavLinkActive(l.href, pathname);
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn(
+                    "whitespace-nowrap transition-[color,transform] duration-200 ease-out motion-safe:hover:-translate-y-px motion-safe:active:scale-[0.98] cursor-pointer",
+                    overHero
+                      ? isActive
+                        ? "text-brand-primary hover:text-brand-primary"
+                        : "text-white/80 hover:text-brand-primary"
+                      : isActive
+                        ? "text-brand-primary hover:text-brand-primary"
+                        : "text-brand-heading hover:text-brand-primary"
+                  )}
+                >
+                  {l.label}
+                </Link>
+              );
+            })}
+          </nav>
           <Button
             asChild
             variant="primary"
-            size="sm"
             className={cn(
-              "hidden h-auto min-h-0 rounded-sm border-0 px-10 py-3.5 font-sans text-2xl font-bold tracking-tight shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:shadow-md motion-safe:active:scale-[0.98] sm:inline-flex",
-              navBookTourClassName
+              "hidden h-auto min-h-0 rounded-sm border-0 px-8 py-2 font-sans text-lg font-bold tracking-tighter shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:shadow-md motion-safe:active:scale-[0.98] sm:inline-flex md:py-2.5 md:text-xl"
             )}
           >
-            <Link href="/booking">Book a tour</Link>
+            <Link href="/booking">{NAV_BOOK_CTA_LABEL}</Link>
           </Button>
           <Dialog open={open} onOpenChange={setOpen} modal>
             <DialogTrigger asChild>
@@ -185,10 +192,8 @@ export function Navbar() {
                       className={cn(
                         DRAWER_ENTER,
                         DRAWER_MAIN_LINK_STAGGER[index] ?? "motion-safe:delay-200",
-                        "rounded-xl px-3 py-3 font-sans text-xl font-bold tracking-tight transition-[background-color,color,transform] duration-200 ease-out motion-safe:active:scale-[0.99]",
-                        isActive
-                          ? "bg-brand-accent-soft text-brand-gold hover:bg-brand-accent-soft"
-                          : "text-brand-heading hover:bg-brand-accent-soft hover:text-brand-gold active:bg-brand-accent-soft"
+                        MOBILE_DRAWER_LINK_ROW,
+                        mobileDrawerLinkTone(isActive)
                       )}
                     >
                       {l.label}
@@ -222,10 +227,8 @@ export function Navbar() {
                       className={cn(
                         DRAWER_ENTER,
                         DRAWER_POLICY_STAGGER[index] ?? "motion-safe:delay-[300ms]",
-                        "rounded-xl px-3 py-3 font-sans text-xl font-bold tracking-tight transition-[background-color,color,transform] duration-200 ease-out motion-safe:active:scale-[0.99]",
-                        isActive
-                          ? "bg-brand-accent-soft text-brand-gold hover:bg-brand-accent-soft"
-                          : "text-brand-heading hover:bg-brand-accent-soft hover:text-brand-gold active:bg-brand-accent-soft"
+                        MOBILE_DRAWER_LINK_ROW,
+                        mobileDrawerLinkTone(isActive)
                       )}
                     >
                       {l.label}
@@ -237,14 +240,14 @@ export function Navbar() {
                 asChild
                 variant="primary"
                 className={cn(
-                  "mt-6 h-auto min-h-0 w-full shrink-0 rounded-md border-0 px-5 py-2 font-sans text-xl font-bold tracking-tight shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:shadow-md motion-safe:active:scale-[0.98]",
-                  navBookTourClassName,
+                  "mt-6 w-full shrink-0 transition-[background-color,transform] duration-200 ease-out motion-safe:active:scale-[0.98]",
+                  primaryTourCtaClassName,
                   DRAWER_ENTER,
                   "motion-safe:delay-[340ms]"
                 )}
                 onClick={() => setOpen(false)}
               >
-                <Link href="/booking">Book a tour</Link>
+                <Link href="/booking">{NAV_BOOK_CTA_LABEL}</Link>
               </Button>
             </DialogContent>
           </Dialog>

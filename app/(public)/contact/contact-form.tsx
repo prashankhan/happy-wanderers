@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
+
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
 
@@ -63,13 +66,9 @@ export function ContactForm() {
         {status === "error" ? <p className="mb-4 text-sm font-bold text-red-600">Could not send. Please check your data and try again.</p> : null}
         {status === "done" ? <p className="mb-4 text-sm font-bold text-availability-open">Message sent successfully. We will be in touch within one business day.</p> : null}
         
-        <button 
-          type="submit" 
-          disabled={status === "loading"}
-          className="inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-md disabled:opacity-50 active:scale-[0.98]"
-        >
+        <Button type="submit" variant="primary" disabled={status === "loading"} className={primaryTourCtaClassName}>
           {status === "loading" ? "Sending…" : "Send message"}
-        </button>
+        </Button>
       </div>
     </form>
   );

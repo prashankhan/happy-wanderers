@@ -13,7 +13,6 @@ export function Footer() {
 
   const explore = [
     { label: "Signature Departures", href: "/tours" },
-    { label: "Private Charters", href: "/private-tours" },
     { label: "Book a tour", href: "/booking", highlight: true },
     { label: "Our Philosophy", href: "/about" },
   ];

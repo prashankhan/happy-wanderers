@@ -4,7 +4,9 @@ import { motion, Variants } from "framer-motion";
 import { Container } from "@/components/layout/container";
 import { TourCard } from "@/components/tours/tour-card";
 import { PageHeader } from "@/components/layout/page-header";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
 
 interface ToursListViewProps {
   rows: any[];
@@ -35,12 +37,9 @@ export function ToursListView({ rows }: ToursListViewProps) {
           breadcrumb={[{ label: "Tours" }]}
         />
         <Container className="py-24 text-center">
-            <Link 
-              href="/contact"
-              className="inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-md active:scale-[0.98]"
-            >
-              Contact our team
-            </Link>
+            <Button asChild variant="primary" className={primaryTourCtaClassName}>
+              <Link href="/contact">Contact our team</Link>
+            </Button>
         </Container>
       </section>
     );

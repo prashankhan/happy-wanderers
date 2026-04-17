@@ -89,13 +89,6 @@ export default function ContactPage() {
                 </div>
               </div>
             </div>
-            
-            <Link 
-              href="/private-tours"
-              className="mt-10 inline-flex items-center justify-center rounded-md border border-brand-border bg-white px-10 py-3.5 text-xl font-bold tracking-tight text-brand-heading transition-all hover:bg-brand-surface-soft active:scale-[0.98]"
-            >
-              Private tour enquiries
-            </Link>
           </motion.div>
 
           <motion.div variants={itemVariants} className="rounded-md border border-brand-border bg-white p-8 shadow-xl lg:col-span-12 xl:col-span-7 xl:p-14">

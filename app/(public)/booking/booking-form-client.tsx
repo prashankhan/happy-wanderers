@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
+import { cn } from "@/lib/utils/cn";
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr + "T12:00:00");
@@ -339,7 +341,12 @@ export function BookingFormClient({
               </div>
             )}
 
-            <Button variant="primary" className="w-full h-auto py-4 text-lg font-bold tracking-tight rounded-sm" disabled={loading} onClick={onSubmit}>
+            <Button
+              variant="primary"
+              className={cn("w-full", primaryTourCtaClassName)}
+              disabled={loading}
+              onClick={onSubmit}
+            >
               {loading ? "Redirecting…" : "Continue to payment"}
             </Button>
 

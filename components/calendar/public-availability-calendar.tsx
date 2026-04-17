@@ -88,15 +88,28 @@ export function PublicAvailabilityCalendar({
 
   const [days, setDays] = useState<DayPayload[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const params = new URLSearchParams({ tour_id: tourId, month: effectiveMonth });
-    if (departureLocationId) params.set("departure_location_id", departureLocationId);
-    const res = await fetch(`/api/availability?${params.toString()}`);
-    const json = (await res.json()) as DayPayload[];
-    setDays(Array.isArray(json) ? json : []);
-    setLoading(false);
+    setError(null);
+    try {
+      const params = new URLSearchParams({ tour_id: tourId, month: effectiveMonth });
+      if (departureLocationId) params.set("departure_location_id", departureLocationId);
+      const res = await fetch(`/api/availability?${params.toString()}`);
+      if (!res.ok) {
+        setDays([]);
+        setError("Could not load availability for this month.");
+        return;
+      }
+      const json = (await res.json()) as DayPayload[];
+      setDays(Array.isArray(json) ? json : []);
+    } catch {
+      setDays([]);
+      setError("Could not load availability for this month.");
+    } finally {
+      setLoading(false);
+    }
   }, [tourId, effectiveMonth, departureLocationId]);
 
   useEffect(() => {
@@ -159,6 +172,7 @@ export function PublicAvailabilityCalendar({
           <span className="shrink-0">{days.filter((d) => d.available).length} open days</span>
         )}
       </div>
+      {error ? <p className="text-xs font-medium text-red-600">{error}</p> : null}
       {showLegend ? (
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 rounded-sm bg-brand-surface-soft/70 px-4 py-3">
           <div className="flex items-center gap-2">

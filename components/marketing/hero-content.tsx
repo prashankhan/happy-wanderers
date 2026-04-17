@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { BadgeCheck } from "lucide-react";
 import { motion, Variants } from "framer-motion";
-import { Button } from "@/components/ui/button";
 
 /** Hero: three inline trust signals beneath primary CTAs (brand positioning). */
 const heroTrustPointers = ["Designed around you", "Guided with care", "Beyond the expected"] as const;
@@ -69,15 +68,15 @@ export function HeroContent() {
         variants={itemVariants}
         className="mt-8 flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-4 md:mt-10"
       >
-        <Link 
-          href="/tours" 
-          className="group inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-md active:scale-[0.98]"
+        <Link
+          href="/tours"
+          className="group inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tighter text-white transition-all hover:bg-brand-primary-hover hover:shadow-md active:scale-[0.98]"
         >
           View all tours
         </Link>
-        <Link 
-          href="/availability" 
-          className="group inline-flex items-center justify-center rounded-sm border border-white/30 bg-white/5 px-14 py-5 text-2xl font-bold tracking-tight text-white backdrop-blur-sm transition-all hover:bg-white/15 hover:border-white/50 active:scale-[0.98]"
+        <Link
+          href="/availability"
+          className="group inline-flex items-center justify-center rounded-sm border border-white/30 bg-white/5 px-14 py-5 text-2xl font-bold tracking-tighter text-white backdrop-blur-sm transition-all hover:bg-white/15 hover:border-white/50 active:scale-[0.98]"
         >
           Check availability
         </Link>

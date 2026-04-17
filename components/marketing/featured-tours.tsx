@@ -2,7 +2,10 @@
 
 import { motion, Variants } from "framer-motion";
 import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
 import { Container } from "@/components/layout/container";
+import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
 import { TourCard, TourCardProps } from "@/components/tours/tour-card";
 
 interface FeaturedToursProps {
@@ -64,12 +67,9 @@ export function FeaturedTours({ tours }: FeaturedToursProps) {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-16 text-center"
         >
-          <Link
-            href="/tours"
-            className="inline-flex items-center justify-center rounded-sm bg-brand-primary px-14 py-5 text-2xl font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover hover:shadow-md active:scale-[0.98]"
-          >
-            Browse all scheduled tours
-          </Link>
+          <Button asChild variant="primary" className={primaryTourCtaClassName}>
+            <Link href="/tours">Browse all scheduled tours</Link>
+          </Button>
         </motion.div>
       </Container>
     </section>

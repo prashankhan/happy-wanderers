@@ -5,7 +5,10 @@ import { motion } from "framer-motion";
 import { Clock, MapPin, Users } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
+import { cn } from "@/lib/utils/cn";
 
 interface TourDetailViewProps {
   tour: any;
@@ -160,12 +163,9 @@ export function TourDetailView({ tour, heroGallery, bookingSidebar }: TourDetail
               </>
             )}
           </div>
-          <Link
-            href={`/availability?tour_id=${tour.id}`}
-            className="inline-flex shrink-0 items-center justify-center rounded-sm bg-brand-primary px-6 py-3 text-base font-bold tracking-tight text-white transition-all hover:bg-brand-primary-hover active:scale-[0.98]"
-          >
-            Check availability
-          </Link>
+          <Button asChild variant="primary" className={cn("shrink-0", primaryTourCtaClassName)}>
+            <Link href={`/availability?tour_id=${tour.id}`}>Check availability</Link>
+          </Button>
         </div>
       </div>
     </div>

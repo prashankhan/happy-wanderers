@@ -16,27 +16,45 @@ export default async function BookingSuccessPage({
 }) {
   const sp = await searchParams;
   const sessionId = typeof sp.session_id === "string" ? sp.session_id : undefined;
+  const hasSessionToken = Boolean(sessionId && sessionId.startsWith("cs_"));
 
   return (
     <section className="py-24">
       <Container className="max-w-xl">
         <Card>
           <CardHeader>
-            <CardTitle className="font-serif text-2xl text-green-700">Thank you</CardTitle>
+            <CardTitle className="font-serif text-2xl text-green-700">
+              {hasSessionToken ? "Thank you" : "Booking status pending"}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-gray-600">
-            <p>
-              Your payment is processing. <strong>Confirmation is sent after our payment provider confirms</strong>{" "}
-              — please check your inbox for your reference number and pickup details.
-            </p>
-            {sessionId ? (
+            {hasSessionToken ? (
+              <p>
+                Your payment is processing.{" "}
+                <strong>Confirmation is sent after our payment provider confirms</strong> — please
+                check your inbox for your reference number and pickup details.
+              </p>
+            ) : (
+              <p>
+                We could not verify your checkout session from this page load. If you just completed
+                payment, please wait a moment and check your inbox for confirmation.
+              </p>
+            )}
+            {hasSessionToken ? (
               <p className="text-xs text-gray-500">
                 Checkout session: <span className="font-mono">{sessionId}</span>
               </p>
-            ) : null}
+            ) : (
+              <p className="text-xs text-gray-500">
+                If you were not redirected from checkout, return to booking and try again.
+              </p>
+            )}
             <p className="text-xs text-gray-500">
               If you closed this window early, your booking may remain pending until the hold expires.
             </p>
+            <Link href="/booking" className="inline-block text-sm font-medium text-blue-900 hover:underline">
+              Back to booking
+            </Link>
             <Link href="/tours" className="inline-block text-sm font-medium text-blue-900 hover:underline">
               Back to tours
             </Link>

@@ -40,16 +40,22 @@ export function AvailabilityExplorer({
   tours,
   initialTourId,
   initialPickups,
+  initialDepartureId,
 }: {
   tours: TourOption[];
   initialTourId: string;
   initialPickups: PickupOption[];
+  initialDepartureId?: string;
 }) {
   const [tourId, setTourId] = useState(initialTourId);
   const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
   const [date, setDate] = useState<string | undefined>();
   const [pickups, setPickups] = useState<PickupOption[]>(initialPickups);
-  const [departureId, setDepartureId] = useState<string | undefined>(initialPickups[0]?.id);
+  const [departureId, setDepartureId] = useState<string | undefined>(
+    initialDepartureId && initialPickups.some((pickup) => pickup.id === initialDepartureId)
+      ? initialDepartureId
+      : initialPickups[0]?.id
+  );
 
   const activeTour = tours.find((t) => t.id === tourId);
 
@@ -61,10 +67,16 @@ export function AvailabilityExplorer({
     if (tour?.slug) {
       const res = await fetch(`/api/tours/${tour.slug}/pickups`);
       if (res.ok) {
-        const data = await res.json();
-        setPickups(data);
-        setDepartureId(data[0]?.id);
+        const data = (await res.json()) as PickupOption[];
+        setPickups(Array.isArray(data) ? data : []);
+        setDepartureId(Array.isArray(data) ? data[0]?.id : undefined);
+      } else {
+        setPickups([]);
+        setDepartureId(undefined);
       }
+    } else {
+      setPickups([]);
+      setDepartureId(undefined);
     }
   }
 
