@@ -1,39 +1,27 @@
 "use client";
 
-import { motion, Variants } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/layout/container";
-import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
 import { TourCard, TourCardProps } from "@/components/tours/tour-card";
+import { publicRevealItem, publicRevealParent, publicRevealViewport } from "@/lib/motion/public-reveal";
+import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
 
 interface FeaturedToursProps {
   tours: (TourCardProps & { id: string })[];
 }
 
 export function FeaturedTours({ tours }: FeaturedToursProps) {
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.15, delayChildren: 0.1 },
-    },
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 30 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 50, damping: 20 } },
-  };
-
   return (
     <section className="py-24 md:py-32">
       <Container>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.6 }}
+          variants={publicRevealItem}
+          initial="hidden"
+          whileInView="show"
+          viewport={publicRevealViewport}
           className="mx-auto mb-16 max-w-3xl text-center"
         >
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary/80">Featured</p>
@@ -47,24 +35,24 @@ export function FeaturedTours({ tours }: FeaturedToursProps) {
         </motion.div>
 
         <motion.div
-          variants={containerVariants}
+          variants={publicRevealParent}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, amount: 0.1 }}
+          viewport={publicRevealViewport}
           className="grid gap-10 md:grid-cols-2 lg:grid-cols-3"
         >
           {tours.map((t) => (
-            <motion.div key={t.id} variants={itemVariants} className="h-full">
+            <motion.div key={t.id} variants={publicRevealItem} className="h-full">
               <TourCard {...t} />
             </motion.div>
           ))}
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
+          variants={publicRevealItem}
+          initial="hidden"
+          whileInView="show"
+          viewport={publicRevealViewport}
           className="mt-16 text-center"
         >
           <Button asChild variant="primary" className={primaryTourCtaClassName}>

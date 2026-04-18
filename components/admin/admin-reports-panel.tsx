@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { AdminCombobox } from "@/components/admin/admin-combobox";
-import { adminFieldClass } from "@/components/admin/form-field-styles";
+import { adminFieldClass, adminToolbarButtonClass } from "@/components/admin/form-field-styles";
 import { Button } from "@/components/ui/button";
 import { calendarDateTodayInTimeZone } from "@/lib/utils/dates";
 
@@ -111,7 +111,14 @@ export function AdminReportsPanel({ tours, businessTimezone }: AdminReportsPanel
             ]}
           />
         </label>
-        <Button type="button" onClick={() => void load()} disabled={loading}>
+        <Button
+          type="button"
+          variant="primary"
+          size="md"
+          className={adminToolbarButtonClass}
+          onClick={() => void load()}
+          disabled={loading}
+        >
           Run report
         </Button>
       </div>

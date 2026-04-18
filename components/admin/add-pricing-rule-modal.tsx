@@ -6,6 +6,9 @@ import { useState } from "react";
 import { AdminCombobox } from "@/components/admin/admin-combobox";
 import { adminFieldClass } from "@/components/admin/form-field-styles";
 import { Button } from "@/components/ui/button";
+import type { MaxGuestsScope } from "@/lib/types/pricing-constraints";
+import { pricingGuestsOrderDetail } from "@/lib/ui/pricing-guest-limit-copy";
+import { cn } from "@/lib/utils/cn";
 
 interface AddPricingRuleModalProps {
   tourId: string;
@@ -28,8 +31,13 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
   const [infantType, setInfantType] = useState("free");
   const [minGuests, setMinGuests] = useState("1");
   const [maxGuests, setMaxGuests] = useState("12");
+  const [maxGuestsScope, setMaxGuestsScope] = useState<MaxGuestsScope>("entire_party");
   const [maxInfants, setMaxInfants] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const minGNum = Number(minGuests) || 1;
+  const maxGNum = Number(maxGuests) || 12;
+  const guestRangeInvalid = maxGNum < minGNum;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,6 +48,11 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
 
     onPendingChange(true);
     setError(null);
+
+    if (guestRangeInvalid) {
+      onPendingChange(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/admin/pricing/create", {
@@ -59,7 +72,8 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
           infant_pricing_type: infantType,
           min_guests: Number(minGuests),
           max_guests: Number(maxGuests),
-          max_infants: maxInfants ? Number(maxInfants) : null,
+          max_guests_scope: maxGuestsScope,
+          max_infants: infantType === "not_allowed" ? null : maxInfants ? Number(maxInfants) : null,
         }),
       });
       const data = (await res.json()) as { success?: boolean; message?: string };
@@ -82,6 +96,7 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
       setInfantType("free");
       setMinGuests("1");
       setMaxGuests("12");
+      setMaxGuestsScope("entire_party");
       setMaxInfants("");
       onCreated();
     } finally {
@@ -136,7 +151,12 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
                 <input
                   type="number"
                   min="1"
-                  className={`mt-1 ${adminFieldClass}`}
+                  aria-invalid={guestRangeInvalid}
+                  className={cn(
+                    `mt-1 ${adminFieldClass}`,
+                    guestRangeInvalid &&
+                      "border-red-500 ring-2 ring-red-500/25 focus:border-red-500 focus:ring-red-500/30"
+                  )}
                   value={minGuests}
                   onChange={(e) => setMinGuests(e.target.value)}
                 />
@@ -146,12 +166,36 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
                 <input
                   type="number"
                   min="1"
-                  className={`mt-1 ${adminFieldClass}`}
+                  aria-invalid={guestRangeInvalid}
+                  className={cn(
+                    `mt-1 ${adminFieldClass}`,
+                    guestRangeInvalid &&
+                      "border-red-500 ring-2 ring-red-500/25 focus:border-red-500 focus:ring-red-500/30"
+                  )}
                   value={maxGuests}
                   onChange={(e) => setMaxGuests(e.target.value)}
                 />
               </label>
+              {guestRangeInvalid ? (
+                <p className="col-span-2 text-xs font-medium leading-snug text-red-600">
+                  {pricingGuestsOrderDetail(minGNum, maxGNum)}
+                </p>
+              ) : null}
             </div>
+
+            <label className="block text-xs font-medium text-brand-muted">
+              Who counts toward max guests
+              <AdminCombobox
+                className={`mt-1 ${adminFieldClass}`}
+                value={maxGuestsScope}
+                onValueChange={(value) => setMaxGuestsScope(value as MaxGuestsScope)}
+                options={[
+                  { value: "entire_party", label: "Whole party (adults + children + infants)" },
+                  { value: "adults_and_children_only", label: "Adults & children only (infants extra)" },
+                  { value: "adults_only", label: "Adults only (children & infants extra)" },
+                ]}
+              />
+            </label>
 
             <div className="grid grid-cols-2 gap-4">
               <label className="block text-xs font-medium text-brand-muted">
@@ -243,7 +287,10 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
                 <AdminCombobox
                   className={`mt-1 ${adminFieldClass}`}
                   value={infantType}
-                  onValueChange={setInfantType}
+                  onValueChange={(next) => {
+                    setInfantType(next);
+                    if (next === "not_allowed") setMaxInfants("");
+                  }}
                   options={[
                     { value: "free", label: "Free" },
                     { value: "fixed", label: "Fixed amount" },
@@ -256,9 +303,23 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
                 <input
                   type="number"
                   min="0"
-                  className={`mt-1 ${adminFieldClass}`}
-                  value={maxInfants}
-                  onChange={(e) => setMaxInfants(e.target.value)}
+                  disabled={infantType === "not_allowed"}
+                  aria-disabled={infantType === "not_allowed"}
+                  title={
+                    infantType === "not_allowed"
+                      ? "Not used when infant pricing is Not allowed"
+                      : undefined
+                  }
+                  className={cn(
+                    `mt-1 ${adminFieldClass}`,
+                    infantType === "not_allowed" &&
+                      "cursor-not-allowed bg-brand-surface-soft text-brand-muted opacity-80"
+                  )}
+                  value={infantType === "not_allowed" ? "" : maxInfants}
+                  onChange={(e) => {
+                    if (infantType === "not_allowed") return;
+                    setMaxInfants(e.target.value);
+                  }}
                 />
               </label>
             </div>
@@ -267,11 +328,11 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
 
             <div className="flex justify-end gap-3">
               <Dialog.Close asChild>
-                <Button type="button" variant="secondary" disabled={pending}>
+                <Button type="button" variant="secondary" size="sm" disabled={pending}>
                   Cancel
                 </Button>
               </Dialog.Close>
-              <Button type="submit" disabled={pending}>
+              <Button type="submit" variant="primary" size="sm" disabled={pending || guestRangeInvalid}>
                 {pending ? "Creating…" : "Create rule"}
               </Button>
             </div>

@@ -1,11 +1,14 @@
 "use client";
 
-import { motion, Variants } from "framer-motion";
+import { motion } from "framer-motion";
+import Link from "next/link";
+
 import { Container } from "@/components/layout/container";
+import { RevealOnView } from "@/components/motion/reveal-on-view";
 import { TourCard } from "@/components/tours/tour-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { publicRevealItem, publicRevealParent } from "@/lib/motion/public-reveal";
 import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
 
 interface ToursListViewProps {
@@ -13,21 +16,6 @@ interface ToursListViewProps {
 }
 
 export function ToursListView({ rows }: ToursListViewProps) {
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 50, damping: 20 } },
-  };
-
   if (!rows.length) {
     return (
       <section className="bg-brand-surface min-h-screen">
@@ -37,9 +25,11 @@ export function ToursListView({ rows }: ToursListViewProps) {
           breadcrumb={[{ label: "Tours" }]}
         />
         <Container className="py-24 text-center">
+          <RevealOnView className="inline-block">
             <Button asChild variant="primary" className={primaryTourCtaClassName}>
               <Link href="/contact">Contact our team</Link>
             </Button>
+          </RevealOnView>
         </Container>
       </section>
     );
@@ -57,14 +47,14 @@ export function ToursListView({ rows }: ToursListViewProps) {
         <Container>
           <div className="md:mt-16" />
 
-          <motion.div 
-            variants={containerVariants}
+          <motion.div
+            variants={publicRevealParent}
             initial="hidden"
             animate="show"
             className="grid gap-x-8 gap-y-12 md:grid-cols-2 lg:grid-cols-3"
           >
             {rows.map((t) => (
-              <motion.div key={t.id} variants={itemVariants}>
+              <motion.div key={t.id} variants={publicRevealItem}>
                 <TourCard
                   title={t.title}
                   slug={t.slug}

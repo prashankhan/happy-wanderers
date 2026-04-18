@@ -13,7 +13,9 @@ const buttonVariants = cva(
         secondary:
           "border border-brand-border bg-brand-surface text-brand-heading hover:bg-brand-surface-soft cursor-pointer",
         ghost: "text-brand-accent underline-offset-4 hover:underline cursor-pointer",
-        danger: "bg-red-600 text-white hover:bg-red-500 cursor-pointer",
+        /** Destructive actions in admin (delete, remove, cancel) — outline so it pairs with solid primary saves. */
+        danger:
+          "border border-red-200 bg-white text-red-600 shadow-sm hover:bg-red-50 hover:border-red-300 focus-visible:ring-red-400/50 cursor-pointer",
       },
       size: {
         sm: "h-9 px-4 text-sm",

@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Container } from "@/components/layout/container";
+import { RevealOnView } from "@/components/motion/reveal-on-view";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils/cn";
 
 export const metadata: Metadata = {
   title: "Booking received",
@@ -21,45 +23,62 @@ export default async function BookingSuccessPage({
   return (
     <section className="py-24">
       <Container className="max-w-xl">
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-serif text-2xl text-green-700">
-              {hasSessionToken ? "Thank you" : "Booking status pending"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm text-gray-600">
-            {hasSessionToken ? (
-              <p>
-                Your payment is processing.{" "}
-                <strong>Confirmation is sent after our payment provider confirms</strong> — please
-                check your inbox for your reference number and pickup details.
+        <RevealOnView>
+          <Card>
+            <CardHeader>
+              <CardTitle
+                className={cn(
+                  "font-serif text-2xl",
+                  hasSessionToken ? "text-availability-open" : "text-brand-heading"
+                )}
+              >
+                {hasSessionToken ? "Thank you" : "Booking status pending"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm text-brand-body">
+              {hasSessionToken ? (
+                <p>
+                  Your payment is processing.{" "}
+                  <strong className="text-brand-heading">
+                    Confirmation is sent after our payment provider confirms
+                  </strong>{" "}
+                  — please check your inbox for your reference number and pickup details.
+                </p>
+              ) : (
+                <p>
+                  We could not verify your checkout session from this page load. If you just completed
+                  payment, please wait a moment and check your inbox for confirmation.
+                </p>
+              )}
+              {hasSessionToken ? (
+                <p className="text-xs text-brand-muted">
+                  Checkout session: <span className="font-mono text-brand-body">{sessionId}</span>
+                </p>
+              ) : (
+                <p className="text-xs text-brand-muted">
+                  If you were not redirected from checkout, return to booking and try again.
+                </p>
+              )}
+              <p className="text-xs text-brand-muted">
+                If you closed this window early, your booking may remain pending until the hold expires.
               </p>
-            ) : (
-              <p>
-                We could not verify your checkout session from this page load. If you just completed
-                payment, please wait a moment and check your inbox for confirmation.
-              </p>
-            )}
-            {hasSessionToken ? (
-              <p className="text-xs text-gray-500">
-                Checkout session: <span className="font-mono">{sessionId}</span>
-              </p>
-            ) : (
-              <p className="text-xs text-gray-500">
-                If you were not redirected from checkout, return to booking and try again.
-              </p>
-            )}
-            <p className="text-xs text-gray-500">
-              If you closed this window early, your booking may remain pending until the hold expires.
-            </p>
-            <Link href="/booking" className="inline-block text-sm font-medium text-blue-900 hover:underline">
-              Back to booking
-            </Link>
-            <Link href="/tours" className="inline-block text-sm font-medium text-blue-900 hover:underline">
-              Back to tours
-            </Link>
-          </CardContent>
-        </Card>
+              <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
+                <Link
+                  href="/booking"
+                  className="text-sm font-semibold text-brand-primary transition hover:underline"
+                >
+                  Back to booking
+                </Link>
+                <Link
+                  href="/tours"
+                  className="text-sm font-semibold text-brand-primary transition hover:underline"
+                >
+                  Back to tours
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </RevealOnView>
       </Container>
     </section>
   );

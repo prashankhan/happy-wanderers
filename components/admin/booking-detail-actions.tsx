@@ -243,6 +243,8 @@ export function BookingDetailActions({
       <div className="flex flex-wrap gap-3">
         <Button
           type="button"
+          variant="primary"
+          size="sm"
           onClick={() => void saveDetails()}
           disabled={pending || !canEditLifecycle || !isDetailsDirty}
         >
@@ -250,11 +252,23 @@ export function BookingDetailActions({
         </Button>
         {showAdminActions ? (
           <>
-            <Button type="button" variant="danger" onClick={() => setCancelDialogOpen(true)} disabled={pending}>
+            <Button
+              type="button"
+              variant="danger"
+              size="sm"
+              onClick={() => setCancelDialogOpen(true)}
+              disabled={pending}
+            >
               Cancel booking
             </Button>
             {paymentStatus === "paid" && hasStripePayment ? (
-              <Button type="button" variant="secondary" onClick={() => setRefundDialogOpen(true)} disabled={pending}>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setRefundDialogOpen(true)}
+                disabled={pending}
+              >
                 Refund via Stripe
               </Button>
             ) : null}

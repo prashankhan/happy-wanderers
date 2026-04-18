@@ -384,16 +384,22 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
                   />
                 </label>
                 <div className="flex flex-wrap gap-2 border-t border-brand-border pt-4">
-                  <Button type="button" onClick={() => void saveOverride()} disabled={!isOverrideDirty}>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    onClick={() => void saveOverride()}
+                    disabled={!isOverrideDirty}
+                  >
                     Save
                   </Button>
                   {selected?.override_exists ? (
-                    <Button type="button" variant="danger" onClick={() => void clearOverride()}>
+                    <Button type="button" variant="danger" size="sm" onClick={() => void clearOverride()}>
                       Clear
                     </Button>
                   ) : null}
                   <Dialog.Close asChild>
-                    <Button type="button" variant="secondary">
+                    <Button type="button" variant="secondary" size="sm">
                       Cancel
                     </Button>
                   </Dialog.Close>
@@ -402,7 +408,7 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
             ) : (
               <div className="mt-4">
                 <Dialog.Close asChild>
-                  <Button type="button" variant="secondary">
+                  <Button type="button" variant="secondary" size="sm">
                     Close
                   </Button>
                 </Dialog.Close>

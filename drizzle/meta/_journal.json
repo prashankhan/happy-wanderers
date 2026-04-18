@@ -22,6 +22,20 @@
       "when": 1776422400000,
       "tag": "0002_pricing_package_mode",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776508800000,
+      "tag": "0003_rate_limit_buckets",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776595200000,
+      "tag": "0004_max_guests_scope",
+      "breakpoints": true
     }
   ]
 }

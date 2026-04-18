@@ -31,15 +31,15 @@ export async function TourEditorBanners({ tourId, status }: TourEditorBannersPro
     <div className="space-y-3">
       {status === "draft" ? (
         <div className="rounded-sm border border-brand-accent bg-brand-accent-soft px-4 py-3 text-sm text-brand-heading">
-          <strong>Draft tour.</strong> Finish content, weekday rules, departures, and pricing, then set
-          <strong>Status</strong> to published when ready. Turn on <strong>Booking enabled</strong> only when
-          you want this tour on the public site.
+          <strong>Draft tour.</strong> Finish content, <strong>Pickups</strong>, weekday rules, pricing, and publishing
+          settings, then set <strong>Status</strong> to published when ready. Turn on <strong>Booking enabled</strong>{" "}
+          only when you want this tour on the public site.
         </div>
       ) : null}
       {missingOps ? (
-        <div className="rounded-sm border border-availability.low bg-amber-50 px-4 py-3 text-sm text-amber-950">
+        <div className="rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
           <strong>Setup required:</strong>{" "}
-          {!activeDl[0] ? "Add at least one active departure (pickup) in the Content tab. " : null}
+          {!activeDl[0] ? "Add at least one active pickup in the Pickups tab. " : null}
           {!activePr[0]
             ? "Add at least one active pricing rule in the Pricing tab (admins only)."
             : null}

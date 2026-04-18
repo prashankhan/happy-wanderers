@@ -1,29 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { motion, Variants } from "framer-motion";
-import { Clock, LifeBuoy, MapPin, Phone, ShieldCheck } from "lucide-react";
+import { LifeBuoy, ShieldCheck } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
+import { RevealOnView } from "@/components/motion/reveal-on-view";
 import { ContactForm } from "./contact-form";
 import { PageHeader } from "@/components/layout/page-header";
+/** Same scale as About / Voices section titles (`app/(public)/about/page.tsx`). */
+const CONTACT_SECTION_TITLE =
+  "font-serif text-3xl font-bold tracking-tight text-brand-heading md:text-4xl lg:text-5xl lg:leading-[1.12]";
 
 export default function ContactPage() {
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 50, damping: 20 } },
-  };
-
   return (
     <div className="bg-brand-surface">
       <PageHeader 
@@ -33,12 +21,7 @@ export default function ContactPage() {
       />
 
       <Container className="py-24 md:py-32">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.99 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, duration: 0.8 }}
-          className="mx-auto max-w-5xl rounded-md border border-brand-border/40 bg-brand-surface-soft p-10 md:p-16"
-        >
+        <RevealOnView className="mx-auto max-w-5xl rounded-sm border border-brand-border bg-brand-surface-soft p-10 shadow-sm md:p-16">
           <div className="grid gap-16 md:grid-cols-2">
             <div className="flex gap-6">
               <ShieldCheck className="h-8 w-8 shrink-0 text-brand-primary" aria-hidden />
@@ -59,52 +42,26 @@ export default function ContactPage() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </RevealOnView>
 
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-          className="mt-32 grid gap-20 lg:grid-cols-12 lg:gap-32"
-        >
-          <motion.div variants={itemVariants} className="lg:col-span-12 lg:mb-12 xl:col-span-5 xl:mb-0">
-            <h2 className="font-serif text-5xl font-bold tracking-tight text-brand-heading md:text-6xl italic">Before you write</h2>
-            <div className="mt-12 space-y-10 rounded-md border border-brand-border/60 bg-white p-10 shadow-sm">
-              <div className="flex gap-5">
-                <Clock className="h-6 w-6 shrink-0 text-brand-primary" aria-hidden />
-                <div>
-                  <p className="font-bold tracking-tight text-xl text-brand-heading">Field response time</p>
-                  <p className="mt-3 text-base leading-relaxed text-brand-body/80">
-                    We aims to reply within <span className="font-bold text-brand-heading tracking-tight">one business day</span>. Our team is often in areas of low connectivity during daylight hours.
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-5">
-                <Phone className="h-6 w-6 shrink-0 text-brand-primary" aria-hidden />
-                <div>
-                  <p className="font-bold tracking-tight text-xl text-brand-heading">Booking numbers</p>
-                  <p className="mt-3 text-base leading-relaxed text-brand-body/80">
-                    A direct operations line is provided to all confirmed guests. For new enquiries, we recommend the form for clear audit trails.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div variants={itemVariants} className="rounded-md border border-brand-border bg-white p-8 shadow-xl lg:col-span-12 xl:col-span-7 xl:p-14">
-            <h2 className="font-serif text-4xl font-bold tracking-tight text-brand-heading">Send a message</h2>
-            <p className="mt-4 text-base text-brand-body/60 font-medium tracking-tight">
+        <RevealOnView className="mx-auto mt-20 flex min-w-0 max-w-2xl flex-col space-y-8 lg:mt-24 lg:max-w-3xl lg:space-y-10">
+          <div className="text-center">
+            <h2 className={CONTACT_SECTION_TITLE}>Send a message</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-base font-medium leading-relaxed tracking-tight text-brand-body/70 md:text-lg">
               Required fields help us answer in one pass. We never sell your details — see our{" "}
-              <Link href="/privacy" className="font-bold text-brand-primary underline underline-offset-4 decoration-brand-primary/30 hover:text-brand-primary-hover">
+              <Link
+                href="/privacy"
+                className="font-bold text-brand-primary underline underline-offset-4 decoration-brand-primary/30 hover:text-brand-primary-hover"
+              >
                 Privacy Policy
               </Link>
               .
             </p>
-            <div className="mt-12">
-              <ContactForm />
-            </div>
-          </motion.div>
-        </motion.div>
+          </div>
+          <div className="rounded-sm border border-brand-border bg-white p-8 shadow-lg shadow-brand-heading/5 ring-1 ring-brand-heading/5 md:p-10">
+            <ContactForm centerSubmit />
+          </div>
+        </RevealOnView>
       </Container>
     </div>
   );

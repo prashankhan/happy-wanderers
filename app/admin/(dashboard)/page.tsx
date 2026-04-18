@@ -2,6 +2,7 @@ import { and, eq, gte, sql } from "drizzle-orm";
 import { format, subDays } from "date-fns";
 
 import { AdminDashboardCharts } from "@/components/admin/admin-dashboard-charts";
+import { AdminPageReveal } from "@/components/admin/admin-page-reveal";
 import { db } from "@/lib/db";
 import { bookings } from "@/lib/db/schema";
 
@@ -55,27 +56,29 @@ export default async function AdminDashboardPage() {
   );
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-brand-heading">Dashboard</h1>
-        <p className="mt-1 text-sm text-brand-muted">Operational snapshot — confirmed bookings and live holds.</p>
-      </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-sm border border-brand-border bg-white p-4 md:p-6 shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-normal text-brand-muted">Today confirmed</p>
-          <p className="mt-2 text-2xl md:text-3xl font-bold text-brand-heading">{Number(confirmedToday[0]?.c ?? 0)}</p>
+    <AdminPageReveal>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold text-brand-heading">Dashboard</h1>
+          <p className="mt-1 text-sm text-brand-muted">Operational snapshot — confirmed bookings and live holds.</p>
         </div>
-        <div className="rounded-sm border border-brand-border bg-white p-4 md:p-6 shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-normal text-brand-muted">Pending holds</p>
-          <p className="mt-2 text-2xl md:text-3xl font-bold text-brand-heading">{Number(pending[0]?.c ?? 0)}</p>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-sm border border-brand-border bg-white p-4 md:p-6 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-normal text-brand-muted">Today confirmed</p>
+            <p className="mt-2 text-2xl md:text-3xl font-bold text-brand-heading">{Number(confirmedToday[0]?.c ?? 0)}</p>
+          </div>
+          <div className="rounded-sm border border-brand-border bg-white p-4 md:p-6 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-normal text-brand-muted">Pending holds</p>
+            <p className="mt-2 text-2xl md:text-3xl font-bold text-brand-heading">{Number(pending[0]?.c ?? 0)}</p>
+          </div>
+          <div className="rounded-sm border border-brand-border bg-white p-4 md:p-6 shadow-sm">
+            <p className="text-xs font-bold uppercase tracking-normal text-brand-muted">Month revenue (confirmed)</p>
+            <p className="mt-2 text-2xl md:text-3xl font-bold text-brand-heading">${monthRevenue[0]?.sum ?? "0"}</p>
+          </div>
         </div>
-        <div className="rounded-sm border border-brand-border bg-white p-4 md:p-6 shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-normal text-brand-muted">Month revenue (confirmed)</p>
-          <p className="mt-2 text-2xl md:text-3xl font-bold text-brand-heading">${monthRevenue[0]?.sum ?? "0"}</p>
-        </div>
-      </div>
 
-      <AdminDashboardCharts data={chartData} />
-    </div>
+        <AdminDashboardCharts data={chartData} />
+      </div>
+    </AdminPageReveal>
   );
 }

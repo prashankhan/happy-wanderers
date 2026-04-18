@@ -22,7 +22,7 @@ const bodySchema = z.object({
 export async function POST(request: Request) {
   const ip = getRequestIp(request);
   if (
-    isRateLimited(`public-booking:${ip}`, {
+    await isRateLimited(`public-booking:${ip}`, {
       maxRequests: 12,
       windowMs: 15 * 60 * 1000,
     })

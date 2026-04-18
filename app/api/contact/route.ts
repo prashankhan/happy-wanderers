@@ -17,7 +17,7 @@ const bodySchema = z.object({
 export async function POST(request: Request) {
   const ip = getRequestIp(request);
   if (
-    isRateLimited(`public-contact:${ip}`, {
+    await isRateLimited(`public-contact:${ip}`, {
       maxRequests: 6,
       windowMs: 15 * 60 * 1000,
     })

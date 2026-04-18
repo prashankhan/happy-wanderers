@@ -135,7 +135,7 @@ export function ManualBookingForm({ tours, departures, businessTimezone }: Manua
   return (
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Trigger asChild>
-        <Button type="button" variant="secondary">
+        <Button type="button" variant="secondary" size="sm">
           New manual booking
         </Button>
       </Dialog.Trigger>
@@ -301,11 +301,11 @@ export function ManualBookingForm({ tours, departures, businessTimezone }: Manua
 
           <div className="mt-6 flex justify-end gap-3">
             <Dialog.Close asChild>
-              <Button type="button" variant="secondary" disabled={pending}>
+              <Button type="button" variant="secondary" size="sm" disabled={pending}>
                 Cancel
               </Button>
             </Dialog.Close>
-            <Button type="button" onClick={() => void submit()} disabled={pending}>
+            <Button type="button" variant="primary" size="sm" onClick={() => void submit()} disabled={pending}>
               {pending ? "Creating…" : "Create booking"}
             </Button>
           </div>

@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { motion, Variants } from "framer-motion";
+import { motion } from "framer-motion";
+
 import { Container } from "@/components/layout/container";
+import { publicRevealEase } from "@/lib/motion/public-reveal";
 
 interface PageHeaderProps {
   title: string;
@@ -15,10 +17,10 @@ export function PageHeader({ title, description, breadcrumb }: PageHeaderProps) 
     <header className="bg-brand-surface-soft border-b border-brand-border overflow-hidden">
       <Container className="py-16 md:py-24 lg:py-28 relative">
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-5xl mx-auto text-center"
+          transition={{ duration: 0.72, ease: publicRevealEase }}
+          className="mx-auto max-w-5xl text-center"
         >
           {/* Breadcrumbs */}
           {breadcrumb && (

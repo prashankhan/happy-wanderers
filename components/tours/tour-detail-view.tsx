@@ -5,8 +5,10 @@ import { motion } from "framer-motion";
 import { Clock, MapPin, Users } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
+import { RevealOnView } from "@/components/motion/reveal-on-view";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { publicRevealEase } from "@/lib/motion/public-reveal";
 import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
 import { cn } from "@/lib/utils/cn";
 
@@ -31,9 +33,9 @@ export function TourDetailView({ tour, heroGallery, bookingSidebar }: TourDetail
 
           {/* ─── Left Column: Tour Content ─────────────────────── */}
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 32 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.65, ease: publicRevealEase }}
             className="space-y-12 md:space-y-16"
           >
             {/* Title Block */}
@@ -145,7 +147,7 @@ export function TourDetailView({ tour, heroGallery, bookingSidebar }: TourDetail
 
           {/* ─── Right Column: Booking Sidebar ──────────────────── */}
           <div className="lg:sticky lg:top-40">
-            {bookingSidebar}
+            <RevealOnView>{bookingSidebar}</RevealOnView>
           </div>
         </div>
       </div>

@@ -1,8 +1,10 @@
 "use client";
 
-import { motion, Variants } from "framer-motion";
+import { motion } from "framer-motion";
 import { MapPin, Users, Shield, Sunrise } from "lucide-react";
+
 import { Container } from "@/components/layout/container";
+import { publicRevealItem, publicRevealParentTight, publicRevealViewport } from "@/lib/motion/public-reveal";
 
 const credibility = [
   { line1: "Local expert", line2: "guides", icon: MapPin },
@@ -11,41 +13,21 @@ const credibility = [
   { line1: "Real-time", line2: "availability", icon: Sunrise },
 ];
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 15 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { type: "spring", stiffness: 60, damping: 15 },
-  },
-};
-
 export function CredibilityBar() {
   return (
     <section className="border-b border-brand-border bg-brand-surface-soft py-16 md:py-24">
       <Container>
         <motion.div
-          variants={containerVariants}
+          variants={publicRevealParentTight}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, amount: 0.1 }}
+          viewport={publicRevealViewport}
           className="flex flex-col items-center gap-12 md:flex-row md:flex-wrap md:items-start md:justify-between lg:justify-between"
         >
           {credibility.map(({ line1, line2, icon: Icon }) => (
             <motion.div
               key={line1}
-              variants={itemVariants}
+              variants={publicRevealItem}
               className="flex max-w-[240px] flex-col items-center gap-5 text-center"
             >
               <Icon className="h-12 w-12 text-brand-primary" aria-hidden />

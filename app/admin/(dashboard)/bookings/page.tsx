@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { and, asc, count, desc, eq, ilike, isNull, sql } from "drizzle-orm";
 
 import { AdminBookingsFilters } from "@/components/admin/admin-bookings-filters";
+import { AdminPageReveal } from "@/components/admin/admin-page-reveal";
 import { BookingStatusBadge, PaymentStatusBadge } from "@/components/admin/booking-status-badge";
 import { ManualBookingForm } from "@/components/admin/manual-booking-form";
 import { Pagination } from "@/components/admin/pagination";
@@ -87,7 +88,8 @@ export default async function AdminBookingsPage({
   const businessTimezone = settings.timezone?.trim() || DEFAULT_TZ;
 
   return (
-    <div className="space-y-6">
+    <AdminPageReveal>
+      <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-brand-heading">Bookings</h1>
@@ -158,6 +160,7 @@ export default async function AdminBookingsPage({
           </Suspense>
         </div>
       )}
-    </div>
+      </div>
+    </AdminPageReveal>
   );
 }

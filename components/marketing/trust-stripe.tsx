@@ -1,44 +1,23 @@
 "use client";
 
-import { motion, Variants } from "framer-motion";
-import { BadgeCheck } from "lucide-react";
-import { Container } from "@/components/layout/container";
+import { motion } from "framer-motion";
 
-const TRUST_CHIPS = [
-  "Secure booking",
-  "Local operators",
-  "Instant confirmation",
-  "Real-time availability"
-];
+import { Container } from "@/components/layout/container";
+import { publicRevealItem, publicRevealParent, publicRevealViewport } from "@/lib/motion/public-reveal";
 
 export function TrustStripe() {
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 10 },
-    show: { opacity: 1, y: 0 },
-  };
-
   return (
     <section className="relative overflow-hidden border-y border-brand-border bg-brand-surface-soft py-14 md:py-16">
       <Container>
         <motion.div
-          variants={containerVariants}
+          variants={publicRevealParent}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true }}
+          viewport={publicRevealViewport}
           className="grid gap-16 md:grid-cols-3 md:gap-x-20"
         >
           {/* Step 1 */}
-          <motion.div variants={itemVariants} className="flex flex-col items-center text-center md:items-start md:text-left">
+          <motion.div variants={publicRevealItem} className="flex flex-col items-center text-center md:items-start md:text-left">
             <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-brand-primary text-white font-bold text-xl">
               1
             </div>
@@ -51,7 +30,7 @@ export function TrustStripe() {
           </motion.div>
 
           {/* Step 2 */}
-          <motion.div variants={itemVariants} className="flex flex-col items-center text-center md:items-start md:text-left">
+          <motion.div variants={publicRevealItem} className="flex flex-col items-center text-center md:items-start md:text-left">
             <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-brand-primary text-white font-bold text-xl">
               2
             </div>
@@ -64,7 +43,7 @@ export function TrustStripe() {
           </motion.div>
 
           {/* Step 3 */}
-          <motion.div variants={itemVariants} className="flex flex-col items-center text-center md:items-start md:text-left">
+          <motion.div variants={publicRevealItem} className="flex flex-col items-center text-center md:items-start md:text-left">
             <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-brand-primary text-white font-bold text-xl">
               3
             </div>

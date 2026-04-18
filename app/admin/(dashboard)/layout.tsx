@@ -1,8 +1,14 @@
+import { redirect } from "next/navigation";
+
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { auth } from "@/auth";
 
 export const dynamic = "force-dynamic";
 
-export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
+  if (!session?.user) redirect("/admin/login");
+
   return (
     <div className="flex h-screen bg-brand-surface overflow-hidden">
       <AdminSidebar />

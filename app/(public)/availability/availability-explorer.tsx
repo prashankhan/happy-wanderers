@@ -7,8 +7,11 @@ import { Clock, MapPin, Users } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 import { PublicAvailabilityCalendar } from "@/components/calendar/public-availability-calendar";
+import { RevealOnView } from "@/components/motion/reveal-on-view";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
+import { cn } from "@/lib/utils/cn";
 
 interface TourOption {
   id: string;
@@ -81,7 +84,7 @@ export function AvailabilityExplorer({
   }
 
   return (
-    <div className="grid gap-12 lg:grid-cols-[1fr_400px] lg:items-start lg:gap-16 xl:gap-20">
+    <RevealOnView className="grid gap-12 lg:grid-cols-[1fr_400px] lg:items-start lg:gap-16 xl:gap-20">
       <div className="space-y-8 md:space-y-12">
         {/* Calendar Control Center */}
         <Card className="rounded-sm border-brand-border shadow-lg shadow-brand-heading/5 ring-1 ring-brand-heading/5">
@@ -215,11 +218,18 @@ export function AvailabilityExplorer({
 
             <div>
               {date && departureId ? (
-                <Button asChild variant="primary" className="w-full rounded-sm h-auto py-5 md:py-6 text-xl md:text-2xl font-bold tracking-tighter">
-                  <Link href={`/booking?tour_id=${tourId}&date=${date}&departure_location_id=${departureId}`}>Confirm selection</Link>
+                <Button asChild variant="primary" className={cn("w-full", primaryTourCtaClassName)}>
+                  <Link href={`/booking?tour_id=${tourId}&date=${date}&departure_location_id=${departureId}`}>
+                    Confirm selection
+                  </Link>
                 </Button>
               ) : (
-                <Button variant="primary" className="w-full rounded-sm h-auto py-5 md:py-6 text-xl md:text-2xl font-bold tracking-tighter opacity-20 cursor-not-allowed" type="button" disabled>
+                <Button
+                  variant="primary"
+                  type="button"
+                  disabled
+                  className={cn("w-full", primaryTourCtaClassName, "opacity-20 cursor-not-allowed")}
+                >
                   Select a date
                 </Button>
               )}
@@ -238,6 +248,6 @@ export function AvailabilityExplorer({
           </CardContent>
         </Card>
       </aside>
-    </div>
+    </RevealOnView>
   );
 }

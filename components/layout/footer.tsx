@@ -1,5 +1,11 @@
 import Link from "next/link";
+
 import { Container } from "@/components/layout/container";
+import { cn } from "@/lib/utils/cn";
+
+/** Match desktop main nav link scale (`components/layout/navbar.tsx`). */
+const footerNavLinkClass =
+  "group block font-sans text-lg font-bold tracking-tighter transition-colors duration-200 ease-out hover:text-brand-primary md:text-xl cursor-pointer";
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -13,7 +19,7 @@ export function Footer() {
 
   const explore = [
     { label: "Signature Departures", href: "/tours" },
-    { label: "Book a tour", href: "/booking", highlight: true },
+    { label: "Book a tour", href: "/booking" },
     { label: "Our Philosophy", href: "/about" },
   ];
 
@@ -34,11 +40,7 @@ export function Footer() {
             <p className="text-base font-bold uppercase tracking-normal text-white/40">Destinations</p>
             <nav className="flex flex-col gap-3">
               {destinations.map((item) => (
-                <Link 
-                  key={item.label}
-                  href={item.href}
-                  className="group block text-2xl font-bold tracking-tight transition-all hover:text-brand-primary cursor-pointer"
-                >
+                <Link key={item.label} href={item.href} className={cn(footerNavLinkClass, "text-white")}>
                   {item.label}
                 </Link>
               ))}
@@ -50,11 +52,7 @@ export function Footer() {
             <p className="text-base font-bold uppercase tracking-normal text-white/40">Explore</p>
             <nav className="flex flex-col gap-3">
               {explore.map((item) => (
-                <Link 
-                  key={item.label}
-                  href={item.href}
-                  className={`group block text-2xl font-bold tracking-tight transition-all hover:text-brand-primary cursor-pointer ${item.highlight ? 'text-brand-primary' : ''}`}
-                >
+                <Link key={item.label} href={item.href} className={cn(footerNavLinkClass, "text-white")}>
                   {item.label}
                 </Link>
               ))}
@@ -66,11 +64,7 @@ export function Footer() {
             <p className="text-base font-bold uppercase tracking-normal text-white/40">Legal</p>
             <nav className="flex flex-col gap-3">
               {legal.map((item) => (
-                <Link 
-                  key={item.label}
-                  href={item.href}
-                  className="group block text-2xl font-bold tracking-tight transition-all hover:text-brand-primary cursor-pointer"
-                >
+                <Link key={item.label} href={item.href} className={cn(footerNavLinkClass, "text-white")}>
                   {item.label}
                 </Link>
               ))}

@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { BadgeCheck } from "lucide-react";
-import { motion, Variants } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 
 /** Hero: three inline trust signals beneath primary CTAs (brand positioning). */
 const heroTrustPointers = ["Designed around you", "Guided with care", "Beyond the expected"] as const;
 
-// Framer motion variants for an elegant entrance
-const containerVariants: Variants = {
+/** Mount-only hero entrance — spring easing (kept separate from scroll `publicReveal*` for a softer feel). */
+const heroContainerVariants: Variants = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
@@ -19,7 +19,7 @@ const containerVariants: Variants = {
   },
 };
 
-const itemVariants: Variants = {
+const heroItemVariants: Variants = {
   hidden: { opacity: 0, y: 15 },
   show: {
     opacity: 1,
@@ -37,26 +37,26 @@ export function HeroContent() {
   return (
     <motion.div
       className="mx-auto max-w-5xl text-center"
-      variants={containerVariants}
+      variants={heroContainerVariants}
       initial="hidden"
       animate="show"
     >
       <motion.p
-        variants={itemVariants}
+        variants={heroItemVariants}
         className="text-sm font-bold uppercase tracking-[0.2em] text-white/60 md:text-base"
       >
         Thoughtfully guided private journeys from Cairns
       </motion.p>
       
       <motion.h1
-        variants={itemVariants}
+        variants={heroItemVariants}
         className="mx-auto mt-6 max-w-5xl font-serif text-4xl font-normal tracking-tight leading-[1.08] text-white md:mt-10 md:text-5xl md:leading-[1.06] lg:text-6xl xl:text-7xl"
       >
         Travel Tropical North Queensland in a way that feels personal
       </motion.h1>
       
       <motion.p
-        variants={itemVariants}
+        variants={heroItemVariants}
         className="mx-auto mt-6 max-w-3xl text-base font-medium leading-relaxed text-white/70 md:mt-8 md:text-xl md:leading-relaxed"
       >
         Move beyond predictable sightseeing into experiences shaped around comfort, attentiveness, and genuine
@@ -65,7 +65,7 @@ export function HeroContent() {
       </motion.p>
       
       <motion.div
-        variants={itemVariants}
+        variants={heroItemVariants}
         className="mt-8 flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center sm:gap-4 md:mt-10"
       >
         <Link
@@ -83,7 +83,7 @@ export function HeroContent() {
       </motion.div>
       
       <motion.ul
-        variants={itemVariants}
+        variants={heroItemVariants}
         className="mt-6 flex list-none flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm md:mt-8 md:gap-x-8 md:text-base"
         aria-label="How we travel with you"
       >

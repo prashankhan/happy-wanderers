@@ -4,23 +4,31 @@ import { z } from "zod";
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { setAdminOperationContext } from "@/lib/sentry/context";
 import { pricingRules } from "@/lib/db/schema";
+import { setAdminOperationContext } from "@/lib/sentry/context";
+import { PRICING_GUESTS_ORDER_TOAST } from "@/lib/ui/pricing-guest-limit-copy";
+import { zodErrorToApiMessage } from "@/lib/utils/zod-api-message";
+
+const money = (field: string) =>
+  z
+    .string()
+    .regex(/^\d+(\.\d{1,2})?$/, `${field} must be a positive amount with up to two decimal places (e.g. 189 or 189.00).`);
 
 const bodySchema = z.object({
   id: z.string().uuid(),
   label: z.string().min(1).optional(),
-  adult_price: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
-  child_price: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
+  adult_price: money("Adult price").optional(),
+  child_price: money("Child price").optional(),
   pricing_mode: z.enum(["per_person", "package"]).optional(),
   included_adults: z.number().int().min(1).optional(),
-  package_base_price: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
-  extra_adult_price: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
-  extra_child_price: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
-  infant_price: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
+  package_base_price: money("Package base price").optional(),
+  extra_adult_price: money("Extra adult price").optional(),
+  extra_child_price: money("Extra child price").optional(),
+  infant_price: money("Infant price").optional(),
   infant_pricing_type: z.enum(["free", "fixed", "not_allowed"]).optional(),
   min_guests: z.number().int().min(1).optional(),
   max_guests: z.number().int().min(1).optional(),
+  max_guests_scope: z.enum(["entire_party", "adults_and_children_only", "adults_only"]).optional(),
   max_infants: z.number().int().min(0).nullable().optional(),
   currency_code: z.string().min(3).max(3).optional(),
   valid_from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
@@ -32,7 +40,7 @@ const bodySchema = z.object({
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["max_guests"],
-      message: "max_guests must be greater than or equal to min_guests",
+      message: PRICING_GUESTS_ORDER_TOAST,
     });
   }
 });
@@ -55,7 +63,10 @@ export async function PATCH(request: Request) {
 
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ success: false, message: "Validation failed" }, { status: 400 });
+    return NextResponse.json(
+      { success: false, message: zodErrorToApiMessage(parsed.error) },
+      { status: 400 }
+    );
   }
 
   const existing = await db.select().from(pricingRules).where(eq(pricingRules.id, parsed.data.id)).limit(1);
@@ -64,11 +75,10 @@ export async function PATCH(request: Request) {
   }
   const nextMinGuests = parsed.data.min_guests ?? existing[0].minGuests;
   const nextMaxGuests = parsed.data.max_guests ?? existing[0].maxGuests;
+  const nextInfantPricingType =
+    parsed.data.infant_pricing_type ?? existing[0].infantPricingType;
   if (nextMaxGuests < nextMinGuests) {
-    return NextResponse.json(
-      { success: false, message: "max_guests must be greater than or equal to min_guests" },
-      { status: 400 }
-    );
+    return NextResponse.json({ success: false, message: PRICING_GUESTS_ORDER_TOAST }, { status: 400 });
   }
 
   setAdminOperationContext({
@@ -96,7 +106,12 @@ export async function PATCH(request: Request) {
         : {}),
       ...(parsed.data.min_guests !== undefined ? { minGuests: parsed.data.min_guests } : {}),
       ...(parsed.data.max_guests !== undefined ? { maxGuests: parsed.data.max_guests } : {}),
-      ...(parsed.data.max_infants !== undefined ? { maxInfants: parsed.data.max_infants } : {}),
+      ...(parsed.data.max_guests_scope !== undefined ? { maxGuestsScope: parsed.data.max_guests_scope } : {}),
+      ...(nextInfantPricingType === "not_allowed"
+        ? { maxInfants: null }
+        : parsed.data.max_infants !== undefined
+          ? { maxInfants: parsed.data.max_infants }
+          : {}),
       ...(parsed.data.currency_code !== undefined ? { currencyCode: parsed.data.currency_code } : {}),
       ...(parsed.data.valid_from !== undefined ? { validFrom: parsed.data.valid_from } : {}),
       ...(parsed.data.valid_until !== undefined ? { validUntil: parsed.data.valid_until } : {}),

@@ -1,8 +1,10 @@
 "use client";
 
-import { motion, Variants } from "framer-motion";
+import { motion } from "framer-motion";
 import { Quote } from "lucide-react";
+
 import { Container } from "@/components/layout/container";
+import { publicRevealItem, publicRevealParent, publicRevealViewport } from "@/lib/motion/public-reveal";
 
 interface TestimonialItem {
   id: string;
@@ -33,30 +35,14 @@ const TESTIMONIALS: TestimonialItem[] = [
 ];
 
 export function TestimonialSection() {
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 30 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 50, damping: 20 } },
-  };
-
   return (
     <section className="border-t border-brand-border bg-brand-surface-warm py-24 md:py-32">
       <Container>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.6 }}
+          variants={publicRevealItem}
+          initial="hidden"
+          whileInView="show"
+          viewport={publicRevealViewport}
           className="mx-auto mb-12 max-w-3xl text-center md:mb-16"
         >
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary">Voices</p>
@@ -69,16 +55,16 @@ export function TestimonialSection() {
         </motion.div>
 
         <motion.div
-          variants={containerVariants}
+          variants={publicRevealParent}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, amount: 0.1 }}
+          viewport={publicRevealViewport}
           className="mx-auto grid max-w-6xl gap-8 md:grid-cols-2 lg:grid-cols-3"
         >
           {TESTIMONIALS.map((t) => (
             <motion.figure
               key={t.id}
-              variants={itemVariants}
+              variants={publicRevealItem}
               className="group flex flex-col rounded-sm border border-brand-border bg-white p-8 shadow-sm transition-[box-shadow,transform] duration-300 hover:shadow-md motion-safe:hover:-translate-y-px"
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary/5 text-brand-primary transition-transform duration-500 group-hover:scale-110">
@@ -86,7 +72,7 @@ export function TestimonialSection() {
               </div>
 
               <blockquote className="mt-6 flex-1 text-base leading-relaxed text-brand-body md:text-lg">
-                <p className="font-serif italic">&ldquo;{t.quote}&rdquo;</p>
+                <p className="font-sans italic">&ldquo;{t.quote}&rdquo;</p>
               </blockquote>
 
               <figcaption className="mt-8 border-t border-brand-border/40 pt-6">

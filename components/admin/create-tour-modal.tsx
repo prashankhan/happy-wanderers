@@ -78,11 +78,11 @@ export function CreateTourModal() {
 
             <div className="flex justify-end gap-3">
               <Dialog.Close asChild>
-                <Button type="button" variant="secondary" disabled={pending}>
+                <Button type="button" variant="secondary" size="sm" disabled={pending}>
                   Cancel
                 </Button>
               </Dialog.Close>
-              <Button type="submit" disabled={pending}>
+              <Button type="submit" variant="primary" size="sm" disabled={pending}>
                 {pending ? "Creating…" : "Create tour"}
               </Button>
             </div>

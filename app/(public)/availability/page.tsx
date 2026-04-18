@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Container } from "@/components/layout/container";
+import { RevealOnView } from "@/components/motion/reveal-on-view";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
@@ -44,6 +45,7 @@ export default async function AvailabilityPage({
             initialDepartureId={departureLocationId}
           />
         ) : (
+          <RevealOnView>
           <div className="mx-auto max-w-2xl rounded-sm border border-brand-border bg-white px-10 py-20 text-center shadow-sm">
             <h2 className="font-serif text-4xl font-bold text-brand-heading">Calendar opening soon</h2>
             <p className="mt-6 text-xl leading-relaxed text-brand-body/70 font-medium">
@@ -53,6 +55,7 @@ export default async function AvailabilityPage({
               <Link href="/contact">Contact our team</Link>
             </Button>
           </div>
+          </RevealOnView>
         )}
       </Container>
     </div>

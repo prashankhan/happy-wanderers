@@ -105,6 +105,7 @@ export const pricingRules = pgTable(
     infantPricingType: text("infant_pricing_type").notNull(),
     minGuests: integer("min_guests").notNull().default(1),
     maxGuests: integer("max_guests").notNull().default(12),
+    maxGuestsScope: text("max_guests_scope").notNull().default("entire_party"),
     maxInfants: integer("max_infants"),
     currencyCode: text("currency_code").notNull().default("AUD"),
     validFrom: date("valid_from"),
@@ -123,6 +124,10 @@ export const pricingRules = pgTable(
     check(
       "pricing_rules_mode_check",
       sql`${t.pricingMode} IN ('per_person', 'package')`
+    ),
+    check(
+      "pricing_rules_max_guests_scope_check",
+      sql`${t.maxGuestsScope} IN ('entire_party', 'adults_and_children_only', 'adults_only')`
     ),
     check("pricing_rules_included_adults_min_check", sql`${t.includedAdults} >= 1`),
     check("pricing_rules_min_guests_check", sql`${t.minGuests} >= 1`),
@@ -312,6 +317,13 @@ export const contactMessages = pgTable("contact_messages", {
   topic: text("topic"),
   message: text("message").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Distributed rate-limit counters (public APIs; survives multi-instance deploys). */
+export const rateLimitBuckets = pgTable("rate_limit_buckets", {
+  bucketKey: text("bucket_key").primaryKey(),
+  hitCount: integer("hit_count").notNull(),
+  windowEnd: timestamp("window_end", { withTimezone: true }).notNull(),
 });
 
 export const stripeWebhookEvents = pgTable(

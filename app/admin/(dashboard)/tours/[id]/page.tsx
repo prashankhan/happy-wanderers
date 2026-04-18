@@ -6,6 +6,7 @@ import { TourEditorBanners } from "@/components/admin/tour-editor-banners";
 import { TourEditorTabs, type PricingRuleRow, type SerializedTour } from "@/components/admin/tour-editor-tabs";
 import { db } from "@/lib/db";
 import { pricingRules, tours } from "@/lib/db/schema";
+import { normalizeMaxGuestsScope } from "@/lib/types/pricing-constraints";
 
 export default async function AdminTourEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -38,6 +39,7 @@ export default async function AdminTourEditorPage({ params }: { params: Promise<
       infantPricingType: r.infantPricingType,
       minGuests: r.minGuests,
       maxGuests: r.maxGuests,
+      maxGuestsScope: normalizeMaxGuestsScope(r.maxGuestsScope),
       maxInfants: r.maxInfants,
       currencyCode: r.currencyCode,
       validFrom: r.validFrom ? String(r.validFrom) : null,
@@ -80,7 +82,7 @@ export default async function AdminTourEditorPage({ params }: { params: Promise<
       <div>
         <h1 className="text-2xl font-bold text-brand-heading">{tour.title}</h1>
         <p className="mt-1 text-sm text-brand-muted">
-          Content, pricing, weekday availability, media, and publishing — saved via admin APIs.
+          Content, pickups, pricing, weekday availability, media, and publishing — saved via admin APIs.
         </p>
       </div>
       <TourEditorBanners tourId={id} status={tour.status} />

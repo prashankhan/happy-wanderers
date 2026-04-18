@@ -3,8 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { RevealOnView } from "@/components/motion/reveal-on-view";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  normalizeMaxGuestsScope,
+  type MaxGuestsScope,
+  type PricingConstraints,
+} from "@/lib/types/pricing-constraints";
 import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
 import { cn } from "@/lib/utils/cn";
 
@@ -18,6 +24,25 @@ function formatPrice(amount: number, currency: string): string {
     style: "currency",
     currency: currency,
   }).format(amount);
+}
+
+/** One-line hint under “Guests”; full detail is shown in the amber alert when pricing fails. */
+function guestPartyLimitsShortLine(c: PricingConstraints, scope: MaxGuestsScope): string {
+  const maxMeans =
+    scope === "entire_party"
+      ? "max counts everyone"
+      : scope === "adults_and_children_only"
+        ? "max is adults + children"
+        : "max is adults only";
+  let infants = "";
+  if (c.infantPricingType === "not_allowed") infants = " · No infants";
+  else if (c.infantPricingType === "free") infants = " · Infants free";
+  else infants = " · Infants priced";
+  const infantCap =
+    typeof c.maxInfants === "number"
+      ? ` · ≤${c.maxInfants} infant${c.maxInfants === 1 ? "" : "s"}`
+      : "";
+  return `This date: min ${c.minGuests} · max ${c.maxGuests} guests (${maxMeans})${infants}${infantCap}.`;
 }
 
 interface PricingBreakdown {
@@ -45,12 +70,14 @@ export function BookingFormClient({
   initialDate,
   initialDepartureId,
   pickups,
+  pricingConstraints,
 }: {
   tourId: string;
   tourTitle: string;
   initialDate?: string;
   initialDepartureId?: string;
   pickups: { id: string; name: string; timeLabel: string }[];
+  pricingConstraints: PricingConstraints | null;
 }) {
   const router = useRouter();
 
@@ -58,7 +85,8 @@ export function BookingFormClient({
   const departureId = initialDepartureId ?? pickups[0]?.id;
   const selectedPickup = pickups.find((p) => p.id === departureId);
 
-  const [adults, setAdults] = useState(2);
+  const defaultAdultsFloor = pricingConstraints?.minGuests ?? 2;
+  const [adults, setAdults] = useState(() => Math.max(1, defaultAdultsFloor));
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
   const [firstName, setFirstName] = useState("");
@@ -69,10 +97,73 @@ export function BookingFormClient({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [pricing, setPricing] = useState<PricingBreakdown | null>(null);
+  const [pricingMessage, setPricingMessage] = useState<string | null>(null);
+
+  const infantsNotAllowed = pricingConstraints?.infantPricingType === "not_allowed";
+  const infantCap =
+    typeof pricingConstraints?.maxInfants === "number" ? pricingConstraints.maxInfants : null;
+  const infantsLocked = infantsNotAllowed || infantCap === 0;
+  const effectiveInfants = infantsLocked ? 0 : infants;
+  const maxGuests = pricingConstraints?.maxGuests;
+  const maxGuestsScope: MaxGuestsScope = pricingConstraints
+    ? normalizeMaxGuestsScope(pricingConstraints.maxGuestsScope)
+    : "entire_party";
+
+  let adultsMax: number | undefined;
+  let childrenMax: number | undefined;
+  let infantPartyRoom: number;
+
+  if (typeof maxGuests === "number") {
+    if (maxGuestsScope === "entire_party") {
+      adultsMax = Math.max(1, maxGuests - children - effectiveInfants);
+      childrenMax = Math.max(0, maxGuests - adults - effectiveInfants);
+      infantPartyRoom = Math.max(0, maxGuests - adults - children - effectiveInfants);
+    } else if (maxGuestsScope === "adults_and_children_only") {
+      adultsMax = Math.max(1, maxGuests - children);
+      childrenMax = Math.max(0, maxGuests - adults);
+      infantPartyRoom = Number.POSITIVE_INFINITY;
+    } else {
+      adultsMax = Math.max(1, maxGuests);
+      childrenMax = undefined;
+      infantPartyRoom = Number.POSITIVE_INFINITY;
+    }
+  } else {
+    adultsMax = undefined;
+    childrenMax = undefined;
+    infantPartyRoom = Number.POSITIVE_INFINITY;
+  }
+
+  const infantRuleCap = typeof infantCap === "number" ? infantCap : Number.POSITIVE_INFINITY;
+  const infantInputMax = infantsLocked
+    ? 0
+    : Number.isFinite(Math.min(infantPartyRoom, infantRuleCap))
+      ? Math.min(infantPartyRoom, infantRuleCap)
+      : undefined;
+
+  useEffect(() => {
+    if (adultsMax !== undefined && adults > adultsMax) setAdults(adultsMax);
+  }, [adultsMax, adults]);
+
+  useEffect(() => {
+    if (childrenMax !== undefined && children > childrenMax) setChildren(childrenMax);
+  }, [childrenMax, children]);
+
+  useEffect(() => {
+    if (infantsLocked) {
+      if (infants !== 0) setInfants(0);
+      return;
+    }
+    if (infantInputMax !== undefined && infants > infantInputMax) {
+      setInfants(infantInputMax);
+      return;
+    }
+    if (typeof infantCap === "number" && infants > infantCap) setInfants(infantCap);
+  }, [infantsLocked, infantCap, infantInputMax, infants]);
 
   useEffect(() => {
     if (!date || !departureId) {
       setPricing(null);
+      setPricingMessage(null);
       return;
     }
 
@@ -87,27 +178,37 @@ export function BookingFormClient({
             booking_date: date,
             adults,
             children,
-            infants,
+            infants: infantsLocked ? 0 : infants,
           }),
         });
-        const json = await res.json();
+        const json = (await res.json()) as {
+          success?: boolean;
+          message?: string;
+          breakdown?: Record<string, unknown>;
+        };
         if (!res.ok || !json.success) {
           setPricing(null);
+          setPricingMessage(
+            typeof json.message === "string" ? json.message : "Unable to price this party size."
+          );
           return;
         }
+        setPricingMessage(null);
+        const b = json.breakdown as unknown as PricingBreakdown;
         setPricing({
-          ...json.breakdown,
+          ...b,
           adults,
           children,
-          infants,
+          infants: infantsLocked ? 0 : infants,
         });
       } catch {
         setPricing(null);
+        setPricingMessage("Unable to calculate pricing right now.");
       }
     }
 
     fetchPricing();
-  }, [tourId, date, departureId, adults, children, infants]);
+  }, [tourId, date, departureId, adults, children, infants, infantsLocked]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -127,7 +228,7 @@ export function BookingFormClient({
           departure_location_id: departureId,
           adults,
           children,
-          infants,
+          infants: infantsLocked ? 0 : infants,
           customer_first_name: firstName,
           customer_last_name: lastName,
           customer_email: email,
@@ -149,22 +250,35 @@ export function BookingFormClient({
   }
 
   return (
-    <div className="grid gap-12 lg:grid-cols-[1fr_400px] lg:items-start lg:gap-16">
+    <RevealOnView className="grid gap-12 lg:grid-cols-[1fr_400px] lg:items-start lg:gap-16">
       <form onSubmit={onSubmit} className="space-y-8">
         <Card className="rounded-sm border-brand-border shadow-lg shadow-brand-heading/5 ring-1 ring-brand-heading/5">
           <CardHeader className="border-b border-brand-border p-4 md:p-6">
-            <CardTitle className="font-serif text-lg md:text-2xl font-bold">Guests</CardTitle>
+            <CardTitle className="font-sans text-lg font-bold tracking-tight text-brand-heading md:text-2xl">
+              Guests
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-4 md:p-6">
+            {pricingConstraints ? (
+              <p className="mb-4 rounded-sm border border-brand-border bg-brand-surface-soft/70 px-3 py-2.5 text-sm font-medium leading-snug text-brand-body ring-1 ring-brand-heading/5">
+                {guestPartyLimitsShortLine(pricingConstraints, maxGuestsScope)}
+              </p>
+            ) : null}
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
               <div className="flex-1">
                 <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">Adults</label>
                 <input
                   type="number"
                   min={1}
+                  max={adultsMax}
                   className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                   value={adults}
-                  onChange={(e) => setAdults(Number(e.target.value))}
+                  onChange={(e) => {
+                    const raw = Number.parseInt(e.target.value, 10);
+                    if (Number.isNaN(raw)) return;
+                    const capped = adultsMax === undefined ? raw : Math.min(raw, adultsMax);
+                    setAdults(Math.max(1, capped));
+                  }}
                 />
               </div>
               <div className="flex-1">
@@ -172,29 +286,104 @@ export function BookingFormClient({
                 <input
                   type="number"
                   min={0}
+                  max={childrenMax}
                   className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                   value={children}
-                  onChange={(e) => setChildren(Number(e.target.value))}
+                  onChange={(e) => {
+                    const raw = Number.parseInt(e.target.value, 10);
+                    if (Number.isNaN(raw)) return;
+                    const capped = childrenMax === undefined ? raw : Math.min(Math.max(0, raw), childrenMax);
+                    setChildren(capped);
+                  }}
                 />
               </div>
-              <div className="flex-1">
-                <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">Infants</label>
+              <div className={cn("flex-1", infantsLocked && "opacity-50")}>
+                <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">
+                  Infants
+                  {infantsLocked ? (
+                    <span className="ml-2 font-normal normal-case text-brand-muted">(not available)</span>
+                  ) : null}
+                </label>
                 <input
                   type="number"
                   min={0}
-                  className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
-                  value={infants}
-                  onChange={(e) => setInfants(Number(e.target.value))}
+                  max={infantInputMax}
+                  disabled={infantsLocked}
+                  aria-disabled={infantsLocked}
+                  className={cn(
+                    "w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10",
+                    infantsLocked && "cursor-not-allowed bg-brand-surface-soft text-brand-muted"
+                  )}
+                  value={infantsLocked ? 0 : infants}
+                  onChange={(e) => {
+                    if (infantsLocked) return;
+                    const raw = Number.parseInt(e.target.value, 10);
+                    if (Number.isNaN(raw)) return;
+                    const upper =
+                      infantInputMax === undefined ? raw : Math.min(raw, infantInputMax);
+                    setInfants(Math.max(0, upper));
+                  }}
                 />
               </div>
             </div>
-            <p className="mt-4 text-xs text-brand-muted">Infants count toward vehicle capacity.</p>
+            {pricingMessage ? (
+              <div className="mt-4 rounded-sm border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-950">
+                <p>{pricingMessage}</p>
+                {pricingConstraints ? (
+                  <p className="mt-2 border-t border-amber-200/80 pt-2 text-xs font-normal leading-relaxed text-amber-950/95">
+                    Minimum{" "}
+                    <span className="font-bold">{pricingConstraints.minGuests}</span> guests in total (adults +
+                    children + infants).
+                    {maxGuestsScope === "entire_party" ? (
+                      <>
+                        {" "}
+                        Up to <span className="font-bold">{pricingConstraints.maxGuests}</span> guests; everyone in
+                        the party counts toward that maximum.
+                      </>
+                    ) : maxGuestsScope === "adults_and_children_only" ? (
+                      <>
+                        {" "}
+                        Up to <span className="font-bold">{pricingConstraints.maxGuests}</span> adults and children
+                        combined; infants do not use a seat against that cap.
+                      </>
+                    ) : (
+                      <>
+                        {" "}
+                        Up to <span className="font-bold">{pricingConstraints.maxGuests}</span> adults; children and
+                        infants are outside that cap (still subject to the minimum and infant rules).
+                      </>
+                    )}
+                    {pricingConstraints.infantPricingType === "not_allowed" ? (
+                      <> Infants are not offered on this tour.</>
+                    ) : pricingConstraints.infantPricingType === "free" ? (
+                      maxGuestsScope === "entire_party" ? (
+                        <> Infants travel free (still count toward the party maximum).</>
+                      ) : (
+                        <> Infants travel free.</>
+                      )
+                    ) : (
+                      <> Infant seats are priced per the active rule.</>
+                    )}
+                    {typeof pricingConstraints.maxInfants === "number" ? (
+                      <>
+                        {" "}
+                        At most <span className="font-bold">{pricingConstraints.maxInfants}</span> infant
+                        {pricingConstraints.maxInfants === 1 ? "" : "s"} per booking
+                        {pricingConstraints.maxInfants === 0 ? " (none allowed)" : ""}.
+                      </>
+                    ) : null}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 
         <Card className="rounded-sm border-brand-border shadow-lg shadow-brand-heading/5 ring-1 ring-brand-heading/5">
           <CardHeader className="border-b border-brand-border p-4 md:p-6">
-            <CardTitle className="font-serif text-lg md:text-2xl font-bold">Contact details</CardTitle>
+            <CardTitle className="font-sans text-lg font-bold tracking-tight text-brand-heading md:text-2xl">
+              Contact details
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-4 md:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -255,7 +444,7 @@ export function BookingFormClient({
       <aside className="lg:sticky lg:top-40">
         <Card className="rounded-sm border-brand-border shadow-lg shadow-brand-heading/5 ring-1 ring-brand-heading/5">
           <CardHeader className="border-b border-brand-border p-3 md:p-6">
-            <p className="text-lg md:text-2xl font-bold text-brand-heading">{tourTitle}</p>
+            <p className="text-lg md:text-2xl font-bold tracking-tight text-brand-heading">{tourTitle}</p>
           </CardHeader>
           <CardContent className="space-y-4 p-3 md:space-y-6 md:p-6">
             {date && (
@@ -287,10 +476,10 @@ export function BookingFormClient({
                     <span className="text-brand-muted">Child{children !== 1 ? "ren" : ""}</span>
                   </span>
                 )}
-                {infants > 0 && (
+                {effectiveInfants > 0 && (
                   <span className="inline-flex items-center gap-1.5 rounded-sm border border-brand-border bg-brand-surface px-2.5 py-1.5 font-medium text-brand-heading">
-                    <span className="text-brand-primary font-bold">{infants}</span>
-                    <span className="text-brand-muted">Infant{infants !== 1 ? "s" : ""}</span>
+                    <span className="text-brand-primary font-bold">{effectiveInfants}</span>
+                    <span className="text-brand-muted">Infant{effectiveInfants !== 1 ? "s" : ""}</span>
                   </span>
                 )}
               </div>
@@ -335,7 +524,10 @@ export function BookingFormClient({
                     </p>
                   )}
                   {pricing.infants > 0 && (
-                    <p>{pricing.infants} Infant{pricing.infants !== 1 ? "s" : ""} × {formatPrice(pricing.infantUnit, pricing.currency)}</p>
+                    <p>
+                      {pricing.infants} Infant{pricing.infants !== 1 ? "s" : ""} ×{" "}
+                      {formatPrice(pricing.infantUnit, pricing.currency)}
+                    </p>
                   )}
                 </div>
               </div>
@@ -356,6 +548,6 @@ export function BookingFormClient({
           </CardContent>
         </Card>
       </aside>
-    </div>
+    </RevealOnView>
   );
 }

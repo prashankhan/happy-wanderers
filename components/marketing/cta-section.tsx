@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { motion, Variants } from "framer-motion";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/layout/container";
+import { publicRevealItem, publicRevealParent, publicRevealViewport } from "@/lib/motion/public-reveal";
 import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
 
 interface CtaSectionProps {
@@ -13,32 +14,14 @@ interface CtaSectionProps {
 }
 
 export function CtaSection({ imageSrc }: CtaSectionProps) {
-  const containerVariants: Variants = {
-    hidden: { opacity: 0, y: 30 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.8,
-        staggerChildren: 0.1,
-        ease: [0.22, 1, 0.36, 1],
-      },
-    },
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 15 },
-    show: { opacity: 1, y: 0 },
-  };
-
   return (
     <section className="py-24 md:py-32">
       <Container>
         <motion.div
-          variants={containerVariants}
+          variants={publicRevealParent}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={publicRevealViewport}
           className="relative flex flex-col items-start justify-between gap-12 overflow-hidden rounded-md bg-brand-heading px-8 py-16 text-white shadow-2xl ring-1 ring-white/10 md:flex-row md:items-center md:px-14 lg:py-24"
         >
           {/* Immersive background overlay */}
@@ -53,14 +36,14 @@ export function CtaSection({ imageSrc }: CtaSectionProps) {
           </div>
 
           <div className="relative z-10 max-w-xl space-y-6">
-            <motion.h2 
-              variants={itemVariants}
+            <motion.h2
+              variants={publicRevealItem}
               className="font-serif text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl"
             >
               Reserve your rainforest day
             </motion.h2>
-            <motion.p 
-              variants={itemVariants}
+            <motion.p
+              variants={publicRevealItem}
               className="text-lg leading-relaxed text-white/80 md:text-xl"
             >
               Pick a departure that suits you, then checkout securely with Stripe. Prefer to chat first? We reply
@@ -68,8 +51,8 @@ export function CtaSection({ imageSrc }: CtaSectionProps) {
             </motion.p>
           </div>
 
-          <motion.div 
-            variants={itemVariants}
+          <motion.div
+            variants={publicRevealItem}
             className="relative z-10 flex w-full shrink-0 flex-col gap-4 sm:flex-row sm:w-auto"
           >
             <Button asChild variant="primary" className={primaryTourCtaClassName}>

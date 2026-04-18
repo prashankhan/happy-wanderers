@@ -2,6 +2,61 @@ import { and, desc, eq, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { departureLocations, pricingRules } from "@/lib/db/schema";
+import {
+  headcountForMaxGuests,
+  normalizeMaxGuestsScope,
+  type PricingConstraints,
+} from "@/lib/types/pricing-constraints";
+
+export type { PricingConstraints };
+
+type PricingRuleRow = typeof pricingRules.$inferSelect;
+
+async function selectActivePricingRuleForDate(
+  tourId: string,
+  bookingDate: string
+): Promise<{ ok: true; rule: PricingRuleRow } | { ok: false; message: string }> {
+  const rules = await db
+    .select()
+    .from(pricingRules)
+    .where(
+      sql`${pricingRules.tourId} = ${tourId}
+        AND ${pricingRules.isActive} = true
+        AND (${pricingRules.validFrom} IS NULL OR ${pricingRules.validFrom} <= ${bookingDate}::date)
+        AND (${pricingRules.validUntil} IS NULL OR ${pricingRules.validUntil} >= ${bookingDate}::date)`
+    )
+    .orderBy(desc(pricingRules.priority));
+
+  const rule = rules[0];
+  if (!rule) return { ok: false, message: "No pricing rule for this tour" };
+  return { ok: true, rule };
+}
+
+/** Guest-count limits for the active rule on `bookingDate` (same selection as checkout pricing). */
+export async function getPricingConstraints(
+  tourId: string,
+  bookingDate: string
+): Promise<{ ok: true; constraints: PricingConstraints } | { ok: false; message: string }> {
+  const picked = await selectActivePricingRuleForDate(tourId, bookingDate);
+  if (!picked.ok) return picked;
+
+  const { rule } = picked;
+  const infantPricingType = rule.infantPricingType as PricingConstraints["infantPricingType"];
+  const pricingMode = (rule.pricingMode === "package" ? "package" : "per_person") as PricingConstraints["pricingMode"];
+  const maxGuestsScope = normalizeMaxGuestsScope(rule.maxGuestsScope);
+
+  return {
+    ok: true,
+    constraints: {
+      minGuests: rule.minGuests,
+      maxGuests: rule.maxGuests,
+      maxGuestsScope,
+      maxInfants: rule.maxInfants,
+      infantPricingType,
+      pricingMode,
+    },
+  };
+}
 
 export interface PricingBreakdown {
   ruleId: string;
@@ -61,26 +116,30 @@ export async function resolvePricing(input: {
   const loc = locRows[0];
   if (!loc) return { ok: false, message: "Invalid departure location" };
 
-  const rules = await db
-    .select()
-    .from(pricingRules)
-    .where(
-      sql`${pricingRules.tourId} = ${input.tourId}
-        AND ${pricingRules.isActive} = true
-        AND (${pricingRules.validFrom} IS NULL OR ${pricingRules.validFrom} <= ${input.bookingDate}::date)
-        AND (${pricingRules.validUntil} IS NULL OR ${pricingRules.validUntil} >= ${input.bookingDate}::date)`
-    )
-    .orderBy(desc(pricingRules.priority));
-
-  const rule = rules[0];
-  if (!rule) return { ok: false, message: "No pricing rule for this tour" };
+  const rulePick = await selectActivePricingRuleForDate(input.tourId, input.bookingDate);
+  if (!rulePick.ok) return rulePick;
+  const rule = rulePick.rule;
 
   const guestTotal = input.adults + input.children + input.infants;
   if (guestTotal < rule.minGuests) {
     return { ok: false, message: `Minimum ${rule.minGuests} guests required` };
   }
-  if (guestTotal > rule.maxGuests) {
-    return { ok: false, message: `Maximum ${rule.maxGuests} guests allowed` };
+
+  const maxGuestsScope = normalizeMaxGuestsScope(rule.maxGuestsScope);
+  const maxHeadcount = headcountForMaxGuests(
+    maxGuestsScope,
+    input.adults,
+    input.children,
+    input.infants
+  );
+  if (maxHeadcount > rule.maxGuests) {
+    const scopeHint =
+      maxGuestsScope === "entire_party"
+        ? ""
+        : maxGuestsScope === "adults_and_children_only"
+          ? " (adults and children only; infants are extra)"
+          : " (adults only)";
+    return { ok: false, message: `Maximum ${rule.maxGuests} guests allowed${scopeHint}` };
   }
 
   const infantType = rule.infantPricingType;

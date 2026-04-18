@@ -126,7 +126,7 @@ test.describe("Admin bookings (browser)", () => {
 
     const updateRes = await updatePromise;
     const status = updateRes.status();
-    const body = (await updateRes.json().catch(() => ({}))) as { message?: string };
+    const body = (await updateRes.json().catch(() => ({}))) as { message?: string; success?: boolean };
 
     // eslint-disable-next-line no-console -- e2e documents live API behaviour for humans/CI logs
     console.log(

@@ -442,7 +442,7 @@ export function SystemSettingsForm({ initial }: SystemSettingsFormProps) {
       </div>
 
       <div className="flex flex-wrap items-center gap-4">
-        <Button type="submit" variant="primary" disabled={pending || !isDirty}>
+        <Button type="submit" variant="primary" size="sm" disabled={pending || !isDirty}>
           {pending ? "Saving…" : "Save settings"}
         </Button>
         {message ? (

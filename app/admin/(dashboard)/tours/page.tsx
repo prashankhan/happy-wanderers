@@ -19,7 +19,7 @@ export default async function AdminToursPage() {
         <div>
           <h1 className="text-2xl font-bold text-brand-heading">Tours</h1>
           <p className="mt-1 text-sm text-brand-muted">
-            Add new tours as drafts, then edit content, departures, pricing, and publishing.
+            Add new tours as drafts, then edit content, pickups, pricing, and publishing.
           </p>
         </div>
         {isAdmin ? <CreateTourButton /> : null}

@@ -5,11 +5,22 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { AdminCombobox } from "@/components/admin/admin-combobox";
+import { AdminStringListField } from "@/components/admin/admin-string-list-field";
 import { AddPricingRuleModal } from "@/components/admin/add-pricing-rule-modal";
+import { TourDeparturesEditor } from "@/components/admin/tour-departures-editor";
 import { adminFieldBaseClass, adminFieldClass, adminTextareaClass } from "@/components/admin/form-field-styles";
 import { Toast, useToast } from "@/components/admin/toast";
 import { TourMediaSection } from "@/components/admin/tour-media-section";
 import { Button } from "@/components/ui/button";
+import { normalizeMaxGuestsScope, type MaxGuestsScope } from "@/lib/types/pricing-constraints";
+import { PRICING_GUESTS_ORDER_TOAST, pricingGuestsOrderDetail } from "@/lib/ui/pricing-guest-limit-copy";
+import { cn } from "@/lib/utils/cn";
+
+const MAX_GUESTS_SCOPE_OPTIONS: { value: MaxGuestsScope; label: string }[] = [
+  { value: "entire_party", label: "Whole party (adults + children + infants)" },
+  { value: "adults_and_children_only", label: "Adults & children only (infants extra)" },
+  { value: "adults_only", label: "Adults only (children & infants extra)" },
+];
 
 /** Matches `getUTCDay()` / availability engine: 0 = Sunday … 6 = Saturday */
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -57,12 +68,26 @@ export interface PricingRuleRow {
   infantPricingType: string;
   minGuests: number;
   maxGuests: number;
+  maxGuestsScope: MaxGuestsScope;
   maxInfants: number | null;
   currencyCode: string;
   validFrom: string | null;
   validUntil: string | null;
   priority: number;
   isActive: boolean;
+}
+
+/** `max_infants` is meaningless when infants are not allowed; align UI + dirty checks with that invariant. */
+function normalizePricingRules(rules: PricingRuleRow[]): PricingRuleRow[] {
+  return rules.map((rule) => {
+    const base = rule.infantPricingType === "not_allowed" ? { ...rule, maxInfants: null } : rule;
+    return {
+      ...base,
+      maxGuestsScope: normalizeMaxGuestsScope(
+        (base as { maxGuestsScope?: string | null }).maxGuestsScope
+      ),
+    };
+  });
 }
 
 interface AvailabilityRuleRow {
@@ -100,9 +125,9 @@ interface TourEditorContentState {
   display_order: number;
   seo_title: string;
   seo_description: string;
-  inclusions: string;
-  exclusions: string;
-  what_to_bring: string;
+  inclusions: string[];
+  exclusions: string[];
+  what_to_bring: string[];
 }
 
 export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTabsProps) {
@@ -126,7 +151,9 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
 
   const [rules, setRules] = useState<AvailabilityRuleRow[] | null>(null);
   const [savedRules, setSavedRules] = useState<AvailabilityRuleRow[] | null>(null);
-  const [pricing, setPricing] = useState<PricingRuleRow[]>(initialPricingRules ?? []);
+  const [pricing, setPricing] = useState<PricingRuleRow[]>(() =>
+    normalizePricingRules(initialPricingRules ?? [])
+  );
   const [pricingDrafts, setPricingDrafts] = useState<Record<string, PricingRuleRow>>({});
 
   const loadRules = useCallback(async () => {
@@ -146,7 +173,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
     const res = await fetch(`/api/admin/pricing?tour_id=${encodeURIComponent(tour.id)}`);
     if (!res.ok) return;
     const data = (await res.json()) as PricingRuleRow[];
-    setPricing(data);
+    setPricing(normalizePricingRules(data));
   }, [isAdmin, tour.id]);
 
   useEffect(() => {
@@ -189,18 +216,9 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
         display_order: content.display_order,
         seo_title: content.seo_title || null,
         seo_description: content.seo_description || null,
-        inclusions: content.inclusions
-          .split("\n")
-          .map((s) => s.trim())
-          .filter(Boolean),
-        exclusions: content.exclusions
-          .split("\n")
-          .map((s) => s.trim())
-          .filter(Boolean),
-        what_to_bring: content.what_to_bring
-          .split("\n")
-          .map((s) => s.trim())
-          .filter(Boolean),
+        inclusions: content.inclusions,
+        exclusions: content.exclusions,
+        what_to_bring: content.what_to_bring,
       };
       const res = await fetch(`/api/admin/tours/${tour.id}`, {
         method: "PATCH",
@@ -247,6 +265,17 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
     const original = pricing.find((rule) => rule.id === id);
     const draft = pricingDrafts[id];
     if (!original || !draft) return;
+    if (draft.maxGuests < draft.minGuests) {
+      showToast(PRICING_GUESTS_ORDER_TOAST, "error");
+      return;
+    }
+    if (
+      draft.infantPricingType === "fixed" &&
+      !/^\d+(\.\d{1,2})?$/.test(String(draft.infantPrice ?? "").trim())
+    ) {
+      showToast("Enter a valid infant price for Fixed infant pricing.", "error");
+      return;
+    }
     setPending(true);
     try {
       const res = await fetch("/api/admin/pricing/update", {
@@ -266,7 +295,8 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           infant_pricing_type: draft.infantPricingType,
           min_guests: draft.minGuests,
           max_guests: draft.maxGuests,
-          max_infants: draft.maxInfants,
+          max_guests_scope: draft.maxGuestsScope,
+          max_infants: draft.infantPricingType === "not_allowed" ? null : draft.maxInfants,
           priority: draft.priority,
           is_active: draft.isActive,
         }),
@@ -300,6 +330,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
       draft.infantPricingType !== original.infantPricingType ||
       draft.minGuests !== original.minGuests ||
       draft.maxGuests !== original.maxGuests ||
+      draft.maxGuestsScope !== original.maxGuestsScope ||
       draft.maxInfants !== original.maxInfants ||
       draft.priority !== original.priority ||
       draft.isActive !== original.isActive
@@ -333,13 +364,13 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
     <Tabs.Root defaultValue="content" className="space-y-4">
       {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
       <Tabs.List className="flex gap-1 overflow-x-auto border-b border-brand-border pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {["content", "pricing", "availability", "media", "settings"].map((tab) => (
+        {["content", "pickups", "pricing", "availability", "media", "settings"].map((tab) => (
           <Tabs.Trigger
             key={tab}
             value={tab}
             className="rounded-sm px-3 py-2 text-sm text-brand-body data-[state=active]:bg-brand-surface data-[state=active]:font-semibold data-[state=active]:text-brand-heading"
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab === "pickups" ? "Pickups" : tab.charAt(0).toUpperCase() + tab.slice(1)}
           </Tabs.Trigger>
         ))}
       </Tabs.List>
@@ -451,39 +482,49 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
               disabled={!isAdmin || pending}
             />
           </label>
-          <label className="text-xs font-medium text-brand-muted md:col-span-2">
-            Inclusions (one per line)
-            <textarea
-              className={`mt-1 ${adminTextareaClass} min-h-[80px]`}
-              value={content.inclusions}
-              onChange={(e) => setContent((c) => ({ ...c, inclusions: e.target.value }))}
-              disabled={!isAdmin || pending}
-            />
-          </label>
-          <label className="text-xs font-medium text-brand-muted md:col-span-2">
-            Exclusions (one per line)
-            <textarea
-              className={`mt-1 ${adminTextareaClass} min-h-[80px]`}
-              value={content.exclusions}
-              onChange={(e) => setContent((c) => ({ ...c, exclusions: e.target.value }))}
-              disabled={!isAdmin || pending}
-            />
-          </label>
-          <label className="text-xs font-medium text-brand-muted md:col-span-2">
-            What to bring (one per line)
-            <textarea
-              className={`mt-1 ${adminTextareaClass} min-h-[80px]`}
-              value={content.what_to_bring}
-              onChange={(e) => setContent((c) => ({ ...c, what_to_bring: e.target.value }))}
-              disabled={!isAdmin || pending}
-            />
-          </label>
+          <AdminStringListField
+            label="Inclusions"
+            items={content.inclusions}
+            onItemsChange={(inclusions) => setContent((c) => ({ ...c, inclusions }))}
+            disabled={!isAdmin || pending}
+          />
+          <AdminStringListField
+            label="Exclusions"
+            items={content.exclusions}
+            onItemsChange={(exclusions) => setContent((c) => ({ ...c, exclusions }))}
+            disabled={!isAdmin || pending}
+          />
+          <AdminStringListField
+            label="What to bring"
+            items={content.what_to_bring}
+            onItemsChange={(what_to_bring) => setContent((c) => ({ ...c, what_to_bring }))}
+            disabled={!isAdmin || pending}
+          />
         </div>
         {isAdmin ? (
-          <Button type="button" onClick={() => void saveContent()} disabled={pending || !isContentDirty}>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={() => void saveContent()}
+            disabled={pending || !isContentDirty}
+          >
             Save content
           </Button>
         ) : null}
+      </Tabs.Content>
+
+      <Tabs.Content value="pickups" className="space-y-4 rounded-sm border border-brand-border bg-white p-6">
+        {!isAdmin ? (
+          <p className="text-sm text-brand-body">Pickups are visible to admins only.</p>
+        ) : (
+          <TourDeparturesEditor
+            tourId={tour.id}
+            pending={pending}
+            onPendingChange={setPending}
+            showToast={showToast}
+          />
+        )}
       </Tabs.Content>
 
       <Tabs.Content value="pricing" className="space-y-4 rounded-sm border border-brand-border bg-white p-6">
@@ -501,7 +542,13 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
               />
             </div>
             <ul className="space-y-4">
-              {pricing.map((r) => (
+              {pricing.map((r) => {
+                const d = pricingDrafts[r.id] ?? r;
+                const guestRangeInvalid = d.maxGuests < d.minGuests;
+                const infantFixedPriceInvalid =
+                  d.infantPricingType === "fixed" &&
+                  !/^\d+(\.\d{1,2})?$/.test(String(d.infantPrice ?? "").trim());
+                return (
                 <li key={r.id} className="rounded-sm border border-brand-border p-4">
                   {isPricingRuleDirty(r.id) ? (
                     <p className="mb-2 text-xs font-medium text-amber-700">Unsaved changes</p>
@@ -511,7 +558,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                       Label
                       <input
                         className={`mt-1 ${adminFieldClass}`}
-                        value={pricingDrafts[r.id]?.label ?? r.label}
+                        value={d.label}
                         onChange={(e) =>
                           setPricingDrafts((prev) => ({
                             ...prev,
@@ -524,7 +571,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                       Pricing model
                       <AdminCombobox
                         className={`mt-1 ${adminFieldClass}`}
-                        value={pricingDrafts[r.id]?.pricingMode ?? r.pricingMode}
+                        value={d.pricingMode}
                         onValueChange={(nextPricingMode) =>
                           setPricingDrafts((prev) => ({
                             ...prev,
@@ -545,8 +592,13 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                       <input
                         type="number"
                         min={1}
-                        className={`mt-1 ${adminFieldClass}`}
-                        value={String(pricingDrafts[r.id]?.minGuests ?? r.minGuests)}
+                        aria-invalid={guestRangeInvalid}
+                        className={cn(
+                          `mt-1 ${adminFieldClass}`,
+                          guestRangeInvalid &&
+                            "border-red-500 ring-2 ring-red-500/25 focus:border-red-500 focus:ring-red-500/30"
+                        )}
+                        value={String(d.minGuests)}
                         onChange={(e) =>
                           setPricingDrafts((prev) => ({
                             ...prev,
@@ -560,8 +612,13 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                       <input
                         type="number"
                         min={1}
-                        className={`mt-1 ${adminFieldClass}`}
-                        value={String(pricingDrafts[r.id]?.maxGuests ?? r.maxGuests)}
+                        aria-invalid={guestRangeInvalid}
+                        className={cn(
+                          `mt-1 ${adminFieldClass}`,
+                          guestRangeInvalid &&
+                            "border-red-500 ring-2 ring-red-500/25 focus:border-red-500 focus:ring-red-500/30"
+                        )}
+                        value={String(d.maxGuests)}
                         onChange={(e) =>
                           setPricingDrafts((prev) => ({
                             ...prev,
@@ -570,6 +627,28 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                         }
                       />
                     </label>
+                    <label className="text-xs font-medium text-brand-muted md:col-span-2">
+                      Who counts toward max guests
+                      <AdminCombobox
+                        className={`mt-1 ${adminFieldClass}`}
+                        value={d.maxGuestsScope}
+                        onValueChange={(nextScope) =>
+                          setPricingDrafts((prev) => ({
+                            ...prev,
+                            [r.id]: {
+                              ...(prev[r.id] ?? r),
+                              maxGuestsScope: nextScope as MaxGuestsScope,
+                            },
+                          }))
+                        }
+                        options={MAX_GUESTS_SCOPE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+                      />
+                    </label>
+                    {guestRangeInvalid ? (
+                      <p className="text-xs font-medium leading-snug text-red-600 md:col-span-3">
+                        {pricingGuestsOrderDetail(d.minGuests, d.maxGuests)}
+                      </p>
+                    ) : null}
                     <label className="text-xs font-medium text-brand-muted">
                       Adult price
                       <input
@@ -596,7 +675,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                         }
                       />
                     </label>
-                    {(pricingDrafts[r.id]?.pricingMode ?? r.pricingMode) === "package" ? (
+                    {d.pricingMode === "package" ? (
                       <>
                         <label className="text-xs font-medium text-brand-muted">
                           Included adults
@@ -669,10 +748,20 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                         className={`mt-1 ${adminFieldClass}`}
                         value={pricingDrafts[r.id]?.infantPricingType ?? r.infantPricingType}
                         onValueChange={(nextInfantPricingType) =>
-                          setPricingDrafts((prev) => ({
-                            ...prev,
-                            [r.id]: { ...(prev[r.id] ?? r), infantPricingType: nextInfantPricingType },
-                          }))
+                          setPricingDrafts((prev) => {
+                            const row = prev[r.id] ?? r;
+                            const next: PricingRuleRow = {
+                              ...row,
+                              infantPricingType: nextInfantPricingType,
+                            };
+                            if (nextInfantPricingType === "not_allowed") {
+                              next.maxInfants = null;
+                            }
+                            if (nextInfantPricingType === "free") {
+                              next.infantPrice = "0";
+                            }
+                            return { ...prev, [r.id]: next };
+                          })
                         }
                         options={[
                           { value: "free", label: "Free" },
@@ -680,6 +769,52 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                           { value: "not_allowed", label: "Not allowed" },
                         ]}
                       />
+                    </label>
+                    <label className="text-xs font-medium text-brand-muted">
+                      Infant price
+                      {d.infantPricingType === "fixed" ? (
+                        <>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            aria-invalid={infantFixedPriceInvalid}
+                            className={cn(
+                              `mt-1 ${adminFieldClass}`,
+                              infantFixedPriceInvalid &&
+                                "border-red-500 ring-2 ring-red-500/25 focus:border-red-500 focus:ring-red-500/30"
+                            )}
+                            value={d.infantPrice}
+                            onChange={(e) =>
+                              setPricingDrafts((prev) => ({
+                                ...prev,
+                                [r.id]: { ...(prev[r.id] ?? r), infantPrice: e.target.value },
+                              }))
+                            }
+                          />
+                          {infantFixedPriceInvalid ? (
+                            <p className="mt-1 text-xs font-medium text-red-600">
+                              Enter a positive amount (e.g. 25 or 25.00).
+                            </p>
+                          ) : null}
+                        </>
+                      ) : (
+                        <input
+                          type="text"
+                          disabled
+                          readOnly
+                          title={
+                            d.infantPricingType === "free"
+                              ? "Infants are free — no per-infant charge at checkout."
+                              : "Infants are not sold on this rule."
+                          }
+                          className={cn(
+                            `mt-1 ${adminFieldClass}`,
+                            "cursor-not-allowed bg-brand-surface-soft text-brand-muted opacity-80"
+                          )}
+                          value={d.infantPricingType === "free" ? "0 (free)" : "—"}
+                        />
+                      )}
                     </label>
                     <label className="text-xs font-medium text-brand-muted">
                       Priority
@@ -700,17 +835,40 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                       <input
                         type="number"
                         min={0}
-                        className={`mt-1 ${adminFieldClass}`}
-                        value={pricingDrafts[r.id]?.maxInfants === null ? "" : String(pricingDrafts[r.id]?.maxInfants ?? r.maxInfants ?? "")}
-                        onChange={(e) =>
+                        disabled={
+                          (pricingDrafts[r.id]?.infantPricingType ?? r.infantPricingType) === "not_allowed"
+                        }
+                        aria-disabled={
+                          (pricingDrafts[r.id]?.infantPricingType ?? r.infantPricingType) === "not_allowed"
+                        }
+                        title={
+                          (pricingDrafts[r.id]?.infantPricingType ?? r.infantPricingType) === "not_allowed"
+                            ? "Not used when infant pricing is Not allowed"
+                            : undefined
+                        }
+                        className={cn(
+                          `mt-1 ${adminFieldClass}`,
+                          (pricingDrafts[r.id]?.infantPricingType ?? r.infantPricingType) === "not_allowed" &&
+                            "cursor-not-allowed bg-brand-surface-soft text-brand-muted opacity-80"
+                        )}
+                        value={
+                          (pricingDrafts[r.id]?.infantPricingType ?? r.infantPricingType) === "not_allowed"
+                            ? ""
+                            : pricingDrafts[r.id]?.maxInfants === null
+                              ? ""
+                              : String(pricingDrafts[r.id]?.maxInfants ?? r.maxInfants ?? "")
+                        }
+                        onChange={(e) => {
+                          if ((pricingDrafts[r.id]?.infantPricingType ?? r.infantPricingType) === "not_allowed")
+                            return;
                           setPricingDrafts((prev) => ({
                             ...prev,
                             [r.id]: {
                               ...(prev[r.id] ?? r),
                               maxInfants: e.target.value === "" ? null : Number(e.target.value),
                             },
-                          }))
-                        }
+                          }));
+                        }}
                       />
                     </label>
                     <label className="flex items-center gap-2 text-xs font-medium text-brand-muted">
@@ -733,7 +891,9 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                       variant="primary"
                       size="sm"
                       onClick={() => void savePricingRule(r.id)}
-                      disabled={pending || !isPricingRuleDirty(r.id)}
+                      disabled={
+                        pending || !isPricingRuleDirty(r.id) || guestRangeInvalid || infantFixedPriceInvalid
+                      }
                     >
                       Save changes
                     </Button>
@@ -742,7 +902,8 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                     </Button>
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           </>
         )}
@@ -798,7 +959,13 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
               ))}
             </div>
             {isAdmin ? (
-              <Button type="button" onClick={() => void saveAvailability()} disabled={pending || !isAvailabilityDirty}>
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() => void saveAvailability()}
+                disabled={pending || !isAvailabilityDirty}
+              >
                 Save weekday rules
               </Button>
             ) : (
@@ -916,7 +1083,13 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
               </div>
             </div>
 
-            <Button type="button" onClick={() => void saveContent()} disabled={pending || !isContentDirty}>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={() => void saveContent()}
+              disabled={pending || !isContentDirty}
+            >
               Save settings
             </Button>
           </>
@@ -949,9 +1122,9 @@ function buildTourEditorContentState(tour: SerializedTour): TourEditorContentSta
     display_order: tour.displayOrder,
     seo_title: tour.seoTitle ?? "",
     seo_description: tour.seoDescription ?? "",
-    inclusions: (tour.inclusions ?? []).join("\n"),
-    exclusions: (tour.exclusions ?? []).join("\n"),
-    what_to_bring: (tour.whatToBring ?? []).join("\n"),
+    inclusions: [...(tour.inclusions ?? [])],
+    exclusions: [...(tour.exclusions ?? [])],
+    what_to_bring: [...(tour.whatToBring ?? [])],
   };
 }
 

@@ -205,7 +205,7 @@ export function BookingListModal({ tourId, date, open, onOpenChange }: BookingLi
 
           <div className="mt-4 flex justify-end">
             <Dialog.Close asChild>
-              <Button type="button" variant="secondary">
+              <Button type="button" variant="secondary" size="sm">
                 Close
               </Button>
             </Dialog.Close>
