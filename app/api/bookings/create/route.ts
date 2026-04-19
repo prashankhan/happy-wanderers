@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { createWebsitePendingBooking } from "@/lib/services/bookings";
+import { getSiteUrl } from "@/lib/site-url";
 import { getRequestIp, isRateLimited } from "@/lib/utils/rate-limit";
 
 const bodySchema = z.object({
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const appUrl = getSiteUrl();
 
     Sentry.getCurrentScope().setContext("booking_lifecycle", {
       operation_type: "website_booking_create",

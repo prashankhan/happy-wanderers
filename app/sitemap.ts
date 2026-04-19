@@ -3,11 +3,12 @@ import { and, asc, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { tours } from "@/lib/db/schema";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const base = getSiteUrl();
 
   let slugs: { slug: string; updatedAt: Date }[] = [];
   try {

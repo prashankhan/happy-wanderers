@@ -18,28 +18,49 @@ interface ContactFormProps {
   centerSubmit?: boolean;
 }
 
+function formEntryToString(value: FormDataEntryValue | null): string {
+  if (value == null) return "";
+  return typeof value === "string" ? value : value.name;
+}
+
 export function ContactForm({ centerSubmit = false }: ContactFormProps) {
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    const phoneRaw = formEntryToString(fd.get("phone"));
+    const topicRaw = formEntryToString(fd.get("topic"));
+    setErrorMessage(null);
     setStatus("loading");
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: fd.get("name"),
-          email: fd.get("email"),
-          phone: fd.get("phone") || null,
-          topic: fd.get("topic") || null,
-          message: fd.get("message"),
+          name: formEntryToString(fd.get("name")),
+          email: formEntryToString(fd.get("email")),
+          phone: phoneRaw.trim() === "" ? null : phoneRaw,
+          topic: topicRaw.trim() === "" ? null : topicRaw,
+          message: formEntryToString(fd.get("message")),
         }),
       });
-      if (!res.ok) throw new Error("fail");
+      const data = (await res.json().catch(() => ({}))) as { message?: string };
+      if (!res.ok) {
+        setErrorMessage(
+          typeof data.message === "string" && data.message.length > 0
+            ? data.message
+            : res.status === 429
+              ? "Too many requests. Please wait a few minutes and try again."
+              : "Could not send. Please check your data and try again."
+        );
+        setStatus("error");
+        return;
+      }
       setStatus("done");
     } catch {
+      setErrorMessage("Network error. Check your connection and try again.");
       setStatus("error");
     }
   }
@@ -108,6 +129,7 @@ export function ContactForm({ centerSubmit = false }: ContactFormProps) {
           required
           name="message"
           rows={6}
+          minLength={5}
           placeholder="How can we help you plan your rainforest day?"
           className={publicFormFieldClass}
         />
@@ -125,8 +147,9 @@ export function ContactForm({ centerSubmit = false }: ContactFormProps) {
               "mb-4 rounded-sm border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-600",
               centerSubmit && "w-full max-w-md"
             )}
+            role="alert"
           >
-            Could not send. Please check your data and try again.
+            {errorMessage ?? "Could not send. Please check your data and try again."}
           </p>
         ) : null}
         {status === "done" ? (

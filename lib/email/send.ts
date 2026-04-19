@@ -305,10 +305,10 @@ export async function sendContactAlert(input: {
   topic?: string | null;
   message: string;
 }) {
-  const settings = await getSystemSettings();
-  if (!settings.adminAlertEmail) return;
-  const from = resolveResendFromForSend(settings);
   try {
+    const settings = await getSystemSettings();
+    if (!settings.adminAlertEmail) return;
+    const from = resolveResendFromForSend(settings);
     const resend = getResend();
     const result = await resend.emails.send({
       from,
@@ -320,7 +320,7 @@ export async function sendContactAlert(input: {
   } catch (e) {
     captureEmailFailure(e, {
       email_type: "contact_notification",
-      recipient_email: settings.adminAlertEmail,
+      recipient_email: undefined,
     });
   }
 }

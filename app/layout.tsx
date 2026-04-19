@@ -5,6 +5,7 @@ import "./globals.css";
 
 import { brandFaviconPath } from "@/lib/branding";
 import { AppProviders } from "@/components/providers/app-providers";
+import { getSiteUrl } from "@/lib/site-url";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -21,8 +22,10 @@ const playfairDisplayItalic = Playfair_Display({
   display: "swap",
 });
 
+const siteUrl = getSiteUrl();
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Happy Wanderers — Rainforest Tours",
     template: "%s — Happy Wanderers",
@@ -32,6 +35,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_AU",
+    url: siteUrl,
   },
   icons: {
     icon: [{ url: brandFaviconPath, type: "image/png" }],

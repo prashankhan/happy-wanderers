@@ -5,13 +5,21 @@ import { db } from "@/lib/db";
 import { contactMessages } from "@/lib/db/schema";
 import { sendContactAlert } from "@/lib/email/send";
 import { getRequestIp, isRateLimited } from "@/lib/utils/rate-limit";
+import { zodErrorToApiMessage } from "@/lib/utils/zod-api-message";
+
+const emptyToNull = (v: unknown) => {
+  if (v == null) return null;
+  if (typeof v !== "string") return v;
+  const t = v.trim();
+  return t.length === 0 ? null : t;
+};
 
 const bodySchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  phone: z.string().optional().nullable(),
-  topic: z.string().optional().nullable(),
-  message: z.string().min(5),
+  name: z.string().trim().min(1, "Please enter your name."),
+  email: z.string().trim().email("Please enter a valid email address."),
+  phone: z.preprocess(emptyToNull, z.string().nullable().optional()),
+  topic: z.preprocess(emptyToNull, z.string().nullable().optional()),
+  message: z.string().trim().min(5, "Please enter at least 5 characters in your message."),
 });
 
 export async function POST(request: Request) {
@@ -36,7 +44,10 @@ export async function POST(request: Request) {
   }
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ success: false, message: "Validation failed" }, { status: 400 });
+    return NextResponse.json(
+      { success: false, message: zodErrorToApiMessage(parsed.error, "Please check the form and try again.") },
+      { status: 400 }
+    );
   }
 
   try {
