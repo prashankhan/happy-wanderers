@@ -8,23 +8,30 @@ const handleAuth = auth((req) => {
 
   if (pathname.startsWith("/api/admin")) {
     if (!req.auth) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+      // Do not reveal admin API surface to unauthenticated probes.
+      return new NextResponse("Not Found", { status: 404 });
     }
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set("x-robots-tag", "noindex, nofollow, noarchive, nosnippet");
+    return response;
   }
 
   if (pathname === "/admin/login") {
     if (req.auth) {
       return NextResponse.redirect(new URL("/admin", req.url));
     }
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set("x-robots-tag", "noindex, nofollow, noarchive, nosnippet");
+    return response;
   }
 
   if (!req.auth) {
     return NextResponse.redirect(new URL("/admin/login", req.url));
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  response.headers.set("x-robots-tag", "noindex, nofollow, noarchive, nosnippet");
+  return response;
 });
 
 export function proxy(request: NextRequest, event: NextFetchEvent) {

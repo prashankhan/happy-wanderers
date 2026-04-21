@@ -163,6 +163,394 @@ async function seedTourDaintreeIfMissing(): Promise<string> {
   return tourId;
 }
 
+/** Additional demo tours (idempotent per slug). */
+const EXTRA_DEMO_TOURS: {
+  slug: string;
+  title: string;
+  shortDescription: string;
+  description: string;
+  durationText: string;
+  durationMinutes: number;
+  groupSizeText: string;
+  defaultCapacity: number;
+  priceFromText: string;
+  locationRegion: string;
+  inclusions: string[];
+  exclusions: string[];
+  whatToBring: string[];
+  pickupNotes: string;
+  heroBadge: string | null;
+  bookingCutoffHours: number;
+  isFeatured: boolean;
+  displayOrder: number;
+  seoTitle: string;
+  seoDescription: string;
+  pickupName: string;
+  pickupTime: string;
+  pickupTimeLabel: string;
+  adultPrice: string;
+  childPrice: string;
+}[] = [
+  {
+    slug: "atherton-tablelands-day",
+    title: "Atherton Tablelands — Waterfalls & Local Produce",
+    shortDescription: "Cool-climate villages, crater lakes, and artisan tastings above the coastal heat.",
+    description:
+      "Wind through the Tablelands with timed stops at curtain fig trees, millaa millaa falls, and a working coffee plantation. Lunch at a country pub and time for gallery browsing in Yungaburra.",
+    durationText: "Full day",
+    durationMinutes: 600,
+    groupSizeText: "Max 14 guests",
+    defaultCapacity: 14,
+    priceFromText: "From AUD 165",
+    locationRegion: "Atherton Tablelands",
+    inclusions: ["Guided walks", "Morning tea", "National park entry"],
+    exclusions: ["Lunch (optional add-on)", "Hotel pickup outside Cairns"],
+    whatToBring: ["Sun hat", "Water bottle", "Light jacket"],
+    pickupNotes: "Hotel pickups from 6:45 AM in Cairns northern beaches.",
+    heroBadge: "High country",
+    bookingCutoffHours: 18,
+    isFeatured: true,
+    displayOrder: 2,
+    seoTitle: "Atherton Tablelands day tour from Cairns",
+    seoDescription: "Waterfalls, villages, and produce in the Cairns hinterland.",
+    pickupName: "Cairns City (default)",
+    pickupTime: "06:45",
+    pickupTimeLabel: "6:45 AM",
+    adultPrice: "165",
+    childPrice: "125",
+  },
+  {
+    slug: "kuranda-scenic-rail-skyrail",
+    title: "Kuranda Scenic Rail & Skyrail Classic",
+    shortDescription: "World Heritage rainforest views by rail and cableway with village free time.",
+    description:
+      "Take the historic Kuranda Scenic Railway up through hand-built tunnels, then return over the canopy on Skyrail. Free time in Kuranda for markets and wildlife parks (own cost).",
+    durationText: "7 hours",
+    durationMinutes: 420,
+    groupSizeText: "Max 20 guests",
+    defaultCapacity: 20,
+    priceFromText: "From AUD 142",
+    locationRegion: "Cairns & Kuranda",
+    inclusions: ["Rail + Skyrail tickets", "Coach transfers"],
+    exclusions: ["Wildlife park entries", "Lunch"],
+    whatToBring: ["Camera", "Comfortable shoes"],
+    pickupNotes: "Pickup times vary by hotel — confirmation SMS the day prior.",
+    heroBadge: "Classic combo",
+    bookingCutoffHours: 24,
+    isFeatured: true,
+    displayOrder: 3,
+    seoTitle: "Kuranda Scenic Rail and Skyrail",
+    seoDescription: "Rainforest rail journey and cableway with Kuranda village time.",
+    pickupName: "Cairns Central pickup zone",
+    pickupTime: "07:15",
+    pickupTimeLabel: "7:15 AM",
+    adultPrice: "142",
+    childPrice: "98",
+  },
+  {
+    slug: "great-barrier-reef-snorkel",
+    title: "Great Barrier Reef Snorkel Adventure",
+    shortDescription: "Outer reef pontoon with guided snorkel sessions and lunch included.",
+    description:
+      "Fast catamaran to a stable outer-reef platform, equipment, snorkel briefings, and optional intro dive upgrades. Family-friendly with shallow lagoons and deeper drop-offs.",
+    durationText: "8 hours",
+    durationMinutes: 480,
+    groupSizeText: "Max 120 guests",
+    defaultCapacity: 120,
+    priceFromText: "From AUD 265",
+    locationRegion: "Cairns & Reef",
+    inclusions: ["Snorkel gear", "Buffet lunch", "Morning tea"],
+    exclusions: ["Scuba supplements", "Wetsuit hire"],
+    whatToBring: ["Towel", "Swimwear", "Cash for bar"],
+    pickupNotes: "Check-in at Reef Fleet Terminal 7:30 AM sharp.",
+    heroBadge: "Reef",
+    bookingCutoffHours: 12,
+    isFeatured: true,
+    displayOrder: 4,
+    seoTitle: "Outer Great Barrier Reef snorkel from Cairns",
+    seoDescription: "Full-day outer reef snorkelling with lunch from Cairns.",
+    pickupName: "Reef Fleet Terminal",
+    pickupTime: "07:30",
+    pickupTimeLabel: "7:30 AM",
+    adultPrice: "265",
+    childPrice: "155",
+  },
+  {
+    slug: "mossman-gorge-guided",
+    title: "Mossman Gorge Dreamtime Walk",
+    shortDescription: "Ngadiku-led storytelling walk with river swim stop (seasonal).",
+    description:
+      "Small-group cultural experience on Kuku Yalanji country with smoking ceremony, rainforest interpretation, and optional swim where conditions allow.",
+    durationText: "Half day",
+    durationMinutes: 240,
+    groupSizeText: "Max 18 guests",
+    defaultCapacity: 18,
+    priceFromText: "From AUD 98",
+    locationRegion: "Port Douglas & Mossman",
+    inclusions: ["Indigenous guide", "Park transfers"],
+    exclusions: ["Transfers from Cairns", "Lunch"],
+    whatToBring: ["Swimwear", "Towel", "Insect repellent"],
+    pickupNotes: "Meet at Mossman Gorge centre — self-drive or add coach from Port Douglas.",
+    heroBadge: "Culture",
+    bookingCutoffHours: 12,
+    isFeatured: false,
+    displayOrder: 5,
+    seoTitle: "Mossman Gorge guided walk",
+    seoDescription: "Indigenous-led Mossman Gorge experience near Port Douglas.",
+    pickupName: "Mossman Gorge Visitor Centre",
+    pickupTime: "09:00",
+    pickupTimeLabel: "9:00 AM",
+    adultPrice: "98",
+    childPrice: "72",
+  },
+  {
+    slug: "cape-tribulation-beach-day",
+    title: "Cape Tribulation Beach & Boardwalk",
+    shortDescription: "Where the rainforest meets the reef — beach time and elevated walks.",
+    description:
+      "Scenic drive with ferry crossing, guided boardwalk, and free time at Myall Beach. Optional ice-cream stop at the heritage orchard.",
+    durationText: "Full day",
+    durationMinutes: 660,
+    groupSizeText: "Max 16 guests",
+    defaultCapacity: 16,
+    priceFromText: "From AUD 199",
+    locationRegion: "Daintree & Cape Tribulation",
+    inclusions: ["Guided commentary", "Ferry", "National park fees"],
+    exclusions: ["Lunch"],
+    whatToBring: ["Swimwear", "Reef-safe sunscreen"],
+    pickupNotes: "Pickup from Port Douglas 7:00 AM or Cairns 6:00 AM (select hotels).",
+    heroBadge: "Beach",
+    bookingCutoffHours: 24,
+    isFeatured: true,
+    displayOrder: 6,
+    seoTitle: "Cape Tribulation day tour",
+    seoDescription: "Rainforest meets reef — Cape Tribulation from Cairns or Port Douglas.",
+    pickupName: "Port Douglas Marina",
+    pickupTime: "07:00",
+    pickupTimeLabel: "7:00 AM",
+    adultPrice: "199",
+    childPrice: "149",
+  },
+  {
+    slug: "daintree-river-cruise",
+    title: "Daintree River Wildlife Cruise",
+    shortDescription: "Dawn or dusk small-boat cruise for crocs, birds, and mangrove quiet.",
+    description:
+      "Low-noise electric-skiff option on select departures. Naturalist commentary and seasonal wildlife focus — not a theme-park ride.",
+    durationText: "2 hours",
+    durationMinutes: 120,
+    groupSizeText: "Max 22 guests",
+    defaultCapacity: 22,
+    priceFromText: "From AUD 45",
+    locationRegion: "Daintree",
+    inclusions: ["Life jackets", "Binoculars on board"],
+    exclusions: ["Transfers"],
+    whatToBring: ["Camera", "Light jacket"],
+    pickupNotes: "Self-drive to Daintree Village jetty; arrive 15 minutes early.",
+    heroBadge: "Wildlife",
+    bookingCutoffHours: 4,
+    isFeatured: false,
+    displayOrder: 7,
+    seoTitle: "Daintree River crocodile cruise",
+    seoDescription: "Wildlife-focused Daintree River cruise.",
+    pickupName: "Daintree Village Jetty",
+    pickupTime: "08:30",
+    pickupTimeLabel: "8:30 AM",
+    adultPrice: "45",
+    childPrice: "30",
+  },
+  {
+    slug: "green-island-half-day",
+    title: "Green Island Half-Day Escape",
+    shortDescription: "Coral cay with glass-bottom boat and island loop walk.",
+    description:
+      "Short crossing, free time for snorkel hire or pool, optional semi-sub tour. Ideal for families with younger children or tight schedules.",
+    durationText: "5 hours",
+    durationMinutes: 300,
+    groupSizeText: "Max 80 guests",
+    defaultCapacity: 80,
+    priceFromText: "From AUD 118",
+    locationRegion: "Cairns & Reef",
+    inclusions: ["Return ferry", "Island access"],
+    exclusions: ["Snorkel hire", "Semi-sub"],
+    whatToBring: ["Hat", "Towel"],
+    pickupNotes: "Check-in Reef Fleet Terminal per ticket time window.",
+    heroBadge: "Island",
+    bookingCutoffHours: 8,
+    isFeatured: false,
+    displayOrder: 8,
+    seoTitle: "Green Island half day Cairns",
+    seoDescription: "Half-day Green Island ferry from Cairns.",
+    pickupName: "Reef Fleet Terminal",
+    pickupTime: "08:00",
+    pickupTimeLabel: "8:00 AM",
+    adultPrice: "118",
+    childPrice: "68",
+  },
+  {
+    slug: "port-douglas-sunset-sail",
+    title: "Port Douglas Sunset Sail",
+    shortDescription: "Late sail with canapés and reef coastline silhouettes.",
+    description:
+      "Depart Crystalbrook Superyacht Marina on a stable catamaran. Cash bar; relaxed pacing for couples and small groups.",
+    durationText: "2.5 hours",
+    durationMinutes: 150,
+    groupSizeText: "Max 32 guests",
+    defaultCapacity: 32,
+    priceFromText: "From AUD 89",
+    locationRegion: "Port Douglas",
+    inclusions: ["Canapés", "Sparkling on arrival"],
+    exclusions: ["Bar tab"],
+    whatToBring: ["Flat shoes", "Light layer"],
+    pickupNotes: "Boarding 15 minutes prior at marina gate B.",
+    heroBadge: "Sunset",
+    bookingCutoffHours: 6,
+    isFeatured: false,
+    displayOrder: 9,
+    seoTitle: "Port Douglas sunset sailing",
+    seoDescription: "Evening catamaran sail from Port Douglas.",
+    pickupName: "Crystalbrook Marina Gate B",
+    pickupTime: "17:00",
+    pickupTimeLabel: "5:00 PM",
+    adultPrice: "89",
+    childPrice: "55",
+  },
+  {
+    slug: "wildlife-night-spotlight",
+    title: "Night Wildlife Spotlight Tour",
+    shortDescription: "After-dark forest edges for possums, pythons, and spotlight birds.",
+    description:
+      "Small vehicle, red-filter torches, and strict no-feeding ethics. Not guaranteed sightings — nature-led pacing.",
+    durationText: "3 hours",
+    durationMinutes: 180,
+    groupSizeText: "Max 10 guests",
+    defaultCapacity: 10,
+    priceFromText: "From AUD 125",
+    locationRegion: "Atherton Tablelands",
+    inclusions: ["Hot drink", "Spotlights"],
+    exclusions: ["Dinner"],
+    whatToBring: ["Closed shoes", "Dark clothing"],
+    pickupNotes: "Pickup from selected Yungaburra accommodations only.",
+    heroBadge: "Night",
+    bookingCutoffHours: 12,
+    isFeatured: false,
+    displayOrder: 10,
+    seoTitle: "Tablelands night wildlife tour",
+    seoDescription: "Spotlight wildlife tour in the Atherton Tablelands.",
+    pickupName: "Yungaburra Hotel pickup",
+    pickupTime: "19:30",
+    pickupTimeLabel: "7:30 PM",
+    adultPrice: "125",
+    childPrice: "95",
+  },
+  {
+    slug: "behind-scenes-rainforest",
+    title: "Behind the Scenes — Rainforest Research Track",
+    shortDescription: "Limited monthly departures with ecologist-led monitoring walk.",
+    description:
+      "Assist with citizen-science plot checks (non-invasive). Moderate fitness; closed shoes mandatory. Proceeds support local land-care.",
+    durationText: "6 hours",
+    durationMinutes: 360,
+    groupSizeText: "Max 8 guests",
+    defaultCapacity: 8,
+    priceFromText: "From AUD 245",
+    locationRegion: "Wet Tropics",
+    inclusions: ["Field lunch", "Ecologist guide"],
+    exclusions: ["Transfers", "Insurance"],
+    whatToBring: ["Boots", "Rain jacket", "Notebook"],
+    pickupNotes: "Meet-point supplied after booking — no public GPS for site protection.",
+    heroBadge: "Limited",
+    bookingCutoffHours: 72,
+    isFeatured: false,
+    displayOrder: 11,
+    seoTitle: "Rainforest research experience Queensland",
+    seoDescription: "Small-group behind the scenes rainforest monitoring walk.",
+    pickupName: "Secret meet-point (email)",
+    pickupTime: "06:00",
+    pickupTimeLabel: "6:00 AM",
+    adultPrice: "245",
+    childPrice: "195",
+  },
+];
+
+async function seedExtraDemoToursIfMissing(): Promise<void> {
+  for (const t of EXTRA_DEMO_TOURS) {
+    const found = await db.select().from(tours).where(eq(tours.slug, t.slug)).limit(1);
+    if (found[0]) continue;
+
+    const [row] = await db
+      .insert(tours)
+      .values({
+        title: t.title,
+        slug: t.slug,
+        shortDescription: t.shortDescription,
+        description: t.description,
+        durationText: t.durationText,
+        durationMinutes: t.durationMinutes,
+        groupSizeText: t.groupSizeText,
+        defaultCapacity: t.defaultCapacity,
+        priceFromText: t.priceFromText,
+        locationRegion: t.locationRegion,
+        inclusions: t.inclusions,
+        exclusions: t.exclusions,
+        whatToBring: t.whatToBring,
+        pickupNotes: t.pickupNotes,
+        cancellationPolicy: "See our cancellation policy page for operator terms.",
+        heroBadge: t.heroBadge,
+        bookingCutoffHours: t.bookingCutoffHours,
+        bookingEnabled: true,
+        isActive: true,
+        status: "published",
+        isFeatured: t.isFeatured,
+        displayOrder: t.displayOrder,
+        seoTitle: t.seoTitle,
+        seoDescription: t.seoDescription,
+      })
+      .returning({ id: tours.id });
+
+    const tourId = row!.id;
+
+    await db.insert(departureLocations).values({
+      tourId,
+      name: t.pickupName,
+      pickupTime: t.pickupTime,
+      pickupTimeLabel: t.pickupTimeLabel,
+      priceAdjustmentType: "none",
+      priceAdjustmentValue: "0",
+      isDefault: true,
+      isActive: true,
+      displayOrder: 0,
+    });
+
+    await db.insert(pricingRules).values({
+      tourId,
+      label: "Standard",
+      adultPrice: t.adultPrice,
+      childPrice: t.childPrice,
+      infantPrice: "0",
+      infantPricingType: "free",
+      currencyCode: "AUD",
+      validFrom: null,
+      validUntil: null,
+      priority: 1,
+      isActive: true,
+    });
+
+    for (const weekday of [0, 1, 2, 3, 4, 5, 6]) {
+      await db.insert(availabilityRules).values({
+        tourId,
+        weekday,
+        defaultCapacity: t.defaultCapacity,
+        isActive: true,
+      });
+    }
+
+    await ensureTourImages(tourId, t.title, t.slug);
+    // eslint-disable-next-line no-console -- seed script
+    console.log(`Seeded demo tour "${t.slug}"`);
+  }
+}
+
 async function seedTourCoralIfMissing(): Promise<string | null> {
   const found = await db.select().from(tours).where(eq(tours.slug, TOUR_2_SLUG)).limit(1);
   if (found[0]) return found[0].id;
@@ -606,6 +994,8 @@ async function main() {
     const t2 = await db.select().from(tours).where(eq(tours.id, tour2Id)).limit(1);
     await ensureTourImages(tour2Id, t2[0]?.title ?? TOUR_2_SLUG, TOUR_2_SLUG);
   }
+
+  await seedExtraDemoToursIfMissing();
 
   await ensureContactMessage();
   await ensureJobsLogSample();

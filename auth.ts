@@ -5,25 +5,17 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { adminUsers } from "@/lib/db/schema";
+import { isRateLimited } from "@/lib/utils/rate-limit";
 
-const loginAttempts = new Map<string, { count: number; resetAt: number }>();
-const WINDOW_MS = 15 * 60 * 1000;
-const MAX_ATTEMPTS = 20;
-
-function rateLimitKey(email: string, ip: string | null) {
-  return `${email.toLowerCase()}|${ip ?? "unknown"}`;
-}
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now();
-  const entry = loginAttempts.get(key);
-  if (!entry || now > entry.resetAt) {
-    loginAttempts.set(key, { count: 1, resetAt: now + WINDOW_MS });
-    return true;
+function getAuthRequestIp(request: Request | undefined): string {
+  const forwarded = request?.headers?.get("x-forwarded-for");
+  if (forwarded) {
+    const first = forwarded.split(",")[0]?.trim();
+    if (first) return first;
   }
-  if (entry.count >= MAX_ATTEMPTS) return false;
-  entry.count += 1;
-  return true;
+  const realIp = request?.headers?.get("x-real-ip");
+  if (realIp) return realIp;
+  return "unknown";
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -40,10 +32,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const password = credentials?.password?.toString() ?? "";
         if (!email || !password) return null;
 
-        const forwarded = request?.headers?.get("x-forwarded-for");
-        const ip = forwarded?.split(",")[0]?.trim() ?? request?.headers?.get("x-real-ip");
-        const key = rateLimitKey(email, ip ?? null);
-        if (!checkRateLimit(key)) return null;
+        const ip = getAuthRequestIp(request);
+        const windowMs = 15 * 60 * 1000;
+
+        // Bucket by source IP to slow broad probes.
+        if (
+          await isRateLimited(`admin-login-ip:${ip}`, {
+            maxRequests: 30,
+            windowMs,
+          })
+        ) {
+          return null;
+        }
+
+        // Bucket by email+IP to lock out focused credential guessing.
+        if (
+          await isRateLimited(`admin-login-email-ip:${email}:${ip}`, {
+            maxRequests: 5,
+            windowMs,
+          })
+        ) {
+          return null;
+        }
 
         const rows = await db.select().from(adminUsers).where(eq(adminUsers.email, email)).limit(1);
         const user = rows[0];

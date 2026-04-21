@@ -1,10 +1,18 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
+
+const loginLabelClass =
+  "mb-2 block text-base font-bold uppercase tracking-normal text-brand-muted";
+
+const loginFieldClass =
+  "w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition placeholder:text-brand-body/35 focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10";
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
@@ -30,40 +38,64 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6">
-      <Card className="w-full max-w-md border-brand-border">
-        <CardHeader>
-          <CardTitle className="text-2xl">Admin sign in</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onSubmit} className="space-y-4">
-            <label className="block text-sm font-medium text-brand-body">
-              Email
+    <section className="bg-brand-surface-soft/30 text-brand-heading">
+      <div className="flex min-h-screen items-center justify-center px-6 py-10">
+        <Card className="w-full max-w-md rounded-sm border-brand-border shadow-lg shadow-brand-heading/5 ring-1 ring-brand-heading/5">
+          <CardHeader className="mb-2 space-y-2">
+            <CardTitle className="text-3xl md:text-4xl">Admin sign in</CardTitle>
+            <CardDescription>Use your staff credentials to access the dashboard.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={onSubmit} className="space-y-4 md:space-y-5">
+              <label htmlFor="admin-email" className={loginLabelClass}>
+                Email
+              </label>
               <input
+                id="admin-email"
                 type="email"
                 required
-                className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2"
+                className={loginFieldClass}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-            </label>
-            <label className="block text-sm font-medium text-brand-body">
-              Password
+
+              <label htmlFor="admin-password" className={loginLabelClass}>
+                Password
+              </label>
               <input
+                id="admin-password"
                 type="password"
                 required
-                className="mt-1 w-full rounded-sm border border-brand-border px-3 py-2"
+                className={loginFieldClass}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-            </label>
-            {error ? <p className="text-sm text-red-600">{error}</p> : null}
-            <Button type="submit" variant="primary" className="w-full" disabled={loading}>
-              {loading ? "Signing in…" : "Sign in"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+
+              {error ? (
+                <p className="rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">
+                  {error}
+                </p>
+              ) : null}
+
+              <Button
+                type="submit"
+                variant="primary"
+                className={primaryTourCtaClassName}
+                disabled={loading}
+              >
+                {loading ? "Signing in…" : "Sign in"}
+              </Button>
+
+              <p className="pt-1 text-center text-sm text-brand-body">
+                Looking for tours?{" "}
+                <Link href="/" className="font-semibold text-brand-primary underline-offset-2 hover:underline">
+                  Visit public website
+                </Link>
+              </p>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </section>
   );
 }
