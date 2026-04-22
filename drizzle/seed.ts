@@ -944,6 +944,77 @@ async function ensureCoralDemoBooking(tourId: string) {
   console.log("Seeded sample Coral Coast booking");
 }
 
+async function ensureRecentDashboardDemoBookings(tourId: string) {
+  const deps = await db
+    .select()
+    .from(departureLocations)
+    .where(and(eq(departureLocations.tourId, tourId), eq(departureLocations.isDefault, true)))
+    .limit(1);
+  const dep =
+    deps[0] ?? (await db.select().from(departureLocations).where(eq(departureLocations.tourId, tourId)).limit(1))[0];
+  if (!dep) return;
+
+  const tourRow = await db.select().from(tours).where(eq(tours.id, tourId)).limit(1);
+  const title = tourRow[0]?.title ?? "Tour";
+
+  const recentDemoRows = [
+    { daysAgo: 6, suffix: "01", adults: 2, children: 0, total: "378.00" },
+    { daysAgo: 5, suffix: "02", adults: 1, children: 1, total: "338.00" },
+    { daysAgo: 3, suffix: "03", adults: 3, children: 0, total: "567.00" },
+    { daysAgo: 2, suffix: "04", adults: 2, children: 2, total: "676.00" },
+    { daysAgo: 0, suffix: "05", adults: 1, children: 0, total: "189.00" },
+  ] as const;
+
+  for (const row of recentDemoRows) {
+    const ref = `HW-DEMO-CHART-${row.suffix}`;
+    const exists = await db
+      .select({ id: bookings.id })
+      .from(bookings)
+      .where(eq(bookings.bookingReference, ref))
+      .limit(1);
+    if (exists[0]) continue;
+
+    const bookingDateObj = new Date();
+    bookingDateObj.setDate(bookingDateObj.getDate() - row.daysAgo);
+    const bookingDate = bookingDateObj.toISOString().slice(0, 10);
+
+    await db.insert(bookings).values({
+      bookingReference: ref,
+      tourId,
+      departureLocationId: dep.id,
+      tourTitleSnapshot: title,
+      pickupLocationNameSnapshot: dep.name,
+      pickupTimeSnapshot: dep.pickupTime,
+      bookingDate,
+      bookingDatetime: new Date(),
+      adults: row.adults,
+      children: row.children,
+      infants: 0,
+      guestTotal: row.adults + row.children,
+      pricePerAdultSnapshot: "189.00",
+      pricePerChildSnapshot: "149.00",
+      pricePerInfantSnapshot: "0.00",
+      totalPriceSnapshot: row.total,
+      currency: "AUD",
+      customerFirstName: "Dashboard",
+      customerLastName: `Demo ${row.suffix}`,
+      customerEmail: `dashboard.demo.${row.suffix}@example.com`,
+      customerPhone: `+61 400 000 1${row.suffix}`,
+      status: "confirmed",
+      paymentStatus: "paid",
+      bookingSource: "website",
+      stripeSessionId: `cs_seed_chart_${row.suffix}`,
+      stripePaymentIntentId: `pi_seed_chart_${row.suffix}`,
+      expiresAt: null,
+      confirmationEmailSentAt: new Date(),
+      adminAlertSentAt: new Date(),
+    });
+  }
+
+  // eslint-disable-next-line no-console -- seed script
+  console.log("Ensured recent dashboard demo bookings (last 7 days)");
+}
+
 async function ensureContactMessage() {
   const existing = await db.select().from(contactMessages).limit(1);
   if (existing[0]) return;
@@ -987,6 +1058,7 @@ async function main() {
   await ensureSampleOverride(tour1Id);
   await ensureTourImages(tour1Id, t1Title, TOUR_1_SLUG);
   await ensureSampleBookings(tour1Id);
+  await ensureRecentDashboardDemoBookings(tour1Id);
 
   const tour2Id = await seedTourCoralIfMissing();
   if (tour2Id) {
