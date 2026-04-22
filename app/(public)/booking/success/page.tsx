@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Container } from "@/components/layout/container";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils/cn";
 
 export const metadata: Metadata = {
@@ -20,20 +21,25 @@ export default async function BookingSuccessPage({
   const hasSessionToken = Boolean(sessionId && sessionId.startsWith("cs_"));
 
   return (
-    <section className="py-24">
+    <section className="bg-brand-surface-soft/30 py-16 md:py-24">
       <Container className="max-w-xl">
-        <Card>
-          <CardHeader>
+        <Card className="rounded-sm border-brand-border shadow-lg shadow-brand-heading/5 ring-1 ring-brand-heading/5">
+          <CardHeader className="mb-2 space-y-2">
             <CardTitle
               className={cn(
-                "font-serif text-2xl",
+                "font-serif text-3xl md:text-4xl",
                 hasSessionToken ? "text-availability-open" : "text-brand-heading"
               )}
             >
               {hasSessionToken ? "Thank you" : "Booking status pending"}
             </CardTitle>
+            <CardDescription>
+              {hasSessionToken
+                ? "Your checkout was received successfully."
+                : "We could not validate checkout details from this page load."}
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 text-sm text-brand-body">
+          <CardContent className="space-y-4 md:space-y-5 text-sm text-brand-body">
             {hasSessionToken ? (
               <p>
                 Your payment is processing.{" "}
@@ -48,25 +54,21 @@ export default async function BookingSuccessPage({
                 please wait a moment and check your inbox for confirmation.
               </p>
             )}
-            {hasSessionToken ? (
-              <p className="text-xs text-brand-muted">
-                Checkout session: <span className="font-mono text-brand-body">{sessionId}</span>
-              </p>
-            ) : (
+            {!hasSessionToken ? (
               <p className="text-xs text-brand-muted">
                 If you were not redirected from checkout, return to booking and try again.
               </p>
-            )}
+            ) : null}
             <p className="text-xs text-brand-muted">
               If you closed this window early, your booking may remain pending until the hold expires.
             </p>
-            <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1">
-              <Link href="/booking" className="text-sm font-semibold text-brand-primary transition hover:underline">
-                Back to booking
-              </Link>
-              <Link href="/tours" className="text-sm font-semibold text-brand-primary transition hover:underline">
-                Back to tours
-              </Link>
+            <div className="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2">
+              <Button asChild variant="primary" className="h-12 w-full px-8 text-base font-bold tracking-tighter">
+                <Link href="/booking">Back to booking</Link>
+              </Button>
+              <Button asChild variant="secondary" className="w-full text-base font-bold tracking-tighter">
+                <Link href="/tours">Back to tours</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
