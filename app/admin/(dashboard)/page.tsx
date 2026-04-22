@@ -10,13 +10,13 @@ export default async function AdminDashboardPage() {
   const today = new Date();
   const todayStr = format(today, "yyyy-MM-dd");
   const monthStartStr = `${todayStr.slice(0, 7)}-01`;
+  const businessTimezone = "Australia/Brisbane";
+  const createdDateInTz = sql`timezone(${businessTimezone}, ${bookings.createdAt})::date`;
 
   const confirmedToday = await db
     .select({ c: sql<number>`count(*)` })
     .from(bookings)
-    .where(
-      and(eq(bookings.status, "confirmed"), sql`${bookings.bookingDate}::text = ${todayStr}`)
-    );
+    .where(and(eq(bookings.status, "confirmed"), sql`${createdDateInTz}::text = ${todayStr}`));
 
   const pending = await db
     .select({ c: sql<number>`count(*)` })
@@ -26,9 +26,7 @@ export default async function AdminDashboardPage() {
   const monthRevenue = await db
     .select({ sum: sql<string>`coalesce(sum(${bookings.totalPriceSnapshot}), 0)` })
     .from(bookings)
-    .where(
-      and(eq(bookings.status, "confirmed"), gte(bookings.bookingDate, monthStartStr))
-    );
+    .where(and(eq(bookings.status, "confirmed"), gte(createdDateInTz, monthStartStr)));
 
   const chartData = await Promise.all(
     Array.from({ length: 7 }, (_, i) => {
@@ -43,7 +41,7 @@ export default async function AdminDashboardPage() {
         })
         .from(bookings)
         .where(
-          and(eq(bookings.status, "confirmed"), sql`${bookings.bookingDate}::text = ${dateStr}`)
+          and(eq(bookings.status, "confirmed"), sql`${createdDateInTz}::text = ${dateStr}`)
         );
 
       return {
