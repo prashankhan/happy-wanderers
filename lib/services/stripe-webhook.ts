@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type Stripe from "stripe";
 
 import { db } from "@/lib/db";
@@ -101,14 +101,17 @@ async function confirmPendingBookingAfterSuccessfulPayment(input: {
     pickupTime,
   });
   if (!seatCheck.ok) {
-    await db
+    const failedRows = await db
       .update(bookings)
       .set({
         status: "failed",
         paymentStatus: "failed",
         updatedAt: new Date(),
       })
-      .where(eq(bookings.id, input.bookingId));
+      .where(and(eq(bookings.id, input.bookingId), eq(bookings.status, "pending")))
+      .returning({ id: bookings.id });
+    if (!failedRows[0]) return;
+
     await logBookingActivity({
       bookingId: input.bookingId,
       actionType: "payment_blocked_capacity",
@@ -118,7 +121,7 @@ async function confirmPendingBookingAfterSuccessfulPayment(input: {
     return;
   }
 
-  await db
+  const confirmedRows = await db
     .update(bookings)
     .set({
       status: "confirmed",
@@ -127,7 +130,9 @@ async function confirmPendingBookingAfterSuccessfulPayment(input: {
       expiresAt: null,
       updatedAt: new Date(),
     })
-    .where(eq(bookings.id, input.bookingId));
+    .where(and(eq(bookings.id, input.bookingId), eq(bookings.status, "pending")))
+    .returning({ id: bookings.id });
+  if (!confirmedRows[0]) return;
 
   await logBookingActivity({
     bookingId: input.bookingId,
