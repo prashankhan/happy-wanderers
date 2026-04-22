@@ -959,24 +959,56 @@ async function ensureRecentDashboardDemoBookings(tourId: string) {
 
   const recentDemoRows = [
     { daysAgo: 6, suffix: "01", adults: 2, children: 0, total: "378.00" },
-    { daysAgo: 5, suffix: "02", adults: 1, children: 1, total: "338.00" },
-    { daysAgo: 3, suffix: "03", adults: 3, children: 0, total: "567.00" },
-    { daysAgo: 2, suffix: "04", adults: 2, children: 2, total: "676.00" },
-    { daysAgo: 0, suffix: "05", adults: 1, children: 0, total: "189.00" },
+    { daysAgo: 6, suffix: "02", adults: 1, children: 1, total: "338.00" },
+    { daysAgo: 5, suffix: "03", adults: 3, children: 0, total: "567.00" },
+    { daysAgo: 5, suffix: "04", adults: 2, children: 1, total: "527.00" },
+    { daysAgo: 4, suffix: "05", adults: 2, children: 2, total: "676.00" },
+    { daysAgo: 4, suffix: "06", adults: 1, children: 0, total: "189.00" },
+    { daysAgo: 3, suffix: "07", adults: 4, children: 0, total: "756.00" },
+    { daysAgo: 3, suffix: "08", adults: 2, children: 0, total: "378.00" },
+    { daysAgo: 2, suffix: "09", adults: 1, children: 2, total: "487.00" },
+    { daysAgo: 2, suffix: "10", adults: 2, children: 0, total: "378.00" },
+    { daysAgo: 1, suffix: "11", adults: 3, children: 1, total: "716.00" },
+    { daysAgo: 1, suffix: "12", adults: 1, children: 1, total: "338.00" },
+    { daysAgo: 0, suffix: "13", adults: 2, children: 1, total: "527.00" },
+    { daysAgo: 0, suffix: "14", adults: 1, children: 0, total: "189.00" },
   ] as const;
 
   for (const row of recentDemoRows) {
     const ref = `HW-DEMO-CHART-${row.suffix}`;
-    const exists = await db
+    const existing = await db
       .select({ id: bookings.id })
       .from(bookings)
       .where(eq(bookings.bookingReference, ref))
       .limit(1);
-    if (exists[0]) continue;
 
     const bookingDateObj = new Date();
     bookingDateObj.setDate(bookingDateObj.getDate() - row.daysAgo);
     const bookingDate = bookingDateObj.toISOString().slice(0, 10);
+    const createdAt = new Date(bookingDateObj);
+    createdAt.setHours(10, Number(row.suffix) % 50, 0, 0);
+
+    if (existing[0]) {
+      await db
+        .update(bookings)
+        .set({
+          bookingDate,
+          adults: row.adults,
+          children: row.children,
+          infants: 0,
+          guestTotal: row.adults + row.children,
+          totalPriceSnapshot: row.total,
+          status: "confirmed",
+          paymentStatus: "paid",
+          bookingSource: "website",
+          createdAt,
+          updatedAt: new Date(),
+          confirmationEmailSentAt: new Date(),
+          adminAlertSentAt: new Date(),
+        })
+        .where(eq(bookings.id, existing[0].id));
+      continue;
+    }
 
     await db.insert(bookings).values({
       bookingReference: ref,
@@ -986,7 +1018,7 @@ async function ensureRecentDashboardDemoBookings(tourId: string) {
       pickupLocationNameSnapshot: dep.name,
       pickupTimeSnapshot: dep.pickupTime,
       bookingDate,
-      bookingDatetime: new Date(),
+      bookingDatetime: createdAt,
       adults: row.adults,
       children: row.children,
       infants: 0,
@@ -1008,6 +1040,7 @@ async function ensureRecentDashboardDemoBookings(tourId: string) {
       expiresAt: null,
       confirmationEmailSentAt: new Date(),
       adminAlertSentAt: new Date(),
+      createdAt,
     });
   }
 
