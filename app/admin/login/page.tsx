@@ -80,7 +80,7 @@ export default function AdminLoginPage() {
               <Button
                 type="submit"
                 variant="primary"
-                className={primaryTourCtaClassName}
+                className={`${primaryTourCtaClassName} w-full`}
                 disabled={loading}
               >
                 {loading ? "Signing in…" : "Sign in"}
