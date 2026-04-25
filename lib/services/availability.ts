@@ -9,6 +9,7 @@ import {
   tours,
 } from "@/lib/db/schema";
 import {
+  calendarDateTodayInTimeZone,
   combineDateAndPickupTime,
   DEFAULT_TZ,
   formatDateInTz,
@@ -37,6 +38,31 @@ export interface AvailabilityDayResult {
   sourceOfCapacity: CapacitySource;
   sourceOfCutoff: CutoffSource;
   overrideExists: boolean;
+  minimumAdvanceBookingDays: number;
+  minimumAdvanceBlocked: boolean;
+  earliestBookableDate: string;
+}
+
+function addDaysToIsoDate(dateStr: string, days: number): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const utc = new Date(Date.UTC(year, month - 1, day));
+  utc.setUTCDate(utc.getUTCDate() + days);
+  return utc.toISOString().slice(0, 10);
+}
+
+export function getMinimumAdvanceWindowForDate(input: {
+  bookingDate: string;
+  minimumAdvanceBookingDays: number;
+  timezone: string;
+}): { blocked: boolean; earliestBookableDate: string } {
+  const tz = input.timezone.trim() || DEFAULT_TZ;
+  const days = Math.max(0, input.minimumAdvanceBookingDays);
+  const todayInTz = calendarDateTodayInTimeZone(tz);
+  const earliestBookableDate = addDaysToIsoDate(todayInTz, days);
+  return {
+    blocked: input.bookingDate < earliestBookableDate,
+    earliestBookableDate,
+  };
 }
 
 function weekdayFromDateStr(dateStr: string): number {
@@ -68,6 +94,12 @@ function computeAvailabilityDay(input: {
 }): AvailabilityDayResult {
   const { bookingDate, pickupTime, now, tour, settings, override, weekdayRule, seatsReserved } = input;
   const tz = settings.timezone || DEFAULT_TZ;
+  const minimumAdvanceBookingDays = Math.max(0, tour.minimumAdvanceBookingDays ?? 0);
+  const minimumAdvance = getMinimumAdvanceWindowForDate({
+    bookingDate,
+    minimumAdvanceBookingDays,
+    timezone: tz,
+  });
 
   let sourceOfCapacity: CapacitySource = "tour_default";
   let capacityTotal = tour.defaultCapacity;
@@ -120,10 +152,13 @@ function computeAvailabilityDay(input: {
       sourceOfCapacity,
       sourceOfCutoff,
       overrideExists: Boolean(override),
+      minimumAdvanceBookingDays,
+      minimumAdvanceBlocked: minimumAdvance.blocked,
+      earliestBookableDate: minimumAdvance.earliestBookableDate,
     };
   }
 
-  const effectiveAvailable = cutoffPassed ? false : availableSeats > 0;
+  const effectiveAvailable = minimumAdvance.blocked ? false : cutoffPassed ? false : availableSeats > 0;
   return {
     date: bookingDate,
     isAvailable: effectiveAvailable && !cutoffPassed,
@@ -135,6 +170,9 @@ function computeAvailabilityDay(input: {
     sourceOfCapacity,
     sourceOfCutoff,
     overrideExists: Boolean(override),
+    minimumAdvanceBookingDays,
+    minimumAdvanceBlocked: minimumAdvance.blocked,
+    earliestBookableDate: minimumAdvance.earliestBookableDate,
   };
 }
 
@@ -224,6 +262,12 @@ export async function validateSeatsForDate(input: {
     bookingDate: input.bookingDate,
     pickupTime: input.pickupTime,
   });
+  if (res.minimumAdvanceBlocked) {
+    return {
+      ok: false,
+      message: `This tour requires at least ${res.minimumAdvanceBookingDays} day${res.minimumAdvanceBookingDays === 1 ? "" : "s"} advance booking.`,
+    };
+  }
   if (res.cutoffPassed) return { ok: false, message: "Booking cutoff has passed" };
   if (!res.isAvailable || res.availableSeats < input.requestedGuests) {
     return { ok: false, message: "Not enough seats available" };

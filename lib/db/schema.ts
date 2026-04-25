@@ -37,6 +37,7 @@ export const tours = pgTable(
     cancellationPolicy: text("cancellation_policy"),
     heroBadge: text("hero_badge"),
     bookingCutoffHours: integer("booking_cutoff_hours").notNull(),
+    minimumAdvanceBookingDays: integer("minimum_advance_booking_days").notNull().default(0),
     bookingEnabled: boolean("booking_enabled").notNull().default(true),
     isActive: boolean("is_active").notNull().default(true),
     status: text("status").notNull(),
@@ -52,6 +53,10 @@ export const tours = pgTable(
     index("tours_slug_idx").on(t.slug),
     index("tours_status_idx").on(t.status),
     check("tours_status_check", sql`${t.status} IN ('draft', 'published', 'archived')`),
+    check(
+      "tours_minimum_advance_booking_days_check",
+      sql`${t.minimumAdvanceBookingDays} >= 0 AND ${t.minimumAdvanceBookingDays} <= 365`
+    ),
   ]
 );
 

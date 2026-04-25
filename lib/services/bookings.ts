@@ -5,7 +5,7 @@ import { customAlphabet } from "nanoid";
 import { db } from "@/lib/db";
 import { bookings, departureLocations, tours } from "@/lib/db/schema";
 import { getSystemSettings } from "@/lib/services/system-settings";
-import { validateSeatsForDate } from "@/lib/services/availability";
+import { getMinimumAdvanceWindowForDate, validateSeatsForDate } from "@/lib/services/availability";
 import { resolvePricing } from "@/lib/services/pricing";
 import { logBookingActivity } from "@/lib/services/booking-activity";
 import { getStripe } from "@/lib/stripe/client";
@@ -85,6 +85,15 @@ export async function createWebsitePendingBooking(input: {
 
   const guestTotal = input.adults + input.children + input.infants;
   if (guestTotal < 1) return { ok: false, message: "Guest count required" };
+
+  const minimumAdvance = getMinimumAdvanceWindowForDate({
+    bookingDate: input.bookingDate,
+    minimumAdvanceBookingDays: tour.minimumAdvanceBookingDays ?? 0,
+    timezone: settings.timezone,
+  });
+  if (minimumAdvance.blocked) {
+    return { ok: false, message: "Minimum advance booking period not met" };
+  }
 
   const pickupTime = loc.pickupTime;
   const seatCheck = await validateSeatsForDate({

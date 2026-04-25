@@ -36,6 +36,13 @@
       "when": 1776595200000,
       "tag": "0004_max_guests_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777161600000,
+      "tag": "0005_minimum_advance_booking_days",
+      "breakpoints": true
     }
   ]
 }

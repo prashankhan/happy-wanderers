@@ -68,6 +68,7 @@ export default async function AdminTourEditorPage({ params }: { params: Promise<
     cancellationPolicy: tour.cancellationPolicy,
     heroBadge: tour.heroBadge,
     bookingCutoffHours: tour.bookingCutoffHours,
+    minimumAdvanceBookingDays: tour.minimumAdvanceBookingDays,
     bookingEnabled: tour.bookingEnabled,
     isActive: tour.isActive,
     status: tour.status,

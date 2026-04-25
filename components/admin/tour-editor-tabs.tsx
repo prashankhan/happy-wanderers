@@ -44,6 +44,7 @@ export interface SerializedTour {
   cancellationPolicy: string | null;
   heroBadge: string | null;
   bookingCutoffHours: number;
+  minimumAdvanceBookingDays: number;
   bookingEnabled: boolean;
   isActive: boolean;
   status: string;
@@ -118,6 +119,7 @@ interface TourEditorContentState {
   cancellation_policy: string;
   hero_badge: string;
   booking_cutoff_hours: number;
+  minimum_advance_booking_days: number;
   booking_enabled: boolean;
   is_active: boolean;
   status: "draft" | "published" | "archived";
@@ -209,6 +211,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
         cancellation_policy: content.cancellation_policy || null,
         hero_badge: content.hero_badge || null,
         booking_cutoff_hours: content.booking_cutoff_hours,
+        minimum_advance_booking_days: content.minimum_advance_booking_days,
         booking_enabled: content.booking_enabled,
         is_active: content.is_active,
         status: content.status,
@@ -1047,16 +1050,55 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                   />
                 </label>
                 <label className="text-xs font-medium text-brand-muted">
-                  Booking cutoff (hours)
+                  Minimum booking notice (days)
                   <input
                     type="number"
+                    min={0}
+                    max={365}
                     className={`mt-1 ${adminFieldClass}`}
-                    value={content.booking_cutoff_hours}
-                    onChange={(e) => setContent((c) => ({ ...c, booking_cutoff_hours: Number(e.target.value) }))}
+                    value={content.minimum_advance_booking_days}
+                    onChange={(e) =>
+                      setContent((c) => ({
+                        ...c,
+                        minimum_advance_booking_days: Math.max(
+                          0,
+                          Math.min(365, Number(e.target.value) || 0)
+                        ),
+                      }))
+                    }
                     disabled={pending}
                   />
                 </label>
               </div>
+            </div>
+
+            <div className="space-y-3">
+              <details className="rounded-sm border border-brand-border bg-brand-surface-soft/40 p-3">
+                <summary className="cursor-pointer text-sm font-semibold text-brand-heading">
+                  Advanced booking rules
+                </summary>
+                <p className="mt-2 text-xs text-brand-muted">
+                  Optional fine-tuning for last-minute cutoff behavior near departure time.
+                </p>
+                <div className="mt-3 grid gap-4 md:max-w-xs">
+                  <label className="text-xs font-medium text-brand-muted">
+                    Booking cutoff (hours)
+                    <input
+                      type="number"
+                      min={0}
+                      className={`mt-1 ${adminFieldClass}`}
+                      value={content.booking_cutoff_hours}
+                      onChange={(e) =>
+                        setContent((c) => ({
+                          ...c,
+                          booking_cutoff_hours: Math.max(0, Number(e.target.value) || 0),
+                        }))
+                      }
+                      disabled={pending}
+                    />
+                  </label>
+                </div>
+              </details>
             </div>
 
             <div className="space-y-4">
@@ -1115,6 +1157,7 @@ function buildTourEditorContentState(tour: SerializedTour): TourEditorContentSta
     cancellation_policy: tour.cancellationPolicy ?? "",
     hero_badge: tour.heroBadge ?? "",
     booking_cutoff_hours: tour.bookingCutoffHours,
+    minimum_advance_booking_days: tour.minimumAdvanceBookingDays,
     booking_enabled: tour.bookingEnabled,
     is_active: tour.isActive,
     status: tour.status as "draft" | "published" | "archived",

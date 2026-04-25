@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -71,6 +72,8 @@ export function BookingFormClient({
   initialDepartureId,
   pickups,
   pricingConstraints,
+  minimumAdvanceBookingDays,
+  minimumAdvanceBookingBlocked,
 }: {
   tourId: string;
   tourTitle: string;
@@ -78,6 +81,8 @@ export function BookingFormClient({
   initialDepartureId?: string;
   pickups: { id: string; name: string; timeLabel: string }[];
   pricingConstraints: PricingConstraints | null;
+  minimumAdvanceBookingDays: number;
+  minimumAdvanceBookingBlocked: boolean;
 }) {
   const router = useRouter();
 
@@ -98,6 +103,10 @@ export function BookingFormClient({
   const [loading, setLoading] = useState(false);
   const [pricing, setPricing] = useState<PricingBreakdown | null>(null);
   const [pricingMessage, setPricingMessage] = useState<string | null>(null);
+  const minimumAdvanceMessage =
+    minimumAdvanceBookingDays > 0
+      ? `This tour requires at least ${minimumAdvanceBookingDays} day${minimumAdvanceBookingDays === 1 ? "" : "s"} advance booking. If you need a last-minute reservation, please contact us directly.`
+      : null;
 
   const infantsNotAllowed = pricingConstraints?.infantPricingType === "not_allowed";
   const infantCap =
@@ -213,6 +222,10 @@ export function BookingFormClient({
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (minimumAdvanceBookingBlocked) {
+      setError("Minimum advance booking period not met");
+      return;
+    }
     if (!date || !departureId) {
       setError("Please select a date and pickup.");
       return;
@@ -376,6 +389,14 @@ export function BookingFormClient({
                 ) : null}
               </div>
             ) : null}
+            {minimumAdvanceBookingBlocked && minimumAdvanceMessage ? (
+              <div className="mt-4 rounded-sm border border-amber-200 bg-amber-50 px-3 py-3 text-sm font-medium text-amber-950">
+                <p>{minimumAdvanceMessage}</p>
+                <Button asChild variant="secondary" className="mt-3 h-10 px-4 text-sm font-bold tracking-tight">
+                  <Link href="/contact">Contact us for urgent bookings</Link>
+                </Button>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 
@@ -536,11 +557,16 @@ export function BookingFormClient({
             <Button
               variant="primary"
               className={cn("w-full", primaryTourCtaClassName)}
-              disabled={loading}
+              disabled={loading || minimumAdvanceBookingBlocked}
               onClick={onSubmit}
             >
-              {loading ? "Redirecting…" : "Continue to payment"}
+              {minimumAdvanceBookingBlocked ? "Contact us for urgent bookings" : loading ? "Redirecting…" : "Continue to payment"}
             </Button>
+            {minimumAdvanceBookingBlocked ? (
+              <Button asChild variant="secondary" className="w-full text-base font-bold tracking-tight">
+                <Link href="/contact">Contact us for urgent bookings</Link>
+              </Button>
+            ) : null}
 
             <button type="button" onClick={() => router.push("/availability")} className="block w-full text-center text-sm font-medium text-brand-muted hover:text-brand-primary transition-colors">
               Back

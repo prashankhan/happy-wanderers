@@ -34,6 +34,7 @@ export async function GET(
         cancellation_policy: tour.cancellationPolicy,
         hero_badge: tour.heroBadge,
         booking_cutoff_hours: tour.bookingCutoffHours,
+        minimum_advance_booking_days: tour.minimumAdvanceBookingDays,
         seo_title: tour.seoTitle,
         seo_description: tour.seoDescription,
       },

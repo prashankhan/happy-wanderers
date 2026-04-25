@@ -17,6 +17,7 @@ export async function GET(request: Request) {
         duration_text: r.durationText,
         group_size_text: r.groupSizeText,
         price_from_text: r.priceFromText,
+        minimum_advance_booking_days: r.minimumAdvanceBookingDays,
         hero_image: r.heroImage,
         is_featured: r.isFeatured,
       }))

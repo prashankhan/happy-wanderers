@@ -26,6 +26,7 @@ const patchSchema = z
     cancellation_policy: z.string().nullable().optional(),
     hero_badge: z.string().nullable().optional(),
     booking_cutoff_hours: z.number().int().min(0).optional(),
+    minimum_advance_booking_days: z.number().int().min(0).max(365).optional(),
     booking_enabled: z.boolean().optional(),
     is_active: z.boolean().optional(),
     status: z.enum(["draft", "published", "archived"]).optional(),
@@ -103,6 +104,8 @@ export async function PATCH(
   if (d.cancellation_policy !== undefined) values.cancellationPolicy = d.cancellation_policy;
   if (d.hero_badge !== undefined) values.heroBadge = d.hero_badge;
   if (d.booking_cutoff_hours !== undefined) values.bookingCutoffHours = d.booking_cutoff_hours;
+  if (d.minimum_advance_booking_days !== undefined)
+    values.minimumAdvanceBookingDays = d.minimum_advance_booking_days;
   if (d.booking_enabled !== undefined) values.bookingEnabled = d.booking_enabled;
   if (d.is_active !== undefined) values.isActive = d.is_active;
   if (d.status !== undefined) values.status = d.status;

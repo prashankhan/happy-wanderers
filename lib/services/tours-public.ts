@@ -29,6 +29,7 @@ export async function listPublishedTours(filters: { featured?: boolean; region?:
       priceFromText: tours.priceFromText,
       locationRegion: tours.locationRegion,
       isFeatured: tours.isFeatured,
+      minimumAdvanceBookingDays: tours.minimumAdvanceBookingDays,
       heroImage: tourImages.imageUrl,
     })
     .from(tours)

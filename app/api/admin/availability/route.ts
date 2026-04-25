@@ -61,6 +61,9 @@ export async function GET(request: Request) {
       total_capacity: d.capacityTotal,
       seats_reserved: d.seatsReserved,
       cutoff_passed: d.cutoffPassed,
+      minimum_advance_blocked: d.minimumAdvanceBlocked,
+      minimum_advance_booking_days: d.minimumAdvanceBookingDays,
+      earliest_bookable_date: d.earliestBookableDate,
       override_exists: d.overrideExists,
       calendar_state: derivePublicCalendarState(d),
     }))

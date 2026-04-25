@@ -70,6 +70,7 @@ export async function createDraftTour(input: { title: string }): Promise<{ id: s
       cancellationPolicy: null,
       heroBadge: null,
       bookingCutoffHours: settings.defaultCutoffHours,
+      minimumAdvanceBookingDays: 0,
       bookingEnabled: false,
       isActive: true,
       status: "draft",
