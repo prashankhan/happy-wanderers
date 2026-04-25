@@ -30,6 +30,9 @@ export default async function AdminTourEditorPage({ params }: { params: Promise<
       label: r.label,
       adultPrice: String(r.adultPrice),
       childPrice: String(r.childPrice),
+      childPricingType: (r.childPricingType === "not_allowed" ? "not_allowed" : "fixed") as
+        | "fixed"
+        | "not_allowed",
       pricingMode: r.pricingMode as "per_person" | "package",
       includedAdults: r.includedAdults,
       packageBasePrice: String(r.packageBasePrice),

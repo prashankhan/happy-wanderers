@@ -23,6 +23,7 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
   const [pricingMode, setPricingMode] = useState<"per_person" | "package">("per_person");
   const [adultPrice, setAdultPrice] = useState("100");
   const [childPrice, setChildPrice] = useState("50");
+  const [childPricingType, setChildPricingType] = useState<"fixed" | "not_allowed">("fixed");
   const [includedAdults, setIncludedAdults] = useState("2");
   const [packageBasePrice, setPackageBasePrice] = useState("200");
   const [extraAdultPrice, setExtraAdultPrice] = useState("100");
@@ -63,6 +64,7 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
           label: label.trim(),
           adult_price: adultPrice,
           child_price: childPrice,
+          child_pricing_type: childPricingType,
           pricing_mode: pricingMode,
           included_adults: Number(includedAdults),
           package_base_price: packageBasePrice,
@@ -88,6 +90,7 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
       setPricingMode("per_person");
       setAdultPrice("100");
       setChildPrice("50");
+      setChildPricingType("fixed");
       setIncludedAdults("2");
       setPackageBasePrice("200");
       setExtraAdultPrice("100");
@@ -198,19 +201,51 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
             </label>
 
             <div className="grid grid-cols-2 gap-4">
+              {pricingMode !== "package" ? (
+                <label className="block text-xs font-medium text-brand-muted">
+                  Adult price
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    className={`mt-1 ${adminFieldClass}`}
+                    value={adultPrice}
+                    onChange={(e) => setAdultPrice(e.target.value)}
+                  />
+                </label>
+              ) : null}
               <label className="block text-xs font-medium text-brand-muted">
-                Adult price
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
+                Children pricing type
+                <AdminCombobox
                   className={`mt-1 ${adminFieldClass}`}
-                  value={adultPrice}
-                  onChange={(e) => setAdultPrice(e.target.value)}
+                  value={childPricingType}
+                  onValueChange={(next) => {
+                    const value = next as "fixed" | "not_allowed";
+                    setChildPricingType(value);
+                    if (value === "not_allowed") setChildPrice("0");
+                  }}
+                  options={[
+                    { value: "fixed", label: "Fixed amount" },
+                    { value: "not_allowed", label: "Not allowed" },
+                  ]}
                 />
               </label>
-              <label className="block text-xs font-medium text-brand-muted">
-                Child price
+            </div>
+
+            <label className="block text-xs font-medium text-brand-muted">
+                  {pricingMode === "package" ? "Child price (per-person mode only)" : "Child price"}
+              {childPricingType === "not_allowed" ? (
+                <input
+                  type="text"
+                  readOnly
+                  disabled
+                  className={cn(
+                    `mt-1 ${adminFieldClass}`,
+                    "cursor-not-allowed bg-brand-surface-soft text-brand-muted opacity-80"
+                  )}
+                  value="—"
+                />
+              ) : (
                 <input
                   type="number"
                   min="0"
@@ -219,13 +254,13 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
                   value={childPrice}
                   onChange={(e) => setChildPrice(e.target.value)}
                 />
-              </label>
-            </div>
+              )}
+            </label>
 
             {pricingMode === "package" ? (
               <div className="grid grid-cols-2 gap-4">
                 <label className="block text-xs font-medium text-brand-muted">
-                  Included adults
+                  Included guests
                   <input
                     type="number"
                     min="1"
@@ -233,6 +268,9 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
                     value={includedAdults}
                     onChange={(e) => setIncludedAdults(e.target.value)}
                   />
+                  <p className="mt-1 text-[11px] text-brand-muted">
+                    Counts adults + children toward package base.
+                  </p>
                 </label>
                 <label className="block text-xs font-medium text-brand-muted">
                   Package base price

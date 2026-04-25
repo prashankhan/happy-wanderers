@@ -22,6 +22,7 @@ export interface PricingConstraints {
   minGuests: number;
   maxGuests: number;
   maxGuestsScope: MaxGuestsScope;
+  childPricingType: "fixed" | "not_allowed";
   maxInfants: number | null;
   infantPricingType: "free" | "fixed" | "not_allowed";
   pricingMode: "per_person" | "package";

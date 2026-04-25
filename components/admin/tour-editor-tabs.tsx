@@ -60,6 +60,7 @@ export interface PricingRuleRow {
   label: string;
   adultPrice: string;
   childPrice: string;
+  childPricingType: "fixed" | "not_allowed";
   pricingMode: "per_person" | "package";
   includedAdults: number;
   packageBasePrice: string;
@@ -289,6 +290,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           label: draft.label,
           adult_price: draft.adultPrice,
           child_price: draft.childPrice,
+          child_pricing_type: draft.childPricingType,
           pricing_mode: draft.pricingMode,
           included_adults: draft.includedAdults,
           package_base_price: draft.packageBasePrice,
@@ -324,6 +326,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
       draft.label !== original.label ||
       draft.adultPrice !== original.adultPrice ||
       draft.childPrice !== original.childPrice ||
+      draft.childPricingType !== original.childPricingType ||
       draft.pricingMode !== original.pricingMode ||
       draft.includedAdults !== original.includedAdults ||
       draft.packageBasePrice !== original.packageBasePrice ||
@@ -652,36 +655,77 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                         {pricingGuestsOrderDetail(d.minGuests, d.maxGuests)}
                       </p>
                     ) : null}
+                    {d.pricingMode !== "package" ? (
+                      <label className="text-xs font-medium text-brand-muted">
+                        Adult price
+                        <input
+                          className={`mt-1 ${adminFieldClass}`}
+                          value={pricingDrafts[r.id]?.adultPrice ?? r.adultPrice}
+                          onChange={(e) =>
+                            setPricingDrafts((prev) => ({
+                              ...prev,
+                              [r.id]: { ...(prev[r.id] ?? r), adultPrice: e.target.value },
+                            }))
+                          }
+                        />
+                      </label>
+                    ) : null}
                     <label className="text-xs font-medium text-brand-muted">
-                      Adult price
-                      <input
+                      Children pricing type
+                      <AdminCombobox
                         className={`mt-1 ${adminFieldClass}`}
-                        value={pricingDrafts[r.id]?.adultPrice ?? r.adultPrice}
-                        onChange={(e) =>
-                          setPricingDrafts((prev) => ({
-                            ...prev,
-                            [r.id]: { ...(prev[r.id] ?? r), adultPrice: e.target.value },
-                          }))
+                        value={pricingDrafts[r.id]?.childPricingType ?? r.childPricingType}
+                        onValueChange={(nextChildPricingType) =>
+                          setPricingDrafts((prev) => {
+                            const row = prev[r.id] ?? r;
+                            const next: PricingRuleRow = {
+                              ...row,
+                              childPricingType: nextChildPricingType as "fixed" | "not_allowed",
+                            };
+                            if (nextChildPricingType === "not_allowed") {
+                              next.childPrice = "0";
+                            }
+                            return { ...prev, [r.id]: next };
+                          })
                         }
+                        options={[
+                          { value: "fixed", label: "Fixed" },
+                          { value: "not_allowed", label: "Not allowed" },
+                        ]}
                       />
                     </label>
-                    <label className="text-xs font-medium text-brand-muted">
-                      Child price
-                      <input
-                        className={`mt-1 ${adminFieldClass}`}
-                        value={pricingDrafts[r.id]?.childPrice ?? r.childPrice}
-                        onChange={(e) =>
-                          setPricingDrafts((prev) => ({
-                            ...prev,
-                            [r.id]: { ...(prev[r.id] ?? r), childPrice: e.target.value },
-                          }))
-                        }
-                      />
-                    </label>
+                    {d.pricingMode !== "package" ? (
+                      <label className="text-xs font-medium text-brand-muted">
+                        Child price
+                        {(pricingDrafts[r.id]?.childPricingType ?? r.childPricingType) === "not_allowed" ? (
+                          <input
+                            type="text"
+                            disabled
+                            readOnly
+                            className={cn(
+                              `mt-1 ${adminFieldClass}`,
+                              "cursor-not-allowed bg-brand-surface-soft text-brand-muted opacity-80"
+                            )}
+                            value="—"
+                          />
+                        ) : (
+                          <input
+                            className={`mt-1 ${adminFieldClass}`}
+                            value={pricingDrafts[r.id]?.childPrice ?? r.childPrice}
+                            onChange={(e) =>
+                              setPricingDrafts((prev) => ({
+                                ...prev,
+                                [r.id]: { ...(prev[r.id] ?? r), childPrice: e.target.value },
+                              }))
+                            }
+                          />
+                        )}
+                      </label>
+                    ) : null}
                     {d.pricingMode === "package" ? (
                       <>
                         <label className="text-xs font-medium text-brand-muted">
-                          Included adults
+                          Included guests
                           <input
                             type="number"
                             min={1}
@@ -694,6 +738,9 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                               }))
                             }
                           />
+                          <p className="mt-1 text-[11px] text-brand-muted">
+                            Counts adults + children toward the package base.
+                          </p>
                         </label>
                         <label className="text-xs font-medium text-brand-muted">
                           Package base

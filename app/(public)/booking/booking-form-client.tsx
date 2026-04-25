@@ -35,7 +35,9 @@ function guestPartyLimitsShortLine(c: PricingConstraints, scope: MaxGuestsScope)
       : scope === "adults_and_children_only"
         ? "max is adults + children"
         : "max is adults only";
+  let children = "";
   let infants = "";
+  if (c.childPricingType === "not_allowed") children = " · No children";
   if (c.infantPricingType === "not_allowed") infants = " · No infants";
   else if (c.infantPricingType === "free") infants = " · Infants free";
   else infants = " · Infants priced";
@@ -43,7 +45,7 @@ function guestPartyLimitsShortLine(c: PricingConstraints, scope: MaxGuestsScope)
     typeof c.maxInfants === "number"
       ? ` · ≤${c.maxInfants} infant${c.maxInfants === 1 ? "" : "s"}`
       : "";
-  return `This date: min ${c.minGuests} · max ${c.maxGuests} guests (${maxMeans})${infants}${infantCap}.`;
+  return `This date: min ${c.minGuests} · max ${c.maxGuests} guests (${maxMeans})${children}${infants}${infantCap}.`;
 }
 
 interface PricingBreakdown {
@@ -53,10 +55,13 @@ interface PricingBreakdown {
   childUnit: number;
   infantUnit: number;
   total: number;
+  includedGuests?: number;
   includedAdults?: number;
   packageBase?: number;
   extraAdultUnit?: number;
   extraChildUnit?: number;
+  extraAdultsCount?: number;
+  extraChildrenCount?: number;
   adultSubtotal?: number;
   childSubtotal?: number;
   infantSubtotal?: number;
@@ -108,10 +113,13 @@ export function BookingFormClient({
       ? `This tour requires at least ${minimumAdvanceBookingDays} day${minimumAdvanceBookingDays === 1 ? "" : "s"} advance booking. If you need a last-minute reservation, please contact us directly.`
       : null;
 
+  const childrenNotAllowed = pricingConstraints?.childPricingType === "not_allowed";
   const infantsNotAllowed = pricingConstraints?.infantPricingType === "not_allowed";
   const infantCap =
     typeof pricingConstraints?.maxInfants === "number" ? pricingConstraints.maxInfants : null;
+  const childrenLocked = childrenNotAllowed;
   const infantsLocked = infantsNotAllowed || infantCap === 0;
+  const effectiveChildren = childrenLocked ? 0 : children;
   const effectiveInfants = infantsLocked ? 0 : infants;
   const maxGuests = pricingConstraints?.maxGuests;
   const maxGuestsScope: MaxGuestsScope = pricingConstraints
@@ -124,11 +132,11 @@ export function BookingFormClient({
 
   if (typeof maxGuests === "number") {
     if (maxGuestsScope === "entire_party") {
-      adultsMax = Math.max(1, maxGuests - children - effectiveInfants);
+      adultsMax = Math.max(1, maxGuests - effectiveChildren - effectiveInfants);
       childrenMax = Math.max(0, maxGuests - adults - effectiveInfants);
-      infantPartyRoom = Math.max(0, maxGuests - adults - children - effectiveInfants);
+      infantPartyRoom = Math.max(0, maxGuests - adults - effectiveChildren - effectiveInfants);
     } else if (maxGuestsScope === "adults_and_children_only") {
-      adultsMax = Math.max(1, maxGuests - children);
+      adultsMax = Math.max(1, maxGuests - effectiveChildren);
       childrenMax = Math.max(0, maxGuests - adults);
       infantPartyRoom = Number.POSITIVE_INFINITY;
     } else {
@@ -154,8 +162,12 @@ export function BookingFormClient({
   }, [adultsMax, adults]);
 
   useEffect(() => {
+    if (childrenLocked) {
+      if (children !== 0) setChildren(0);
+      return;
+    }
     if (childrenMax !== undefined && children > childrenMax) setChildren(childrenMax);
-  }, [childrenMax, children]);
+  }, [childrenLocked, childrenMax, children]);
 
   useEffect(() => {
     if (infantsLocked) {
@@ -186,7 +198,7 @@ export function BookingFormClient({
             departure_location_id: departureId,
             booking_date: date,
             adults,
-            children,
+            children: childrenLocked ? 0 : children,
             infants: infantsLocked ? 0 : infants,
           }),
         });
@@ -207,7 +219,7 @@ export function BookingFormClient({
         setPricing({
           ...b,
           adults,
-          children,
+          children: childrenLocked ? 0 : children,
           infants: infantsLocked ? 0 : infants,
         });
       } catch {
@@ -217,7 +229,7 @@ export function BookingFormClient({
     }
 
     fetchPricing();
-  }, [tourId, date, departureId, adults, children, infants, infantsLocked]);
+  }, [tourId, date, departureId, adults, children, infants, childrenLocked, infantsLocked]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -240,7 +252,7 @@ export function BookingFormClient({
           booking_date: date,
           departure_location_id: departureId,
           adults,
-          children,
+          children: childrenLocked ? 0 : children,
           infants: infantsLocked ? 0 : infants,
           customer_first_name: firstName,
           customer_last_name: lastName,
@@ -294,15 +306,23 @@ export function BookingFormClient({
                   }}
                 />
               </div>
-              <div className="flex-1">
-                <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">Children</label>
+              <div className={cn("flex-1", childrenLocked && "opacity-50")}>
+                <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">
+                  Children
+                  {childrenLocked ? (
+                    <span className="ml-2 font-normal normal-case text-brand-muted">(not available)</span>
+                  ) : null}
+                </label>
                 <input
                   type="number"
                   min={0}
                   max={childrenMax}
+                  disabled={childrenLocked}
+                  aria-disabled={childrenLocked}
                   className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
-                  value={children}
+                  value={childrenLocked ? 0 : children}
                   onChange={(e) => {
+                    if (childrenLocked) return;
                     const raw = Number.parseInt(e.target.value, 10);
                     if (Number.isNaN(raw)) return;
                     const capped = childrenMax === undefined ? raw : Math.min(Math.max(0, raw), childrenMax);
@@ -377,6 +397,9 @@ export function BookingFormClient({
                     ) : (
                       <> Infant seats are priced per the active rule.</>
                     )}
+                    {pricingConstraints.childPricingType === "not_allowed" ? (
+                      <> Children are not offered on this tour.</>
+                    ) : null}
                     {typeof pricingConstraints.maxInfants === "number" ? (
                       <>
                         {" "}
@@ -491,10 +514,10 @@ export function BookingFormClient({
                     <span className="text-brand-muted">Adult{adults !== 1 ? "s" : ""}</span>
                   </span>
                 )}
-                {children > 0 && (
+                {effectiveChildren > 0 && (
                   <span className="inline-flex items-center gap-1.5 rounded-sm border border-brand-border bg-brand-surface px-2.5 py-1.5 font-medium text-brand-heading">
-                    <span className="text-brand-primary font-bold">{children}</span>
-                    <span className="text-brand-muted">Child{children !== 1 ? "ren" : ""}</span>
+                    <span className="text-brand-primary font-bold">{effectiveChildren}</span>
+                    <span className="text-brand-muted">Child{effectiveChildren !== 1 ? "ren" : ""}</span>
                   </span>
                 )}
                 {effectiveInfants > 0 && (
@@ -516,13 +539,13 @@ export function BookingFormClient({
                   {pricing.pricingMode === "package" ? (
                     <>
                       <p>
-                        Package ({pricing.includedAdults ?? 2} adults included){" "}
+                        Package ({pricing.includedGuests ?? pricing.includedAdults ?? 2} guests included){" "}
                         {formatPrice(pricing.packageBase ?? 0, pricing.currency)}
                       </p>
-                      {Math.max(0, pricing.adults - (pricing.includedAdults ?? 2)) > 0 ? (
+                      {(pricing.extraAdultsCount ?? 0) > 0 ? (
                         <p>
-                          {Math.max(0, pricing.adults - (pricing.includedAdults ?? 2))} Extra adult
-                          {Math.max(0, pricing.adults - (pricing.includedAdults ?? 2)) !== 1 ? "s" : ""} ×{" "}
+                          {pricing.extraAdultsCount} Extra adult
+                          {pricing.extraAdultsCount !== 1 ? "s" : ""} ×{" "}
                           {formatPrice(pricing.extraAdultUnit ?? pricing.adultUnit, pricing.currency)}
                         </p>
                       ) : null}
@@ -533,17 +556,27 @@ export function BookingFormClient({
                       {formatPrice(pricing.adultUnit, pricing.currency)}
                     </p>
                   ) : null}
-                  {pricing.children > 0 && (
+                  {pricing.pricingMode === "package" ? (
+                    <>
+                      {(pricing.extraChildrenCount ?? 0) > 0 ? (
+                        <p>
+                          {pricing.extraChildrenCount} Extra child
+                          {pricing.extraChildrenCount !== 1 ? "ren" : ""} ×{" "}
+                          {formatPrice(pricing.extraChildUnit ?? pricing.childUnit, pricing.currency)}
+                        </p>
+                      ) : pricing.children > 0 ? (
+                        <p>
+                          {pricing.children} Child
+                          {pricing.children !== 1 ? "ren" : ""} included in package
+                        </p>
+                      ) : null}
+                    </>
+                  ) : pricing.children > 0 ? (
                     <p>
                       {pricing.children} Child{pricing.children !== 1 ? "ren" : ""} ×{" "}
-                      {formatPrice(
-                        pricing.pricingMode === "package"
-                          ? pricing.extraChildUnit ?? pricing.childUnit
-                          : pricing.childUnit,
-                        pricing.currency
-                      )}
+                      {formatPrice(pricing.childUnit, pricing.currency)}
                     </p>
-                  )}
+                  ) : null}
                   {pricing.infants > 0 && (
                     <p>
                       {pricing.infants} Infant{pricing.infants !== 1 ? "s" : ""} ×{" "}

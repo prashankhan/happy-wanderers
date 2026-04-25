@@ -101,6 +101,7 @@ export const pricingRules = pgTable(
     label: text("label").notNull(),
     adultPrice: numeric("adult_price", { precision: 12, scale: 2 }).notNull(),
     childPrice: numeric("child_price", { precision: 12, scale: 2 }).notNull(),
+    childPricingType: text("child_pricing_type").notNull().default("fixed"),
     pricingMode: text("pricing_mode").notNull().default("per_person"),
     includedAdults: integer("included_adults").notNull().default(2),
     packageBasePrice: numeric("package_base_price", { precision: 12, scale: 2 }).notNull().default("0"),
@@ -125,6 +126,10 @@ export const pricingRules = pgTable(
     check(
       "pricing_rules_infant_type_check",
       sql`${t.infantPricingType} IN ('free', 'fixed', 'not_allowed')`
+    ),
+    check(
+      "pricing_rules_child_type_check",
+      sql`${t.childPricingType} IN ('fixed', 'not_allowed')`
     ),
     check(
       "pricing_rules_mode_check",

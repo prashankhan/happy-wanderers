@@ -43,6 +43,13 @@
       "when": 1777161600000,
       "tag": "0005_minimum_advance_booking_days",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1777248000000,
+      "tag": "0006_child_pricing_type",
+      "breakpoints": true
     }
   ]
 }

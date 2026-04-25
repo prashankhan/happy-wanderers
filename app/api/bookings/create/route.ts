@@ -5,18 +5,19 @@ import { z } from "zod";
 import { createWebsitePendingBooking } from "@/lib/services/bookings";
 import { getSiteUrl } from "@/lib/site-url";
 import { getRequestIp, isRateLimited } from "@/lib/utils/rate-limit";
+import { zodErrorToApiMessage } from "@/lib/utils/zod-api-message";
 
 const bodySchema = z.object({
-  tour_id: z.string().uuid(),
-  booking_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  departure_location_id: z.string().uuid(),
-  adults: z.coerce.number().int().min(1),
-  children: z.coerce.number().int().min(0),
-  infants: z.coerce.number().int().min(0),
-  customer_first_name: z.string().min(1),
-  customer_last_name: z.string().min(1),
-  customer_email: z.string().email(),
-  customer_phone: z.string().min(5),
+  tour_id: z.string().uuid("Invalid tour selected."),
+  booking_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Please choose a valid booking date."),
+  departure_location_id: z.string().uuid("Invalid pickup location."),
+  adults: z.coerce.number().int().min(1, "At least 1 adult is required."),
+  children: z.coerce.number().int().min(0, "Children count cannot be negative."),
+  infants: z.coerce.number().int().min(0, "Infants count cannot be negative."),
+  customer_first_name: z.string().trim().min(1, "First name is required."),
+  customer_last_name: z.string().trim().min(1, "Last name is required."),
+  customer_email: z.string().trim().email("Please enter a valid email address."),
+  customer_phone: z.string().trim().min(5, "Please enter a valid phone number."),
   customer_notes: z.string().optional().nullable(),
 });
 
@@ -43,7 +44,13 @@ export async function POST(request: Request) {
 
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json({ success: false, message: "Validation failed" }, { status: 400 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: zodErrorToApiMessage(parsed.error, "Please check your details and try again."),
+      },
+      { status: 400 }
+    );
   }
 
   try {

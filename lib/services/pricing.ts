@@ -51,6 +51,9 @@ export async function getPricingConstraints(
       minGuests: rule.minGuests,
       maxGuests: rule.maxGuests,
       maxGuestsScope,
+      childPricingType: (rule.childPricingType === "not_allowed" ? "not_allowed" : "fixed") as
+        | "fixed"
+        | "not_allowed",
       maxInfants: rule.maxInfants,
       infantPricingType,
       pricingMode,
@@ -66,10 +69,13 @@ export interface PricingBreakdown {
   childUnit: number;
   infantUnit: number;
   total: number;
+  includedGuests?: number;
   includedAdults?: number;
   packageBase?: number;
   extraAdultUnit?: number;
   extraChildUnit?: number;
+  extraAdultsCount?: number;
+  extraChildrenCount?: number;
   adultSubtotal?: number;
   childSubtotal?: number;
   infantSubtotal?: number;
@@ -142,6 +148,10 @@ export async function resolvePricing(input: {
     return { ok: false, message: `Maximum ${rule.maxGuests} guests allowed${scopeHint}` };
   }
 
+  if (rule.childPricingType === "not_allowed" && input.children > 0) {
+    return { ok: false, message: "Children are not permitted on this tour" };
+  }
+
   const infantType = rule.infantPricingType;
   if (infantType === "not_allowed" && input.infants > 0) {
     return { ok: false, message: "Infants are not permitted on this tour" };
@@ -161,7 +171,7 @@ export async function resolvePricing(input: {
   const adjVal = num(loc.priceAdjustmentValue);
 
   let adultUnit = applyAdjustment(num(rule.adultPrice), adjType, adjVal);
-  let childUnit = applyAdjustment(num(rule.childPrice), adjType, adjVal);
+  let childUnit = rule.childPricingType === "not_allowed" ? 0 : applyAdjustment(num(rule.childPrice), adjType, adjVal);
   const infantUnitAdj = infantType === "free" ? 0 : applyAdjustment(infantUnit, adjType, adjVal);
 
   const pricingMode = (rule.pricingMode === "package" ? "package" : "per_person") as
@@ -171,34 +181,46 @@ export async function resolvePricing(input: {
   let total = 0;
   let packageFields: Pick<
     PricingBreakdown,
+    | "includedGuests"
     | "includedAdults"
     | "packageBase"
     | "extraAdultUnit"
     | "extraChildUnit"
+    | "extraAdultsCount"
+    | "extraChildrenCount"
     | "adultSubtotal"
     | "childSubtotal"
     | "infantSubtotal"
   > = {};
 
   if (pricingMode === "package") {
-    const includedAdults = Math.max(1, rule.includedAdults);
+    // Legacy column name is `includedAdults`, but business meaning is included guest slots (adults + children).
+    const includedGuests = Math.max(1, rule.includedAdults);
     const packageBase = applyAdjustment(num(rule.packageBasePrice), adjType, adjVal);
     const extraAdultUnit = applyAdjustment(num(rule.extraAdultPrice), adjType, adjVal);
     const extraChildUnit = applyAdjustment(num(rule.extraChildPrice), adjType, adjVal);
-    const chargeableExtraAdults = Math.max(0, input.adults - includedAdults);
+    const coveredAdults = Math.min(input.adults, includedGuests);
+    const remainingCoveredSlots = Math.max(0, includedGuests - coveredAdults);
+    const coveredChildren = Math.min(input.children, remainingCoveredSlots);
+    const chargeableExtraAdults = Math.max(0, input.adults - coveredAdults);
+    const chargeableExtraChildren = Math.max(0, input.children - coveredChildren);
 
     const adultSubtotal = packageBase + extraAdultUnit * chargeableExtraAdults;
-    const childSubtotal = extraChildUnit * input.children;
+    const childSubtotal =
+      rule.childPricingType === "not_allowed" ? 0 : extraChildUnit * chargeableExtraChildren;
     const infantSubtotal = infantUnitAdj * input.infants;
     total = adultSubtotal + childSubtotal + infantSubtotal;
 
     adultUnit = input.adults > 0 ? adultSubtotal / input.adults : 0;
     childUnit = extraChildUnit;
     packageFields = {
-      includedAdults,
+      includedGuests,
+      includedAdults: includedGuests,
       packageBase,
       extraAdultUnit,
       extraChildUnit,
+      extraAdultsCount: chargeableExtraAdults,
+      extraChildrenCount: chargeableExtraChildren,
       adultSubtotal,
       childSubtotal,
       infantSubtotal,
