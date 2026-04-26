@@ -79,10 +79,10 @@ export function TourBookingSidebar({
 
           {/* Cancellation Policy Link */}
           {cancellationPolicy && (
-            <div className="border-t border-brand-border/50 pt-3 md:pt-4">
+            <div className="border-t border-brand-border/50 pt-5">
               <Link
                 href="/cancellation-policy"
-                className="text-[11px] font-medium text-brand-primary hover:underline"
+                className="block text-center text-sm font-medium text-brand-primary transition-colors hover:text-brand-primary-hover"
               >
                 View cancellation policy
               </Link>

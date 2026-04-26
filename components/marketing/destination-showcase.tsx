@@ -16,7 +16,7 @@ interface DestinationShowcaseProps {
 export function DestinationShowcase({ imageSrc }: DestinationShowcaseProps) {
   return (
     <section className="relative overflow-hidden border-y border-brand-border bg-gradient-to-b from-brand-surface via-brand-surface-soft to-brand-surface py-24 md:py-32">
-      <Container className="grid gap-16 lg:grid-cols-2 lg:items-center lg:gap-24">
+      <Container className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-8">
         {/* Visual Column */}
         <motion.div
           initial={{ opacity: 0, y: 36, scale: 0.98 }}
@@ -34,18 +34,7 @@ export function DestinationShowcase({ imageSrc }: DestinationShowcaseProps) {
             loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-gray-950/80 via-transparent to-transparent opacity-80" />
-          
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={publicRevealViewport}
-            transition={{ duration: 0.58, ease: publicRevealEase, delay: 0.35 }}
-            className="absolute bottom-8 left-8 right-8"
-          >
-            <p className="text-sm font-medium leading-relaxed text-white/90 md:text-base lg:max-w-[90%]">
-              Where two World Heritage areas breathe together — reef air on the breeze and ancient canopy overhead.
-            </p>
-          </motion.div>
+
         </motion.div>
 
         {/* Content Column */}
@@ -54,7 +43,7 @@ export function DestinationShowcase({ imageSrc }: DestinationShowcaseProps) {
           initial="hidden"
           whileInView="show"
           viewport={publicRevealViewport}
-          className="flex flex-col space-y-8"
+          className="flex flex-col space-y-8 lg:-ml-6"
         >
           <motion.div variants={publicRevealItem} className="space-y-4">
             <p className="inline-block text-xs font-bold uppercase tracking-[0.2em] text-brand-primary">

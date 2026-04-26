@@ -163,7 +163,12 @@ export function ContactForm({ centerSubmit = false }: ContactFormProps) {
           </p>
         ) : null}
 
-        <Button type="submit" variant="primary" disabled={status === "loading"} className={primaryTourCtaClassName}>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={status === "loading"}
+          className={cn(primaryTourCtaClassName, "px-7 py-1.5 md:py-2")}
+        >
           {status === "loading" ? "Sending…" : "Send message"}
         </Button>
       </div>

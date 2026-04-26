@@ -60,7 +60,7 @@ export function CtaSection({ imageSrc }: CtaSectionProps) {
             </Button>
             <Link
               href="/contact"
-              className="group inline-flex items-center justify-center rounded-sm border border-white/30 bg-white/5 px-8 py-4 text-lg font-bold tracking-tighter text-white backdrop-blur-sm transition-all hover:bg-white/15 hover:border-white/50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-heading md:py-5 md:text-xl"
+              className="group inline-flex items-center justify-center rounded-sm border border-white/30 bg-white/5 px-8 py-3 text-base font-bold tracking-tight text-white backdrop-blur-sm transition-all hover:bg-white/15 hover:border-white/50 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-heading md:py-3.5 md:text-lg"
             >
               Contact us
             </Link>

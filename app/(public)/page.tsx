@@ -22,7 +22,7 @@ export default async function HomePage() {
   return (
     <>
       <section
-        className="relative left-1/2 right-1/2 -mx-[50vw] flex min-h-dvh w-screen flex-col bg-gray-950"
+        className="relative flex min-h-dvh w-full flex-col overflow-x-clip bg-gray-950"
       >
         <div className="absolute inset-0 min-h-full">
           <HomeHeroBackground />

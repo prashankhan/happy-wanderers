@@ -148,7 +148,7 @@ export function Navbar() {
             asChild
             variant="primary"
             className={cn(
-              "hidden h-auto min-h-0 rounded-sm border-0 px-8 py-2 font-sans text-lg font-bold tracking-tighter shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:shadow-md motion-safe:active:scale-[0.98] sm:inline-flex md:py-2.5 md:text-xl"
+              "hidden h-auto min-h-0 rounded-sm border-0 px-7 py-1.5 font-sans text-base font-bold tracking-tight shadow-sm transition-[background-color,box-shadow,transform] duration-200 ease-out hover:shadow-md motion-safe:active:scale-[0.98] sm:inline-flex md:py-2 md:text-lg"
             )}
           >
             <Link href="/booking">{NAV_BOOK_CTA_LABEL}</Link>
