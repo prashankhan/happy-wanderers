@@ -1,4 +1,6 @@
 import { relations, sql } from "drizzle-orm";
+
+import type { TourItineraryDay } from "@/lib/types/tour-itinerary";
 import {
   boolean,
   check,
@@ -38,6 +40,11 @@ export const tours = pgTable(
     heroBadge: text("hero_badge"),
     bookingCutoffHours: integer("booking_cutoff_hours").notNull(),
     minimumAdvanceBookingDays: integer("minimum_advance_booking_days").notNull().default(0),
+    durationDays: integer("duration_days").notNull().default(1),
+    isMultiDay: boolean("is_multi_day").notNull().default(false),
+    requiresAccommodation: boolean("requires_accommodation").notNull().default(false),
+    /** Optional per-day narrative + pickup copy; not used by availability or booking engine. */
+    itineraryDays: jsonb("itinerary_days").$type<TourItineraryDay[] | null>(),
     bookingEnabled: boolean("booking_enabled").notNull().default(true),
     isActive: boolean("is_active").notNull().default(true),
     status: text("status").notNull(),
@@ -57,6 +64,7 @@ export const tours = pgTable(
       "tours_minimum_advance_booking_days_check",
       sql`${t.minimumAdvanceBookingDays} >= 0 AND ${t.minimumAdvanceBookingDays} <= 365`
     ),
+    check("tours_duration_days_check", sql`${t.durationDays} >= 1 AND ${t.durationDays} <= 30`),
   ]
 );
 
@@ -105,6 +113,7 @@ export const pricingRules = pgTable(
     pricingMode: text("pricing_mode").notNull().default("per_person"),
     includedAdults: integer("included_adults").notNull().default(2),
     packageBasePrice: numeric("package_base_price", { precision: 12, scale: 2 }).notNull().default("0"),
+    extraAdultPricingType: text("extra_adult_pricing_type").notNull().default("fixed"),
     extraAdultPrice: numeric("extra_adult_price", { precision: 12, scale: 2 }).notNull().default("0"),
     extraChildPrice: numeric("extra_child_price", { precision: 12, scale: 2 }).notNull().default("0"),
     infantPrice: numeric("infant_price", { precision: 12, scale: 2 }).notNull().default("0"),
@@ -134,6 +143,10 @@ export const pricingRules = pgTable(
     check(
       "pricing_rules_mode_check",
       sql`${t.pricingMode} IN ('per_person', 'package')`
+    ),
+    check(
+      "pricing_rules_extra_adult_type_check",
+      sql`${t.extraAdultPricingType} IN ('fixed', 'not_allowed')`
     ),
     check(
       "pricing_rules_max_guests_scope_check",
@@ -202,6 +215,8 @@ export const bookings = pgTable(
     pickupLocationNameSnapshot: text("pickup_location_name_snapshot").notNull(),
     pickupTimeSnapshot: varchar("pickup_time_snapshot", { length: 16 }).notNull(),
     bookingDate: date("booking_date").notNull(),
+    tourStartDate: date("tour_start_date").notNull(),
+    tourEndDate: date("tour_end_date").notNull(),
     bookingDatetime: timestamp("booking_datetime", { withTimezone: true }).notNull(),
     adults: integer("adults").notNull().default(0),
     children: integer("children").notNull().default(0),
@@ -254,6 +269,7 @@ export const bookings = pgTable(
     check("bookings_infants_nonneg", sql`${t.infants} >= 0`),
     check("bookings_guest_total_min", sql`${t.guestTotal} >= 1`),
     check("bookings_total_price_nonneg", sql`${t.totalPriceSnapshot} >= 0`),
+    check("bookings_tour_date_span_check", sql`${t.tourEndDate} >= ${t.tourStartDate}`),
     check(
       "bookings_source_check",
       sql`${t.bookingSource} IN ('website', 'admin_manual', 'phone_booking', 'offline', 'partner_agent')`

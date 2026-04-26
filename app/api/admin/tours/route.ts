@@ -7,6 +7,9 @@ import { setAdminOperationContext } from "@/lib/sentry/context";
 
 const bodySchema = z.object({
   title: z.string().min(1).max(200).optional(),
+  is_multi_day: z.boolean().optional(),
+  duration_days: z.number().int().min(2).max(30).optional(),
+  requires_accommodation: z.boolean().optional(),
 });
 
 export async function POST(request: Request) {
@@ -38,6 +41,9 @@ export async function POST(request: Request) {
   try {
     const { id, slug } = await createDraftTour({
       title: parsed.data.title?.trim() || "New tour",
+      isMultiDay: parsed.data.is_multi_day,
+      durationDays: parsed.data.duration_days,
+      requiresAccommodation: parsed.data.requires_accommodation,
     });
     return NextResponse.json({ success: true, tour_id: id, slug });
   } catch (e) {

@@ -41,7 +41,10 @@ export default async function AdminBookingsPage({
     : "";
 
   const conditions = [];
-  if (date) conditions.push(sql`${bookings.bookingDate}::text = ${date}`);
+  if (date) {
+    conditions.push(sql`${bookings.tourStartDate}::text <= ${date}`);
+    conditions.push(sql`${bookings.tourEndDate}::text >= ${date}`);
+  }
   if (status) conditions.push(eq(bookings.status, status));
   if (customerEmail) conditions.push(ilike(bookings.customerEmail, `%${customerEmail}%`));
   if (tourId) conditions.push(eq(bookings.tourId, tourId));

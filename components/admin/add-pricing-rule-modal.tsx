@@ -24,6 +24,9 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
   const [adultPrice, setAdultPrice] = useState("100");
   const [childPrice, setChildPrice] = useState("50");
   const [childPricingType, setChildPricingType] = useState<"fixed" | "not_allowed">("fixed");
+  const [extraAdultPricingType, setExtraAdultPricingType] = useState<"fixed" | "not_allowed">(
+    "fixed"
+  );
   const [includedAdults, setIncludedAdults] = useState("2");
   const [packageBasePrice, setPackageBasePrice] = useState("200");
   const [extraAdultPrice, setExtraAdultPrice] = useState("100");
@@ -66,6 +69,7 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
           child_price: childPrice,
           child_pricing_type: childPricingType,
           pricing_mode: pricingMode,
+          extra_adult_pricing_type: extraAdultPricingType,
           included_adults: Number(includedAdults),
           package_base_price: packageBasePrice,
           extra_adult_price: extraAdultPrice,
@@ -91,6 +95,7 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
       setAdultPrice("100");
       setChildPrice("50");
       setChildPricingType("fixed");
+      setExtraAdultPricingType("fixed");
       setIncludedAdults("2");
       setPackageBasePrice("200");
       setExtraAdultPrice("100");
@@ -284,15 +289,44 @@ export function AddPricingRuleModal({ tourId, onCreated, pending, onPendingChang
                   />
                 </label>
                 <label className="block text-xs font-medium text-brand-muted">
-                  Extra adult price
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
+                  Extra adult pricing type
+                  <AdminCombobox
                     className={`mt-1 ${adminFieldClass}`}
-                    value={extraAdultPrice}
-                    onChange={(e) => setExtraAdultPrice(e.target.value)}
+                    value={extraAdultPricingType}
+                    onValueChange={(next) => {
+                      const value = next as "fixed" | "not_allowed";
+                      setExtraAdultPricingType(value);
+                      if (value === "not_allowed") setExtraAdultPrice("0");
+                    }}
+                    options={[
+                      { value: "fixed", label: "Fixed amount" },
+                      { value: "not_allowed", label: "Not allowed" },
+                    ]}
                   />
+                </label>
+                <label className="block text-xs font-medium text-brand-muted">
+                  Extra adult price
+                  {extraAdultPricingType === "not_allowed" ? (
+                    <input
+                      type="text"
+                      readOnly
+                      disabled
+                      className={cn(
+                        `mt-1 ${adminFieldClass}`,
+                        "cursor-not-allowed bg-brand-surface-soft text-brand-muted opacity-80"
+                      )}
+                      value="—"
+                    />
+                  ) : (
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      className={`mt-1 ${adminFieldClass}`}
+                      value={extraAdultPrice}
+                      onChange={(e) => setExtraAdultPrice(e.target.value)}
+                    />
+                  )}
                 </label>
                 <label className="block text-xs font-medium text-brand-muted">
                   Extra child price

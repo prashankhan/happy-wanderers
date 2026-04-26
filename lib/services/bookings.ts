@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { bookings, departureLocations, tours } from "@/lib/db/schema";
 import { getSystemSettings } from "@/lib/services/system-settings";
 import { getMinimumAdvanceWindowForDate, validateSeatsForDate } from "@/lib/services/availability";
+import { tourSpanFromDepartureDate } from "@/lib/utils/dates";
 import { resolvePricing } from "@/lib/services/pricing";
 import { logBookingActivity } from "@/lib/services/booking-activity";
 import { getStripe } from "@/lib/stripe/client";
@@ -40,6 +41,7 @@ export async function createWebsitePendingBooking(input: {
   adults: number;
   children: number;
   infants: number;
+  pricingRuleId?: string | null;
   customerFirstName: string;
   customerLastName: string;
   customerEmail: string;
@@ -111,6 +113,7 @@ export async function createWebsitePendingBooking(input: {
     adults: input.adults,
     children: input.children,
     infants: input.infants,
+    pricingRuleId: input.pricingRuleId,
   });
   if (!pricing.ok) return { ok: false, message: pricing.message };
 
@@ -119,6 +122,15 @@ export async function createWebsitePendingBooking(input: {
   const expiresAt = new Date(now.getTime() + holdMins * 60 * 1000);
 
   const bookingDatetime = now;
+  const { tourStartDate, tourEndDate } = tourSpanFromDepartureDate(
+    input.bookingDate,
+    tour.durationDays,
+    tour.isMultiDay
+  );
+  const dateRangeLabel =
+    tourStartDate === tourEndDate
+      ? input.bookingDate
+      : `${tourStartDate} → ${tourEndDate}`;
 
   const [row] = await db
     .insert(bookings)
@@ -130,6 +142,8 @@ export async function createWebsitePendingBooking(input: {
       pickupLocationNameSnapshot: loc.name,
       pickupTimeSnapshot: loc.pickupTime,
       bookingDate: input.bookingDate,
+      tourStartDate,
+      tourEndDate,
       bookingDatetime,
       adults: input.adults,
       children: input.children,
@@ -179,7 +193,7 @@ export async function createWebsitePendingBooking(input: {
           price_data: {
             currency: pricing.breakdown.currency.toLowerCase(),
             product_data: {
-              name: `${tour.title} — ${input.bookingDate}`,
+              name: `${tour.title} — ${dateRangeLabel}`,
               description: `Ref ${bookingReference}`,
             },
             unit_amount: Math.round(pricing.breakdown.total * 100),

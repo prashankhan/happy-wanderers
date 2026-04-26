@@ -21,6 +21,7 @@ const bodySchema = z.object({
   child_price: money("Child price").optional(),
   child_pricing_type: z.enum(["fixed", "not_allowed"]).optional(),
   pricing_mode: z.enum(["per_person", "package"]).optional(),
+  extra_adult_pricing_type: z.enum(["fixed", "not_allowed"]).optional(),
   included_adults: z.number().int().min(1).optional(),
   package_base_price: money("Package base price").optional(),
   extra_adult_price: money("Extra adult price").optional(),
@@ -98,6 +99,9 @@ export async function PATCH(request: Request) {
         ? { childPricingType: parsed.data.child_pricing_type }
         : {}),
       ...(parsed.data.pricing_mode !== undefined ? { pricingMode: parsed.data.pricing_mode } : {}),
+      ...(parsed.data.extra_adult_pricing_type !== undefined
+        ? { extraAdultPricingType: parsed.data.extra_adult_pricing_type }
+        : {}),
       ...(parsed.data.included_adults !== undefined ? { includedAdults: parsed.data.included_adults } : {}),
       ...(parsed.data.package_base_price !== undefined
         ? { packageBasePrice: parsed.data.package_base_price }

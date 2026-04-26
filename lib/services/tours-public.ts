@@ -30,6 +30,8 @@ export async function listPublishedTours(filters: { featured?: boolean; region?:
       locationRegion: tours.locationRegion,
       isFeatured: tours.isFeatured,
       minimumAdvanceBookingDays: tours.minimumAdvanceBookingDays,
+      durationDays: tours.durationDays,
+      isMultiDay: tours.isMultiDay,
       heroImage: tourImages.imageUrl,
     })
     .from(tours)

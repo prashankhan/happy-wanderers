@@ -27,12 +27,15 @@ export async function GET(request: Request) {
   const email = searchParams.get("customer_email");
 
   const conditions = [];
-  if (date) conditions.push(sql`${bookings.bookingDate}::text = ${date}`);
+  if (date) {
+    conditions.push(sql`${bookings.tourStartDate}::text <= ${date}`);
+    conditions.push(sql`${bookings.tourEndDate}::text >= ${date}`);
+  }
   if (month) {
     const startDate = `${month}-01`;
     const endDate = `${month}-31`;
-    conditions.push(sql`${bookings.bookingDate}::text >= ${startDate}`);
-    conditions.push(sql`${bookings.bookingDate}::text <= ${endDate}`);
+    conditions.push(sql`${bookings.tourStartDate}::text <= ${endDate}`);
+    conditions.push(sql`${bookings.tourEndDate}::text >= ${startDate}`);
   }
   if (tourId) conditions.push(eq(bookings.tourId, tourId));
   if (status) conditions.push(eq(bookings.status, status));

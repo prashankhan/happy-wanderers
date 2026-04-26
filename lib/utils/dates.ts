@@ -47,3 +47,34 @@ export function daysInMonthStrings(monthStr: string): string[] {
   const days = eachDayOfInterval({ start: startOfMonth(d), end: endOfMonth(d) });
   return days.map((x) => format(x, "yyyy-MM-dd"));
 }
+
+/** Calendar `yyyy-MM-dd` + whole days in UTC date math (matches availability engine). */
+export function addCalendarDaysIso(dateStr: string, days: number): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const utc = new Date(Date.UTC(y, m - 1, d));
+  utc.setUTCDate(utc.getUTCDate() + days);
+  return utc.toISOString().slice(0, 10);
+}
+
+export function iterateIsoDateRangeInclusive(start: string, end: string): string[] {
+  const out: string[] = [];
+  let cur = start;
+  while (cur <= end) {
+    out.push(cur);
+    cur = addCalendarDaysIso(cur, 1);
+  }
+  return out;
+}
+
+/** Calendar span for a booking from the selected departure date and tour duration flags. */
+export function tourSpanFromDepartureDate(
+  departureDate: string,
+  durationDays: number | null | undefined,
+  isMultiDay: boolean | null | undefined
+): { tourStartDate: string; tourEndDate: string } {
+  const n = Math.max(1, durationDays ?? 1);
+  const multi = Boolean(isMultiDay) && n > 1;
+  const tourStartDate = departureDate;
+  const tourEndDate = multi ? addCalendarDaysIso(departureDate, n - 1) : departureDate;
+  return { tourStartDate, tourEndDate };
+}

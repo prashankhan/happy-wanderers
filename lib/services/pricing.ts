@@ -7,15 +7,16 @@ import {
   normalizeMaxGuestsScope,
   type PricingConstraints,
 } from "@/lib/types/pricing-constraints";
+import type { PricingRuleOption } from "@/lib/types/pricing-rule-option";
 
 export type { PricingConstraints };
 
 type PricingRuleRow = typeof pricingRules.$inferSelect;
 
-async function selectActivePricingRuleForDate(
+async function listActivePricingRulesForDate(
   tourId: string,
   bookingDate: string
-): Promise<{ ok: true; rule: PricingRuleRow } | { ok: false; message: string }> {
+): Promise<PricingRuleRow[]> {
   const rules = await db
     .select()
     .from(pricingRules)
@@ -25,11 +26,75 @@ async function selectActivePricingRuleForDate(
         AND (${pricingRules.validFrom} IS NULL OR ${pricingRules.validFrom} <= ${bookingDate}::date)
         AND (${pricingRules.validUntil} IS NULL OR ${pricingRules.validUntil} >= ${bookingDate}::date)`
     )
-    .orderBy(desc(pricingRules.priority));
+    .orderBy(desc(pricingRules.priority), desc(pricingRules.createdAt));
 
-  const rule = rules[0];
-  if (!rule) return { ok: false, message: "No pricing rule for this tour" };
+  return rules;
+}
+
+function filterRulesForGuestRange(
+  rules: PricingRuleRow[],
+  guestCount: number
+): PricingRuleRow[] {
+  return rules.filter((rule) => guestCount >= rule.minGuests && guestCount <= rule.maxGuests);
+}
+
+async function selectActivePricingRuleForDate(
+  tourId: string,
+  bookingDate: string,
+  guestCount: number,
+  preferredRuleId?: string | null
+): Promise<{ ok: true; rule: PricingRuleRow } | { ok: false; message: string }> {
+  const rules = await listActivePricingRulesForDate(tourId, bookingDate);
+  if (!rules.length) return { ok: false, message: "No pricing rule for this tour" };
+
+  const compatible = filterRulesForGuestRange(rules, guestCount);
+  if (!compatible.length) {
+    return { ok: false, message: "No pricing rule available for selected guest count" };
+  }
+  if (preferredRuleId) {
+    const chosen = compatible.find((r) => r.id === preferredRuleId);
+    if (!chosen) {
+      return { ok: false, message: "Selected package is not available for this party size" };
+    }
+    return { ok: true, rule: chosen };
+  }
+  const rule = compatible[0];
   return { ok: true, rule };
+}
+
+export async function getPricingRuleOptions(
+  tourId: string,
+  bookingDate: string
+): Promise<{ ok: true; rules: PricingRuleOption[] } | { ok: false; message: string }> {
+  const rules = await listActivePricingRulesForDate(tourId, bookingDate);
+  if (!rules.length) return { ok: false, message: "No pricing rule for this tour" };
+
+  return {
+    ok: true,
+    rules: rules.map((rule) => ({
+      id: rule.id,
+      label: rule.label,
+      pricingMode: rule.pricingMode === "package" ? "package" : "per_person",
+      minGuests: rule.minGuests,
+      maxGuests: rule.maxGuests,
+      maxGuestsScope: normalizeMaxGuestsScope(rule.maxGuestsScope),
+      childPricingType: rule.childPricingType === "not_allowed" ? "not_allowed" : "fixed",
+      infantPricingType:
+        rule.infantPricingType === "fixed"
+          ? "fixed"
+          : rule.infantPricingType === "free"
+            ? "free"
+            : "not_allowed",
+      maxInfants: rule.maxInfants,
+      includedGuests: Math.max(1, rule.includedAdults),
+      packageBase: num(rule.packageBasePrice),
+      extraAdultPricingType:
+        rule.extraAdultPricingType === "not_allowed" ? "not_allowed" : "fixed",
+      extraAdultPrice: num(rule.extraAdultPrice),
+      extraChildPrice: num(rule.extraChildPrice),
+      priority: rule.priority,
+    })),
+  };
 }
 
 /** Guest-count limits for the active rule on `bookingDate` (same selection as checkout pricing). */
@@ -37,24 +102,55 @@ export async function getPricingConstraints(
   tourId: string,
   bookingDate: string
 ): Promise<{ ok: true; constraints: PricingConstraints } | { ok: false; message: string }> {
-  const picked = await selectActivePricingRuleForDate(tourId, bookingDate);
-  if (!picked.ok) return picked;
+  const rules = await listActivePricingRulesForDate(tourId, bookingDate);
+  if (!rules.length) return { ok: false, message: "No pricing rule for this tour" };
 
-  const { rule } = picked;
-  const infantPricingType = rule.infantPricingType as PricingConstraints["infantPricingType"];
-  const pricingMode = (rule.pricingMode === "package" ? "package" : "per_person") as PricingConstraints["pricingMode"];
-  const maxGuestsScope = normalizeMaxGuestsScope(rule.maxGuestsScope);
+  // For the booking UI, expose party-size bounds across all active tiers for the date.
+  const minGuests = Math.min(...rules.map((r) => r.minGuests));
+  const maxGuests = Math.max(...rules.map((r) => r.maxGuests));
+
+  // Keep other constraint fields permissive so valid tiers are not blocked in the form.
+  const childrenAllowed = rules.some((r) => r.childPricingType !== "not_allowed");
+  const infantAllowsFixed = rules.some((r) => r.infantPricingType === "fixed");
+  const infantAllowsFreeOnly =
+    !infantAllowsFixed && rules.some((r) => r.infantPricingType === "free");
+  const anyUnlimitedInfants = rules.some((r) => r.maxInfants === null);
+  const finiteMaxInfants = rules
+    .map((r) => r.maxInfants)
+    .filter((v): v is number => v !== null);
+  const maxInfants = anyUnlimitedInfants
+    ? null
+    : finiteMaxInfants.length > 0
+      ? Math.max(...finiteMaxInfants)
+      : 0;
+
+  const pricingMode = rules.some((r) => r.pricingMode === "package")
+    ? "package"
+    : "per_person";
+  const scopeValues = rules.map((r) => normalizeMaxGuestsScope(r.maxGuestsScope));
+  const uiScopeRaw = scopeValues.includes("adults_only")
+    ? "adults_only"
+    : scopeValues.includes("adults_and_children_only")
+      ? "adults_and_children_only"
+      : "entire_party";
+  const maxGuestsScope = normalizeMaxGuestsScope(uiScopeRaw);
+  const childPricingType: PricingConstraints["childPricingType"] = childrenAllowed
+    ? "fixed"
+    : "not_allowed";
+  const infantPricingType: PricingConstraints["infantPricingType"] = infantAllowsFixed
+    ? "fixed"
+    : infantAllowsFreeOnly
+      ? "free"
+      : "not_allowed";
 
   return {
     ok: true,
     constraints: {
-      minGuests: rule.minGuests,
-      maxGuests: rule.maxGuests,
+      minGuests,
+      maxGuests,
       maxGuestsScope,
-      childPricingType: (rule.childPricingType === "not_allowed" ? "not_allowed" : "fixed") as
-        | "fixed"
-        | "not_allowed",
-      maxInfants: rule.maxInfants,
+      childPricingType,
+      maxInfants,
       infantPricingType,
       pricingMode,
     },
@@ -104,10 +200,14 @@ export async function resolvePricing(input: {
   adults: number;
   children: number;
   infants: number;
+  pricingRuleId?: string | null;
 }): Promise<
   | { ok: true; breakdown: PricingBreakdown }
   | { ok: false; message: string }
 > {
+  const guestTotal = input.adults + input.children + input.infants;
+  if (guestTotal < 1) return { ok: false, message: "Guest count required" };
+
   const locRows = await db
     .select()
     .from(departureLocations)
@@ -122,11 +222,15 @@ export async function resolvePricing(input: {
   const loc = locRows[0];
   if (!loc) return { ok: false, message: "Invalid departure location" };
 
-  const rulePick = await selectActivePricingRuleForDate(input.tourId, input.bookingDate);
+  const rulePick = await selectActivePricingRuleForDate(
+    input.tourId,
+    input.bookingDate,
+    guestTotal,
+    input.pricingRuleId
+  );
   if (!rulePick.ok) return rulePick;
   const rule = rulePick.rule;
 
-  const guestTotal = input.adults + input.children + input.infants;
   if (guestTotal < rule.minGuests) {
     return { ok: false, message: `Minimum ${rule.minGuests} guests required` };
   }
@@ -204,6 +308,12 @@ export async function resolvePricing(input: {
     const coveredChildren = Math.min(input.children, remainingCoveredSlots);
     const chargeableExtraAdults = Math.max(0, input.adults - coveredAdults);
     const chargeableExtraChildren = Math.max(0, input.children - coveredChildren);
+    if (rule.extraAdultPricingType === "not_allowed" && chargeableExtraAdults > 0) {
+      return {
+        ok: false,
+        message: "This package does not allow extra adults",
+      };
+    }
 
     const adultSubtotal = packageBase + extraAdultUnit * chargeableExtraAdults;
     const childSubtotal =

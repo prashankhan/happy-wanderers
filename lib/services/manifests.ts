@@ -6,7 +6,8 @@ import { bookings } from "@/lib/db/schema";
 export async function getManifestRows(filters: { tourId?: string; date: string }) {
   const conditions = [
     eq(bookings.status, "confirmed"),
-    sql`${bookings.bookingDate}::text = ${filters.date}`,
+    sql`${bookings.tourStartDate}::text <= ${filters.date}`,
+    sql`${bookings.tourEndDate}::text >= ${filters.date}`,
   ];
   if (filters.tourId) conditions.push(eq(bookings.tourId, filters.tourId));
 

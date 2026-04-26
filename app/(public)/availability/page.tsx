@@ -38,8 +38,8 @@ export default async function AvailabilityPage({
     <div className="bg-white pb-32 lg:pb-24">
       <Container className="px-4 pt-8 sm:px-6 lg:pt-12">
         {initialTourId ? (
-          <AvailabilityExplorer 
-            tours={tours as any} 
+          <AvailabilityExplorer
+            tours={tours}
             initialTourId={initialTourId}
             initialPickups={tourPickups}
             initialDepartureId={departureLocationId}

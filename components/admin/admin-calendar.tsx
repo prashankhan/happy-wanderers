@@ -19,6 +19,7 @@ import { BookingListModal } from "@/components/admin/booking-list-modal";
 import { adminFieldClass, adminTextareaClass } from "@/components/admin/form-field-styles";
 import { Button } from "@/components/ui/button";
 import { Toast, useToast } from "@/components/admin/toast";
+import { iterateIsoDateRangeInclusive } from "@/lib/utils/dates";
 
 export interface AdminCalendarTourOption {
   id: string;
@@ -75,11 +76,16 @@ export function AdminCalendar({ tours, isAdmin }: AdminCalendarProps) {
       ]);
 
       if (bookingsRes.ok) {
-        const bookings = (await bookingsRes.json()) as Array<{ booking: { bookingDate: string } }>;
+        const bookings = (await bookingsRes.json()) as Array<{
+          booking: { bookingDate: string; tourStartDate?: string; tourEndDate?: string };
+        }>;
         const counts: Record<string, number> = {};
         bookings.forEach((b) => {
-          const date = b.booking.bookingDate;
-          counts[date] = (counts[date] ?? 0) + 1;
+          const start = String(b.booking.tourStartDate ?? b.booking.bookingDate).slice(0, 10);
+          const end = String(b.booking.tourEndDate ?? b.booking.bookingDate).slice(0, 10);
+          for (const d of iterateIsoDateRangeInclusive(start, end)) {
+            counts[d] = (counts[d] ?? 0) + 1;
+          }
         });
         setTotalBookings(counts);
       }

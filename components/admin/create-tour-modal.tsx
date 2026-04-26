@@ -7,10 +7,27 @@ import { useState } from "react";
 import { adminFieldClass } from "@/components/admin/form-field-styles";
 import { Button } from "@/components/ui/button";
 
+function resetCreateTourForm(setters: {
+  setTitle: (v: string) => void;
+  setIsMultiDay: (v: boolean) => void;
+  setDurationDays: (v: number) => void;
+  setRequiresAccommodation: (v: boolean) => void;
+  setError: (v: string | null) => void;
+}) {
+  setters.setTitle("");
+  setters.setIsMultiDay(false);
+  setters.setDurationDays(2);
+  setters.setRequiresAccommodation(false);
+  setters.setError(null);
+}
+
 export function CreateTourModal() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [isMultiDay, setIsMultiDay] = useState(false);
+  const [durationDays, setDurationDays] = useState(2);
+  const [requiresAccommodation, setRequiresAccommodation] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,10 +38,18 @@ export function CreateTourModal() {
     setError(null);
 
     try {
+      const payload: Record<string, unknown> = {};
+      if (title.trim()) payload.title = title.trim();
+      if (isMultiDay) {
+        payload.is_multi_day = true;
+        payload.duration_days = Math.max(2, Math.min(30, durationDays || 2));
+        payload.requires_accommodation = requiresAccommodation;
+      }
+
       const res = await fetch("/api/admin/tours", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(title.trim() ? { title: title.trim() } : {}),
+        body: JSON.stringify(payload),
       });
       const data = (await res.json()) as {
         success?: boolean;
@@ -38,7 +63,13 @@ export function CreateTourModal() {
       }
 
       setOpen(false);
-      setTitle("");
+      resetCreateTourForm({
+        setTitle,
+        setIsMultiDay,
+        setDurationDays,
+        setRequiresAccommodation,
+        setError,
+      });
       router.push(`/admin/tours/${data.tour_id}`);
       router.refresh();
     } finally {
@@ -47,7 +78,21 @@ export function CreateTourModal() {
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) {
+          resetCreateTourForm({
+            setTitle,
+            setIsMultiDay,
+            setDurationDays,
+            setRequiresAccommodation,
+            setError,
+          });
+        }
+      }}
+    >
       <Dialog.Trigger asChild>
         <Button type="button" variant="primary" size="sm">
           New tour
@@ -58,7 +103,8 @@ export function CreateTourModal() {
         <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-sm border border-brand-border bg-white p-6 shadow-xl">
           <Dialog.Title className="text-lg font-semibold text-brand-heading">Create new tour</Dialog.Title>
           <Dialog.Description className="mt-1 text-sm text-brand-muted">
-            Enter a title for your new tour. You can leave it blank for a generic title.
+            Enter a title and whether this is a multi-day journey. You can leave the title blank for a generic draft
+            name.
           </Dialog.Description>
 
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
@@ -73,6 +119,53 @@ export function CreateTourModal() {
                 autoFocus
               />
             </label>
+
+            <div className="rounded-sm border border-brand-border bg-brand-surface-soft/50 p-3 space-y-3">
+              <label className="flex items-center gap-2 text-sm font-medium text-brand-heading">
+                <input
+                  type="checkbox"
+                  checked={isMultiDay}
+                  onChange={(e) => {
+                    const on = e.target.checked;
+                    setIsMultiDay(on);
+                    if (!on) setRequiresAccommodation(false);
+                  }}
+                  disabled={pending}
+                />
+                Multi-day journey
+              </label>
+              {isMultiDay ? (
+                <div className="space-y-3 pl-1 border-l-2 border-brand-primary/30 ml-1">
+                  <label className="block text-xs font-medium text-brand-muted">
+                    Calendar days
+                    <input
+                      type="number"
+                      min={2}
+                      max={30}
+                      className={`mt-1 block w-24 ${adminFieldClass}`}
+                      value={durationDays}
+                      onChange={(e) =>
+                        setDurationDays(Math.max(2, Math.min(30, Number(e.target.value) || 2)))
+                      }
+                      disabled={pending}
+                    />
+                  </label>
+                  <label className="flex items-center gap-2 text-xs text-brand-muted">
+                    <input
+                      type="checkbox"
+                      checked={requiresAccommodation}
+                      onChange={(e) => setRequiresAccommodation(e.target.checked)}
+                      disabled={pending}
+                    />
+                    Involves overnight / guest accommodation (informational flag)
+                  </label>
+                  <p className="text-xs text-brand-muted leading-snug">
+                    Day-by-day pickup copy and itinerary live under <strong>Pickups</strong> after you create this
+                    draft. Bookable departure locations stay separate (Day 1 checkout).
+                  </p>
+                </div>
+              ) : null}
+            </div>
 
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
 

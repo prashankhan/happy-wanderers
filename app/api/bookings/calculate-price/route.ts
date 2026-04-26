@@ -10,6 +10,7 @@ const bodySchema = z.object({
   adults: z.coerce.number().int().min(1),
   children: z.coerce.number().int().min(0),
   infants: z.coerce.number().int().min(0),
+  pricing_rule_id: z.string().uuid().nullable().optional(),
 });
 
 export async function POST(request: Request) {
@@ -33,6 +34,7 @@ export async function POST(request: Request) {
       adults: parsed.data.adults,
       children: parsed.data.children,
       infants: parsed.data.infants,
+      pricingRuleId: parsed.data.pricing_rule_id,
     });
 
     if (!pricing.ok) {

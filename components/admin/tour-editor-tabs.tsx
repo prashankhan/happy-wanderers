@@ -13,6 +13,7 @@ import { Toast, useToast } from "@/components/admin/toast";
 import { TourMediaSection } from "@/components/admin/tour-media-section";
 import { Button } from "@/components/ui/button";
 import { normalizeMaxGuestsScope, type MaxGuestsScope } from "@/lib/types/pricing-constraints";
+import { parseTourItineraryDays, type TourItineraryDay } from "@/lib/types/tour-itinerary";
 import { PRICING_GUESTS_ORDER_TOAST, pricingGuestsOrderDetail } from "@/lib/ui/pricing-guest-limit-copy";
 import { cn } from "@/lib/utils/cn";
 
@@ -45,6 +46,10 @@ export interface SerializedTour {
   heroBadge: string | null;
   bookingCutoffHours: number;
   minimumAdvanceBookingDays: number;
+  durationDays: number;
+  isMultiDay: boolean;
+  requiresAccommodation: boolean;
+  itineraryDays: TourItineraryDay[] | null;
   bookingEnabled: boolean;
   isActive: boolean;
   status: string;
@@ -61,6 +66,7 @@ export interface PricingRuleRow {
   adultPrice: string;
   childPrice: string;
   childPricingType: "fixed" | "not_allowed";
+  extraAdultPricingType: "fixed" | "not_allowed";
   pricingMode: "per_person" | "package";
   includedAdults: number;
   packageBasePrice: string;
@@ -82,11 +88,17 @@ export interface PricingRuleRow {
 /** `max_infants` is meaningless when infants are not allowed; align UI + dirty checks with that invariant. */
 function normalizePricingRules(rules: PricingRuleRow[]): PricingRuleRow[] {
   return rules.map((rule) => {
-    const base = rule.infantPricingType === "not_allowed" ? { ...rule, maxInfants: null } : rule;
+    const base = {
+      ...rule,
+      extraAdultPricingType:
+        (rule as { extraAdultPricingType?: "fixed" | "not_allowed" }).extraAdultPricingType ??
+        "fixed",
+    };
+    const withInfants = base.infantPricingType === "not_allowed" ? { ...base, maxInfants: null } : base;
     return {
-      ...base,
+      ...withInfants,
       maxGuestsScope: normalizeMaxGuestsScope(
-        (base as { maxGuestsScope?: string | null }).maxGuestsScope
+        (withInfants as { maxGuestsScope?: string | null }).maxGuestsScope
       ),
     };
   });
@@ -121,6 +133,10 @@ interface TourEditorContentState {
   hero_badge: string;
   booking_cutoff_hours: number;
   minimum_advance_booking_days: number;
+  duration_days: number;
+  is_multi_day: boolean;
+  requires_accommodation: boolean;
+  itinerary_days: TourItineraryDay[];
   booking_enabled: boolean;
   is_active: boolean;
   status: "draft" | "published" | "archived";
@@ -213,6 +229,11 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
         hero_badge: content.hero_badge || null,
         booking_cutoff_hours: content.booking_cutoff_hours,
         minimum_advance_booking_days: content.minimum_advance_booking_days,
+        duration_days: content.duration_days,
+        is_multi_day: content.is_multi_day,
+        requires_accommodation: content.requires_accommodation,
+        itinerary_days:
+          content.is_multi_day && content.itinerary_days.length > 0 ? content.itinerary_days : null,
         booking_enabled: content.booking_enabled,
         is_active: content.is_active,
         status: content.status,
@@ -291,6 +312,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
           adult_price: draft.adultPrice,
           child_price: draft.childPrice,
           child_pricing_type: draft.childPricingType,
+          extra_adult_pricing_type: draft.extraAdultPricingType,
           pricing_mode: draft.pricingMode,
           included_adults: draft.includedAdults,
           package_base_price: draft.packageBasePrice,
@@ -327,6 +349,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
       draft.adultPrice !== original.adultPrice ||
       draft.childPrice !== original.childPrice ||
       draft.childPricingType !== original.childPricingType ||
+      draft.extraAdultPricingType !== original.extraAdultPricingType ||
       draft.pricingMode !== original.pricingMode ||
       draft.includedAdults !== original.includedAdults ||
       draft.packageBasePrice !== original.packageBasePrice ||
@@ -520,16 +543,243 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
         ) : null}
       </Tabs.Content>
 
-      <Tabs.Content value="pickups" className="space-y-4 rounded-sm border border-brand-border bg-white p-6">
+      <Tabs.Content value="pickups" className="space-y-6 rounded-sm border border-brand-border bg-white p-6">
         {!isAdmin ? (
           <p className="text-sm text-brand-body">Pickups are visible to admins only.</p>
         ) : (
-          <TourDeparturesEditor
-            tourId={tour.id}
-            pending={pending}
-            onPendingChange={setPending}
-            showToast={showToast}
-          />
+          <>
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-brand-heading">Journey & day-by-day schedule</h3>
+              <p className="text-sm text-brand-body">
+                Multi-day flag and the fields below are for the <strong>public tour page</strong> and confirmation
+                emails only. They do <strong>not</strong> replace bookable departure locations (configured below).
+              </p>
+              <div className="space-y-3 rounded-sm border border-brand-border bg-brand-surface-soft/40 p-4">
+                <label className="flex items-center gap-2 text-sm font-medium text-brand-heading">
+                  <input
+                    type="checkbox"
+                    checked={content.is_multi_day}
+                    onChange={(e) => {
+                      const on = e.target.checked;
+                      setContent((c) => ({
+                        ...c,
+                        is_multi_day: on,
+                        duration_days: on ? Math.max(2, c.duration_days) : 1,
+                        requires_accommodation: on ? c.requires_accommodation : false,
+                        itinerary_days: on ? c.itinerary_days : [],
+                      }));
+                    }}
+                    disabled={pending}
+                  />
+                  Multi-day journey?
+                </label>
+                {content.is_multi_day ? (
+                  <div className="mt-3 space-y-6">
+                    <div className="grid gap-4 md:max-w-xs">
+                      <label className="text-xs font-medium text-brand-muted">
+                        Duration (calendar days)
+                        <input
+                          type="number"
+                          min={2}
+                          max={30}
+                          className={`mt-1 ${adminFieldClass}`}
+                          value={content.duration_days}
+                          onChange={(e) =>
+                            setContent((c) => ({
+                              ...c,
+                              duration_days: Math.max(2, Math.min(30, Number(e.target.value) || 2)),
+                            }))
+                          }
+                          disabled={pending}
+                        />
+                      </label>
+                      <label className="flex items-center gap-2 text-xs font-medium text-brand-muted">
+                        <input
+                          type="checkbox"
+                          checked={content.requires_accommodation}
+                          onChange={(e) =>
+                            setContent((c) => ({ ...c, requires_accommodation: e.target.checked }))
+                          }
+                          disabled={pending}
+                        />
+                        Requires guest accommodation (informational)
+                      </label>
+                    </div>
+
+                    <div className="space-y-3 border-t border-brand-border/60 pt-4">
+                      <h4 className="text-sm font-semibold text-brand-heading">Itinerary days</h4>
+                      <p className="text-xs text-brand-muted">
+                        Optional per-day pickup copy and summaries (presentation only).
+                      </p>
+                      <div className="space-y-4">
+                        {content.itinerary_days.map((row, idx) => (
+                          <div
+                            key={idx}
+                            className="space-y-3 rounded-sm border border-brand-border bg-white p-4 shadow-sm"
+                          >
+                            <div className="flex flex-wrap items-end justify-between gap-2">
+                              <label className="text-xs font-medium text-brand-muted">
+                                Day number
+                                <input
+                                  type="number"
+                                  min={1}
+                                  max={30}
+                                  className={`mt-1 block w-20 ${adminFieldClass}`}
+                                  value={row.day_number}
+                                  onChange={(e) => {
+                                    const v = Math.max(1, Math.min(30, Number(e.target.value) || 1));
+                                    setContent((c) => ({
+                                      ...c,
+                                      itinerary_days: c.itinerary_days.map((d, i) =>
+                                        i === idx ? { ...d, day_number: v } : d
+                                      ),
+                                    }));
+                                  }}
+                                  disabled={pending}
+                                />
+                              </label>
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                className="shrink-0"
+                                disabled={pending}
+                                onClick={() =>
+                                  setContent((c) => ({
+                                    ...c,
+                                    itinerary_days: c.itinerary_days.filter((_, i) => i !== idx),
+                                  }))
+                                }
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                            <label className="block text-xs font-medium text-brand-muted">
+                              Title
+                              <input
+                                className={`mt-1 block w-full ${adminFieldClass}`}
+                                value={row.title}
+                                onChange={(e) =>
+                                  setContent((c) => ({
+                                    ...c,
+                                    itinerary_days: c.itinerary_days.map((d, i) =>
+                                      i === idx ? { ...d, title: e.target.value } : d
+                                    ),
+                                  }))
+                                }
+                                disabled={pending}
+                              />
+                            </label>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <label className="text-xs font-medium text-brand-muted">
+                                Pickup location
+                                <input
+                                  className={`mt-1 block w-full ${adminFieldClass}`}
+                                  value={row.pickup_location}
+                                  onChange={(e) =>
+                                    setContent((c) => ({
+                                      ...c,
+                                      itinerary_days: c.itinerary_days.map((d, i) =>
+                                        i === idx ? { ...d, pickup_location: e.target.value } : d
+                                      ),
+                                    }))
+                                  }
+                                  disabled={pending}
+                                />
+                              </label>
+                              <label className="text-xs font-medium text-brand-muted">
+                                Pickup time
+                                <input
+                                  className={`mt-1 block w-full ${adminFieldClass}`}
+                                  value={row.pickup_time}
+                                  onChange={(e) =>
+                                    setContent((c) => ({
+                                      ...c,
+                                      itinerary_days: c.itinerary_days.map((d, i) =>
+                                        i === idx ? { ...d, pickup_time: e.target.value } : d
+                                      ),
+                                    }))
+                                  }
+                                  disabled={pending}
+                                />
+                              </label>
+                            </div>
+                            <label className="block text-xs font-medium text-brand-muted">
+                              Summary
+                              <textarea
+                                className={`mt-1 block min-h-[100px] w-full ${adminTextareaClass}`}
+                                value={row.summary}
+                                onChange={(e) =>
+                                  setContent((c) => ({
+                                    ...c,
+                                    itinerary_days: c.itinerary_days.map((d, i) =>
+                                      i === idx ? { ...d, summary: e.target.value } : d
+                                    ),
+                                  }))
+                                }
+                                disabled={pending}
+                              />
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        disabled={pending}
+                        onClick={() =>
+                          setContent((c) => {
+                            const nextDay =
+                              c.itinerary_days.length > 0
+                                ? Math.max(...c.itinerary_days.map((d) => d.day_number)) + 1
+                                : 1;
+                            return {
+                              ...c,
+                              itinerary_days: [
+                                ...c.itinerary_days,
+                                {
+                                  day_number: nextDay,
+                                  title: "",
+                                  pickup_location: "",
+                                  pickup_time: "07:00",
+                                  summary: "",
+                                },
+                              ],
+                            };
+                          })
+                        }
+                      >
+                        Add day
+                      </Button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() => void saveContent()}
+                disabled={pending || !isContentDirty}
+              >
+                Save tour (journey + all content fields)
+              </Button>
+            </div>
+
+            <div className="border-t border-brand-border pt-6 space-y-3">
+              <h3 className="text-sm font-semibold text-brand-heading">Bookable departure locations</h3>
+              <p className="text-sm text-brand-muted">
+                Day 1 checkout options — guests choose one at booking. Use per-row save after edits.
+              </p>
+              <TourDeparturesEditor
+                tourId={tour.id}
+                pending={pending}
+                onPendingChange={setPending}
+                showToast={showToast}
+              />
+            </div>
+          </>
         )}
       </Tabs.Content>
 
@@ -759,20 +1009,60 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                           />
                         </label>
                         <label className="text-xs font-medium text-brand-muted">
-                          Extra adult
-                          <input
-                            type="number"
-                            min={0}
-                            step="0.01"
+                          Extra adult pricing type
+                          <AdminCombobox
                             className={`mt-1 ${adminFieldClass}`}
-                            value={pricingDrafts[r.id]?.extraAdultPrice ?? r.extraAdultPrice}
-                            onChange={(e) =>
-                              setPricingDrafts((prev) => ({
-                                ...prev,
-                                [r.id]: { ...(prev[r.id] ?? r), extraAdultPrice: e.target.value },
-                              }))
+                            value={pricingDrafts[r.id]?.extraAdultPricingType ?? r.extraAdultPricingType}
+                            onValueChange={(nextAdultPricingType) =>
+                              setPricingDrafts((prev) => {
+                                const row = prev[r.id] ?? r;
+                                const next: PricingRuleRow = {
+                                  ...row,
+                                  extraAdultPricingType: nextAdultPricingType as
+                                    | "fixed"
+                                    | "not_allowed",
+                                };
+                                if (nextAdultPricingType === "not_allowed") {
+                                  next.extraAdultPrice = "0";
+                                }
+                                return { ...prev, [r.id]: next };
+                              })
                             }
+                            options={[
+                              { value: "fixed", label: "Fixed" },
+                              { value: "not_allowed", label: "Not allowed" },
+                            ]}
                           />
+                        </label>
+                        <label className="text-xs font-medium text-brand-muted">
+                          Extra adult
+                          {(pricingDrafts[r.id]?.extraAdultPricingType ?? r.extraAdultPricingType) ===
+                          "not_allowed" ? (
+                            <input
+                              type="text"
+                              disabled
+                              readOnly
+                              className={cn(
+                                `mt-1 ${adminFieldClass}`,
+                                "cursor-not-allowed bg-brand-surface-soft text-brand-muted opacity-80"
+                              )}
+                              value="—"
+                            />
+                          ) : (
+                            <input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              className={`mt-1 ${adminFieldClass}`}
+                              value={pricingDrafts[r.id]?.extraAdultPrice ?? r.extraAdultPrice}
+                              onChange={(e) =>
+                                setPricingDrafts((prev) => ({
+                                  ...prev,
+                                  [r.id]: { ...(prev[r.id] ?? r), extraAdultPrice: e.target.value },
+                                }))
+                              }
+                            />
+                          )}
                         </label>
                         <label className="text-xs font-medium text-brand-muted">
                           Extra child
@@ -1064,7 +1354,29 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
                   />
                   Featured
                 </label>
+                <label className="flex items-center gap-2 text-sm text-brand-body">
+                  <input
+                    type="checkbox"
+                    checked={content.is_multi_day}
+                    onChange={(e) => {
+                      const on = e.target.checked;
+                      setContent((c) => ({
+                        ...c,
+                        is_multi_day: on,
+                        duration_days: on ? Math.max(2, c.duration_days) : 1,
+                        requires_accommodation: on ? c.requires_accommodation : false,
+                        itinerary_days: on ? c.itinerary_days : [],
+                      }));
+                    }}
+                    disabled={pending}
+                  />
+                  Multi-day journey
+                </label>
               </div>
+              <p className="text-xs text-brand-muted">
+                When multi-day is on, set calendar length, itinerary, and bookable Day 1 pickups in the{" "}
+                <strong>Pickups</strong> tab.
+              </p>
             </div>
 
             <div className="space-y-4">
@@ -1205,6 +1517,10 @@ function buildTourEditorContentState(tour: SerializedTour): TourEditorContentSta
     hero_badge: tour.heroBadge ?? "",
     booking_cutoff_hours: tour.bookingCutoffHours,
     minimum_advance_booking_days: tour.minimumAdvanceBookingDays,
+    duration_days: tour.durationDays,
+    is_multi_day: tour.isMultiDay,
+    requires_accommodation: tour.requiresAccommodation,
+    itinerary_days: parseTourItineraryDays(tour.itineraryDays),
     booking_enabled: tour.bookingEnabled,
     is_active: tour.isActive,
     status: tour.status as "draft" | "published" | "archived",

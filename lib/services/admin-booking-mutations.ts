@@ -4,7 +4,14 @@ import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { bookings, departureLocations, tours } from "@/lib/db/schema";
 import { sendBookingConfirmationEmails, sendCancellationEmail } from "@/lib/email/send";
-import { countAllocatedSeats, resolveDayAvailability, validateSeatsForDate } from "@/lib/services/availability";
+import {
+  countAllocatedSeats,
+  getMinimumAdvanceWindowForDate,
+  resolveDayAvailability,
+  validateSeatsForDate,
+} from "@/lib/services/availability";
+import { getSystemSettings } from "@/lib/services/system-settings";
+import { iterateIsoDateRangeInclusive, tourSpanFromDepartureDate } from "@/lib/utils/dates";
 import { logBookingActivity } from "@/lib/services/booking-activity";
 import { generateBookingReference } from "@/lib/services/bookings";
 import { resolvePricing } from "@/lib/services/pricing";
@@ -28,16 +35,22 @@ export async function validateGuestChangeForBooking(input: {
     .limit(1);
   const pickupTime = loc[0]?.pickupTime ?? b.pickupTimeSnapshot;
 
-  const day = await resolveDayAvailability({
-    tourId: b.tourId,
-    bookingDate: String(b.bookingDate),
-    pickupTime,
-  });
+  const start = String(b.tourStartDate ?? b.bookingDate);
+  const end = String(b.tourEndDate ?? b.bookingDate);
 
-  const allocated = await countAllocatedSeats(b.tourId, String(b.bookingDate));
-  const hypothetical = allocated - b.guestTotal + input.newGuestTotal;
-  if (hypothetical > day.capacityTotal) {
-    return { ok: false, message: "Capacity exceeded for this date" };
+  for (const d of iterateIsoDateRangeInclusive(start, end)) {
+    const day = await resolveDayAvailability({
+      tourId: b.tourId,
+      bookingDate: d,
+      pickupTime,
+      applyMinimumAdvance: d === start,
+      applyCutoff: d === start,
+    });
+    const allocated = await countAllocatedSeats(b.tourId, d);
+    const hypothetical = allocated - b.guestTotal + input.newGuestTotal;
+    if (hypothetical > day.capacityTotal) {
+      return { ok: false, message: "Capacity exceeded for one or more tour dates" };
+    }
   }
   return { ok: true };
 }
@@ -246,6 +259,24 @@ export async function createManualBooking(input: {
     .limit(1);
   if (!loc[0]) return { ok: false, message: "Invalid departure" };
 
+  const tourRows = await db
+    .select()
+    .from(tours)
+    .where(and(eq(tours.id, input.tourId), sql`${tours.deletedAt} IS NULL`))
+    .limit(1);
+  const tourRow = tourRows[0];
+  if (!tourRow) return { ok: false, message: "Tour not found" };
+
+  const settings = await getSystemSettings();
+  const minimumAdvance = getMinimumAdvanceWindowForDate({
+    bookingDate: input.bookingDate,
+    minimumAdvanceBookingDays: tourRow.minimumAdvanceBookingDays ?? 0,
+    timezone: settings.timezone,
+  });
+  if (minimumAdvance.blocked) {
+    return { ok: false, message: "Minimum advance booking period not met" };
+  }
+
   const guestTotal = input.adults + input.children + input.infants;
   const seatCheck = await validateSeatsForDate({
     tourId: input.tourId,
@@ -265,16 +296,13 @@ export async function createManualBooking(input: {
   });
   if (!pricing.ok) return { ok: false, message: pricing.message };
 
-  const tourRows = await db
-    .select()
-    .from(tours)
-    .where(and(eq(tours.id, input.tourId), sql`${tours.deletedAt} IS NULL`))
-    .limit(1);
-  const tourRow = tourRows[0];
-  if (!tourRow) return { ok: false, message: "Tour not found" };
-
   const ref = await generateBookingReference(input.bookingDate);
   const now = new Date();
+  const { tourStartDate, tourEndDate } = tourSpanFromDepartureDate(
+    input.bookingDate,
+    tourRow.durationDays,
+    tourRow.isMultiDay
+  );
 
   const [row] = await db
     .insert(bookings)
@@ -286,6 +314,8 @@ export async function createManualBooking(input: {
       pickupLocationNameSnapshot: loc[0].name,
       pickupTimeSnapshot: loc[0].pickupTime,
       bookingDate: input.bookingDate,
+      tourStartDate,
+      tourEndDate,
       bookingDatetime: now,
       adults: input.adults,
       children: input.children,

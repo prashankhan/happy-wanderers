@@ -33,6 +33,9 @@ export default async function AdminTourEditorPage({ params }: { params: Promise<
       childPricingType: (r.childPricingType === "not_allowed" ? "not_allowed" : "fixed") as
         | "fixed"
         | "not_allowed",
+      extraAdultPricingType: (r.extraAdultPricingType === "not_allowed" ? "not_allowed" : "fixed") as
+        | "fixed"
+        | "not_allowed",
       pricingMode: r.pricingMode as "per_person" | "package",
       includedAdults: r.includedAdults,
       packageBasePrice: String(r.packageBasePrice),
@@ -72,6 +75,10 @@ export default async function AdminTourEditorPage({ params }: { params: Promise<
     heroBadge: tour.heroBadge,
     bookingCutoffHours: tour.bookingCutoffHours,
     minimumAdvanceBookingDays: tour.minimumAdvanceBookingDays,
+    durationDays: tour.durationDays,
+    isMultiDay: tour.isMultiDay,
+    requiresAccommodation: tour.requiresAccommodation,
+    itineraryDays: tour.itineraryDays ?? null,
     bookingEnabled: tour.bookingEnabled,
     isActive: tour.isActive,
     status: tour.status,

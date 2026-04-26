@@ -5,7 +5,7 @@ import { Container } from "@/components/layout/container";
 import { RevealOnView } from "@/components/motion/reveal-on-view";
 import { Button } from "@/components/ui/button";
 import { getMinimumAdvanceWindowForDate } from "@/lib/services/availability";
-import { getPricingConstraints } from "@/lib/services/pricing";
+import { getPricingConstraints, getPricingRuleOptions } from "@/lib/services/pricing";
 import { getSystemSettings } from "@/lib/services/system-settings";
 import { getPublishedTourById, listPublishedTours } from "@/lib/services/tours-public";
 import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
@@ -67,6 +67,8 @@ export async function BookingPageContent({
 
   const constraintsResult = await getPricingConstraints(resolved.tour.id, date);
   const pricingConstraints = constraintsResult.ok ? constraintsResult.constraints : null;
+  const ruleOptionsResult = await getPricingRuleOptions(resolved.tour.id, date);
+  const pricingRules = ruleOptionsResult.ok ? ruleOptionsResult.rules : [];
   const settings = await getSystemSettings();
   const minimumAdvanceWindow = getMinimumAdvanceWindowForDate({
     bookingDate: date,
@@ -84,8 +86,11 @@ export async function BookingPageContent({
           initialDepartureId={dep}
           pickups={pickups}
           pricingConstraints={pricingConstraints}
+          pricingRules={pricingRules}
           minimumAdvanceBookingDays={resolved.tour.minimumAdvanceBookingDays ?? 0}
           minimumAdvanceBookingBlocked={minimumAdvanceWindow.blocked}
+          isMultiDay={Boolean(resolved.tour.isMultiDay)}
+          durationDays={resolved.tour.durationDays ?? 1}
         />
       </Container>
     </div>

@@ -18,6 +18,8 @@ export async function GET(request: Request) {
         group_size_text: r.groupSizeText,
         price_from_text: r.priceFromText,
         minimum_advance_booking_days: r.minimumAdvanceBookingDays,
+        duration_days: r.durationDays,
+        is_multi_day: r.isMultiDay,
         hero_image: r.heroImage,
         is_featured: r.isFeatured,
       }))

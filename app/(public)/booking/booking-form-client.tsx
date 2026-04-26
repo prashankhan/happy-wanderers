@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { RevealOnView } from "@/components/motion/reveal-on-view";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,9 @@ import {
   type MaxGuestsScope,
   type PricingConstraints,
 } from "@/lib/types/pricing-constraints";
+import type { PricingRuleOption } from "@/lib/types/pricing-rule-option";
 import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
+import { addCalendarDaysIso } from "@/lib/utils/dates";
 import { cn } from "@/lib/utils/cn";
 
 function formatDate(dateStr: string): string {
@@ -77,8 +79,11 @@ export function BookingFormClient({
   initialDepartureId,
   pickups,
   pricingConstraints,
+  pricingRules,
   minimumAdvanceBookingDays,
   minimumAdvanceBookingBlocked,
+  isMultiDay,
+  durationDays,
 }: {
   tourId: string;
   tourTitle: string;
@@ -86,17 +91,48 @@ export function BookingFormClient({
   initialDepartureId?: string;
   pickups: { id: string; name: string; timeLabel: string }[];
   pricingConstraints: PricingConstraints | null;
+  pricingRules: PricingRuleOption[];
   minimumAdvanceBookingDays: number;
   minimumAdvanceBookingBlocked: boolean;
+  isMultiDay: boolean;
+  durationDays: number;
 }) {
   const router = useRouter();
 
   const date = initialDate;
   const departureId = initialDepartureId ?? pickups[0]?.id;
   const selectedPickup = pickups.find((p) => p.id === departureId);
+  const effectiveDuration = Math.max(1, durationDays);
+  const isMultiDayJourney = Boolean(isMultiDay) && effectiveDuration > 1;
+  const returnDateStr =
+    date && isMultiDayJourney ? addCalendarDaysIso(date, effectiveDuration - 1) : date;
 
   const defaultAdultsFloor = pricingConstraints?.minGuests ?? 2;
-  const [adults, setAdults] = useState(() => Math.max(1, defaultAdultsFloor));
+  const packageRules = pricingRules.filter((r) => r.pricingMode === "package");
+  const hasPackagePricing = packageRules.length > 0;
+  const [selectedPricingRuleId, setSelectedPricingRuleId] = useState<string | null>(
+    hasPackagePricing ? packageRules[0]!.id : null
+  );
+  const [extraAdults, setExtraAdults] = useState(0);
+  const [extraChildren, setExtraChildren] = useState(0);
+  const [extraInfants, setExtraInfants] = useState(0);
+  const selectedPackageRule = hasPackagePricing
+    ? packageRules.find((r) => r.id === selectedPricingRuleId) ?? packageRules[0]!
+    : null;
+  const activeConstraints: PricingConstraints | null = selectedPackageRule
+    ? {
+        minGuests: selectedPackageRule.minGuests,
+        maxGuests: selectedPackageRule.maxGuests,
+        maxGuestsScope: selectedPackageRule.maxGuestsScope,
+        childPricingType: selectedPackageRule.childPricingType,
+        maxInfants: selectedPackageRule.maxInfants,
+        infantPricingType: selectedPackageRule.infantPricingType,
+        pricingMode: selectedPackageRule.pricingMode,
+      }
+    : pricingConstraints;
+
+  const defaultAdultsFromPackage = selectedPackageRule?.includedGuests ?? defaultAdultsFloor;
+  const [adults, setAdults] = useState(() => Math.max(1, defaultAdultsFromPackage));
   const [children, setChildren] = useState(0);
   const [infants, setInfants] = useState(0);
   const [firstName, setFirstName] = useState("");
@@ -108,23 +144,50 @@ export function BookingFormClient({
   const [loading, setLoading] = useState(false);
   const [pricing, setPricing] = useState<PricingBreakdown | null>(null);
   const [pricingMessage, setPricingMessage] = useState<string | null>(null);
+  const pricingRequestSeq = useRef(0);
   const minimumAdvanceMessage =
     minimumAdvanceBookingDays > 0
       ? `This tour requires at least ${minimumAdvanceBookingDays} day${minimumAdvanceBookingDays === 1 ? "" : "s"} advance booking. If you need a last-minute reservation, please contact us directly.`
       : null;
 
-  const childrenNotAllowed = pricingConstraints?.childPricingType === "not_allowed";
-  const infantsNotAllowed = pricingConstraints?.infantPricingType === "not_allowed";
+  const childrenNotAllowed = activeConstraints?.childPricingType === "not_allowed";
+  const infantsNotAllowed = activeConstraints?.infantPricingType === "not_allowed";
   const infantCap =
-    typeof pricingConstraints?.maxInfants === "number" ? pricingConstraints.maxInfants : null;
+    typeof activeConstraints?.maxInfants === "number" ? activeConstraints.maxInfants : null;
   const childrenLocked = childrenNotAllowed;
   const infantsLocked = infantsNotAllowed || infantCap === 0;
   const effectiveChildren = childrenLocked ? 0 : children;
   const effectiveInfants = infantsLocked ? 0 : infants;
-  const maxGuests = pricingConstraints?.maxGuests;
-  const maxGuestsScope: MaxGuestsScope = pricingConstraints
-    ? normalizeMaxGuestsScope(pricingConstraints.maxGuestsScope)
+  const maxGuests = activeConstraints?.maxGuests;
+  const maxGuestsScope: MaxGuestsScope = activeConstraints
+    ? normalizeMaxGuestsScope(activeConstraints.maxGuestsScope)
     : "entire_party";
+
+  useEffect(() => {
+    if (!selectedPackageRule) return;
+    setExtraAdults(0);
+    setExtraChildren(0);
+    setExtraInfants(0);
+    setAdults(Math.max(1, selectedPackageRule.includedGuests));
+    setChildren(0);
+    setInfants(0);
+  }, [selectedPackageRule?.id]);
+
+  useEffect(() => {
+    if (!selectedPackageRule) return;
+    const included = Math.max(1, selectedPackageRule.includedGuests);
+    setAdults(included + Math.max(0, extraAdults));
+    setChildren(childrenLocked ? 0 : Math.max(0, extraChildren));
+    setInfants(infantsLocked ? 0 : Math.max(0, extraInfants));
+  }, [
+    selectedPackageRule?.id,
+    selectedPackageRule?.includedGuests,
+    extraAdults,
+    extraChildren,
+    extraInfants,
+    childrenLocked,
+    infantsLocked,
+  ]);
 
   let adultsMax: number | undefined;
   let childrenMax: number | undefined;
@@ -158,18 +221,21 @@ export function BookingFormClient({
       : undefined;
 
   useEffect(() => {
+    if (selectedPackageRule) return;
     if (adultsMax !== undefined && adults > adultsMax) setAdults(adultsMax);
-  }, [adultsMax, adults]);
+  }, [selectedPackageRule, adultsMax, adults]);
 
   useEffect(() => {
+    if (selectedPackageRule) return;
     if (childrenLocked) {
       if (children !== 0) setChildren(0);
       return;
     }
     if (childrenMax !== undefined && children > childrenMax) setChildren(childrenMax);
-  }, [childrenLocked, childrenMax, children]);
+  }, [selectedPackageRule, childrenLocked, childrenMax, children]);
 
   useEffect(() => {
+    if (selectedPackageRule) return;
     if (infantsLocked) {
       if (infants !== 0) setInfants(0);
       return;
@@ -179,7 +245,37 @@ export function BookingFormClient({
       return;
     }
     if (typeof infantCap === "number" && infants > infantCap) setInfants(infantCap);
-  }, [infantsLocked, infantCap, infantInputMax, infants]);
+  }, [selectedPackageRule, infantsLocked, infantCap, infantInputMax, infants]);
+
+  const includedAdultsForPackage = selectedPackageRule
+    ? Math.max(1, selectedPackageRule.includedGuests)
+    : 0;
+  const extraAdultsNotAllowed = selectedPackageRule?.extraAdultPricingType === "not_allowed";
+  const extraAdultsMax =
+    selectedPackageRule && adultsMax !== undefined
+      ? extraAdultsNotAllowed
+        ? 0
+        : Math.max(0, adultsMax - includedAdultsForPackage)
+      : undefined;
+  const extraChildrenMax = selectedPackageRule ? childrenMax : undefined;
+  const extraInfantsMax = selectedPackageRule ? infantInputMax : undefined;
+  const canAddExtraAdults = Boolean(
+    selectedPackageRule &&
+      !extraAdultsNotAllowed &&
+      (extraAdultsMax === undefined || extraAdultsMax > 0)
+  );
+  const canAddExtraChildren = Boolean(
+    selectedPackageRule && !childrenLocked && (extraChildrenMax === undefined || extraChildrenMax > 0)
+  );
+  const canAddExtraInfants = Boolean(
+    selectedPackageRule && !infantsLocked && (extraInfantsMax === undefined || extraInfantsMax > 0)
+  );
+  const hasAnyAddOns = canAddExtraAdults || canAddExtraChildren || canAddExtraInfants;
+
+  useEffect(() => {
+    if (!extraAdultsNotAllowed) return;
+    if (extraAdults !== 0) setExtraAdults(0);
+  }, [extraAdultsNotAllowed, extraAdults]);
 
   useEffect(() => {
     if (!date || !departureId) {
@@ -189,6 +285,7 @@ export function BookingFormClient({
     }
 
     async function fetchPricing() {
+      const requestId = ++pricingRequestSeq.current;
       try {
         const res = await fetch("/api/bookings/calculate-price", {
           method: "POST",
@@ -200,6 +297,7 @@ export function BookingFormClient({
             adults,
             children: childrenLocked ? 0 : children,
             infants: infantsLocked ? 0 : infants,
+            pricing_rule_id: selectedPackageRule?.id ?? null,
           }),
         });
         const json = (await res.json()) as {
@@ -208,12 +306,14 @@ export function BookingFormClient({
           breakdown?: Record<string, unknown>;
         };
         if (!res.ok || !json.success) {
+          if (requestId !== pricingRequestSeq.current) return;
           setPricing(null);
           setPricingMessage(
             typeof json.message === "string" ? json.message : "Unable to price this party size."
           );
           return;
         }
+        if (requestId !== pricingRequestSeq.current) return;
         setPricingMessage(null);
         const b = json.breakdown as unknown as PricingBreakdown;
         setPricing({
@@ -223,13 +323,24 @@ export function BookingFormClient({
           infants: infantsLocked ? 0 : infants,
         });
       } catch {
+        if (requestId !== pricingRequestSeq.current) return;
         setPricing(null);
         setPricingMessage("Unable to calculate pricing right now.");
       }
     }
 
     fetchPricing();
-  }, [tourId, date, departureId, adults, children, infants, childrenLocked, infantsLocked]);
+  }, [
+    tourId,
+    date,
+    departureId,
+    adults,
+    children,
+    infants,
+    childrenLocked,
+    infantsLocked,
+    selectedPackageRule?.id,
+  ]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -254,6 +365,7 @@ export function BookingFormClient({
           adults,
           children: childrenLocked ? 0 : children,
           infants: infantsLocked ? 0 : infants,
+          pricing_rule_id: selectedPackageRule?.id ?? null,
           customer_first_name: firstName,
           customer_last_name: lastName,
           customer_email: email,
@@ -283,112 +395,239 @@ export function BookingFormClient({
               Guests
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 md:p-6">
-            {pricingConstraints ? (
-              <p className="mb-4 rounded-sm border border-brand-border bg-brand-surface-soft/70 px-3 py-2.5 text-sm font-medium leading-snug text-brand-body ring-1 ring-brand-heading/5">
-                {guestPartyLimitsShortLine(pricingConstraints, maxGuestsScope)}
+          <CardContent className="space-y-5 p-4 md:space-y-6 md:p-6">
+            {activeConstraints ? (
+              <p className="rounded-sm border border-brand-border bg-brand-surface-soft/70 px-3 py-2.5 text-sm font-medium leading-snug text-brand-body ring-1 ring-brand-heading/5">
+                {guestPartyLimitsShortLine(activeConstraints, maxGuestsScope)}
               </p>
             ) : null}
+            {hasPackagePricing ? (
+              <div className="rounded-sm border border-brand-border/70 bg-brand-surface-soft/30 p-3 md:p-4">
+                <label className="mb-2 block text-xs font-bold uppercase tracking-normal text-brand-muted">
+                  Package selection
+                </label>
+                <select
+                  className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  value={selectedPackageRule?.id ?? ""}
+                  onChange={(e) => setSelectedPricingRuleId(e.target.value)}
+                >
+                  {packageRules.map((rule) => (
+                    <option key={rule.id} value={rule.id}>
+                      {rule.label} - {formatPrice(rule.packageBase, "AUD")}
+                    </option>
+                  ))}
+                </select>
+                {selectedPackageRule ? (
+                  <p className="mt-2 text-xs text-brand-muted">
+                    Includes {selectedPackageRule.includedGuests} guest
+                    {selectedPackageRule.includedGuests === 1 ? "" : "s"}.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-              <div className="flex-1">
-                <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">Adults</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={adultsMax}
-                  className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
-                  value={adults}
-                  onChange={(e) => {
-                    const raw = Number.parseInt(e.target.value, 10);
-                    if (Number.isNaN(raw)) return;
-                    const capped = adultsMax === undefined ? raw : Math.min(raw, adultsMax);
-                    setAdults(Math.max(1, capped));
-                  }}
-                />
-              </div>
-              <div className={cn("flex-1", childrenLocked && "opacity-50")}>
-                <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">
-                  Children
-                  {childrenLocked ? (
-                    <span className="ml-2 font-normal normal-case text-brand-muted">(not available)</span>
-                  ) : null}
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  max={childrenMax}
-                  disabled={childrenLocked}
-                  aria-disabled={childrenLocked}
-                  className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
-                  value={childrenLocked ? 0 : children}
-                  onChange={(e) => {
-                    if (childrenLocked) return;
-                    const raw = Number.parseInt(e.target.value, 10);
-                    if (Number.isNaN(raw)) return;
-                    const capped = childrenMax === undefined ? raw : Math.min(Math.max(0, raw), childrenMax);
-                    setChildren(capped);
-                  }}
-                />
-              </div>
-              <div className={cn("flex-1", infantsLocked && "opacity-50")}>
-                <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">
-                  Infants
-                  {infantsLocked ? (
-                    <span className="ml-2 font-normal normal-case text-brand-muted">(not available)</span>
-                  ) : null}
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  max={infantInputMax}
-                  disabled={infantsLocked}
-                  aria-disabled={infantsLocked}
-                  className={cn(
-                    "w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10",
-                    infantsLocked && "cursor-not-allowed bg-brand-surface-soft text-brand-muted"
-                  )}
-                  value={infantsLocked ? 0 : infants}
-                  onChange={(e) => {
-                    if (infantsLocked) return;
-                    const raw = Number.parseInt(e.target.value, 10);
-                    if (Number.isNaN(raw)) return;
-                    const upper =
-                      infantInputMax === undefined ? raw : Math.min(raw, infantInputMax);
-                    setInfants(Math.max(0, upper));
-                  }}
-                />
-              </div>
+              {selectedPackageRule ? (
+                <>
+                  <div className="w-full space-y-3">
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="rounded-sm border border-brand-border bg-brand-surface-soft px-2 py-1 font-semibold text-brand-heading">
+                        Includes {includedAdultsForPackage} adult{includedAdultsForPackage === 1 ? "" : "s"}
+                      </span>
+                      <span className="rounded-sm border border-brand-border bg-brand-surface-soft px-2 py-1 text-brand-muted">
+                        {childrenLocked ? "No children" : "Children allowed"}
+                      </span>
+                      <span className="rounded-sm border border-brand-border bg-brand-surface-soft px-2 py-1 text-brand-muted">
+                        {infantsLocked ? "No infants" : "Infants allowed"}
+                      </span>
+                    </div>
+
+                    {hasAnyAddOns ? (
+                      <div className="rounded-sm border border-brand-border/70 bg-white p-3 md:p-4">
+                        <p className="mb-3 text-xs font-bold uppercase tracking-normal text-brand-muted">
+                          Add extras
+                        </p>
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {canAddExtraAdults ? (
+                          <div>
+                            <label className="block text-sm font-semibold text-brand-muted mb-2">
+                              Extra adults
+                            </label>
+                            <input
+                              type="number"
+                              min={0}
+                              max={extraAdultsMax}
+                              className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                              value={extraAdults}
+                              onChange={(e) => {
+                                const raw = Number.parseInt(e.target.value, 10);
+                                if (Number.isNaN(raw)) return;
+                                const capped =
+                                  extraAdultsMax === undefined
+                                    ? raw
+                                    : Math.min(Math.max(0, raw), extraAdultsMax);
+                                setExtraAdults(capped);
+                              }}
+                            />
+                          </div>
+                        ) : null}
+                        {canAddExtraChildren ? (
+                          <div>
+                            <label className="block text-sm font-semibold text-brand-muted mb-2">
+                              Extra children
+                            </label>
+                            <input
+                              type="number"
+                              min={0}
+                              max={extraChildrenMax}
+                              className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                              value={extraChildren}
+                              onChange={(e) => {
+                                const raw = Number.parseInt(e.target.value, 10);
+                                if (Number.isNaN(raw)) return;
+                                const capped =
+                                  extraChildrenMax === undefined
+                                    ? raw
+                                    : Math.min(Math.max(0, raw), extraChildrenMax);
+                                setExtraChildren(capped);
+                              }}
+                            />
+                          </div>
+                        ) : null}
+                        {canAddExtraInfants ? (
+                          <div>
+                            <label className="block text-sm font-semibold text-brand-muted mb-2">
+                              Extra infants
+                            </label>
+                            <input
+                              type="number"
+                              min={0}
+                              max={extraInfantsMax}
+                              className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                              value={extraInfants}
+                              onChange={(e) => {
+                                const raw = Number.parseInt(e.target.value, 10);
+                                if (Number.isNaN(raw)) return;
+                                const capped =
+                                  extraInfantsMax === undefined
+                                    ? raw
+                                    : Math.min(Math.max(0, raw), extraInfantsMax);
+                                setExtraInfants(capped);
+                              }}
+                            />
+                          </div>
+                        ) : null}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="rounded-sm border border-brand-border/70 bg-white px-3 py-2.5 text-sm text-brand-muted">
+                        This package does not allow additional guests.
+                      </p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex-1">
+                    <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">Adults</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={adultsMax}
+                      className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                      value={adults}
+                      onChange={(e) => {
+                        const raw = Number.parseInt(e.target.value, 10);
+                        if (Number.isNaN(raw)) return;
+                        const capped = adultsMax === undefined ? raw : Math.min(raw, adultsMax);
+                        setAdults(Math.max(1, capped));
+                      }}
+                    />
+                  </div>
+                  <div className={cn("flex-1", childrenLocked && "opacity-50")}>
+                    <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">
+                      Children
+                      {childrenLocked ? (
+                        <span className="ml-2 font-normal normal-case text-brand-muted">(not available)</span>
+                      ) : null}
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={childrenMax}
+                      disabled={childrenLocked}
+                      aria-disabled={childrenLocked}
+                      className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                      value={childrenLocked ? 0 : children}
+                      onChange={(e) => {
+                        if (childrenLocked) return;
+                        const raw = Number.parseInt(e.target.value, 10);
+                        if (Number.isNaN(raw)) return;
+                        const capped = childrenMax === undefined ? raw : Math.min(Math.max(0, raw), childrenMax);
+                        setChildren(capped);
+                      }}
+                    />
+                  </div>
+                  <div className={cn("flex-1", infantsLocked && "opacity-50")}>
+                    <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">
+                      Infants
+                      {infantsLocked ? (
+                        <span className="ml-2 font-normal normal-case text-brand-muted">(not available)</span>
+                      ) : null}
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={infantInputMax}
+                      disabled={infantsLocked}
+                      aria-disabled={infantsLocked}
+                      className={cn(
+                        "w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10",
+                        infantsLocked && "cursor-not-allowed bg-brand-surface-soft text-brand-muted"
+                      )}
+                      value={infantsLocked ? 0 : infants}
+                      onChange={(e) => {
+                        if (infantsLocked) return;
+                        const raw = Number.parseInt(e.target.value, 10);
+                        if (Number.isNaN(raw)) return;
+                        const upper =
+                          infantInputMax === undefined ? raw : Math.min(raw, infantInputMax);
+                        setInfants(Math.max(0, upper));
+                      }}
+                    />
+                  </div>
+                </>
+              )}
             </div>
             {pricingMessage ? (
               <div className="mt-4 rounded-sm border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-950">
                 <p>{pricingMessage}</p>
-                {pricingConstraints ? (
+                {activeConstraints ? (
                   <p className="mt-2 border-t border-amber-200/80 pt-2 text-xs font-normal leading-relaxed text-amber-950/95">
                     Minimum{" "}
-                    <span className="font-bold">{pricingConstraints.minGuests}</span> guests in total (adults +
+                    <span className="font-bold">{activeConstraints.minGuests}</span> guests in total (adults +
                     children + infants).
                     {maxGuestsScope === "entire_party" ? (
                       <>
                         {" "}
-                        Up to <span className="font-bold">{pricingConstraints.maxGuests}</span> guests; everyone in
+                        Up to <span className="font-bold">{activeConstraints.maxGuests}</span> guests; everyone in
                         the party counts toward that maximum.
                       </>
                     ) : maxGuestsScope === "adults_and_children_only" ? (
                       <>
                         {" "}
-                        Up to <span className="font-bold">{pricingConstraints.maxGuests}</span> adults and children
+                        Up to <span className="font-bold">{activeConstraints.maxGuests}</span> adults and children
                         combined; infants do not use a seat against that cap.
                       </>
                     ) : (
                       <>
                         {" "}
-                        Up to <span className="font-bold">{pricingConstraints.maxGuests}</span> adults; children and
+                        Up to <span className="font-bold">{activeConstraints.maxGuests}</span> adults; children and
                         infants are outside that cap (still subject to the minimum and infant rules).
                       </>
                     )}
-                    {pricingConstraints.infantPricingType === "not_allowed" ? (
+                    {activeConstraints.infantPricingType === "not_allowed" ? (
                       <> Infants are not offered on this tour.</>
-                    ) : pricingConstraints.infantPricingType === "free" ? (
+                    ) : activeConstraints.infantPricingType === "free" ? (
                       maxGuestsScope === "entire_party" ? (
                         <> Infants travel free (still count toward the party maximum).</>
                       ) : (
@@ -397,15 +636,15 @@ export function BookingFormClient({
                     ) : (
                       <> Infant seats are priced per the active rule.</>
                     )}
-                    {pricingConstraints.childPricingType === "not_allowed" ? (
+                    {activeConstraints.childPricingType === "not_allowed" ? (
                       <> Children are not offered on this tour.</>
                     ) : null}
-                    {typeof pricingConstraints.maxInfants === "number" ? (
+                    {typeof activeConstraints.maxInfants === "number" ? (
                       <>
                         {" "}
-                        At most <span className="font-bold">{pricingConstraints.maxInfants}</span> infant
-                        {pricingConstraints.maxInfants === 1 ? "" : "s"} per booking
-                        {pricingConstraints.maxInfants === 0 ? " (none allowed)" : ""}.
+                        At most <span className="font-bold">{activeConstraints.maxInfants}</span> infant
+                        {activeConstraints.maxInfants === 1 ? "" : "s"} per booking
+                        {activeConstraints.maxInfants === 0 ? " (none allowed)" : ""}.
                       </>
                     ) : null}
                   </p>
@@ -488,13 +727,30 @@ export function BookingFormClient({
       <aside className="lg:sticky lg:top-40">
         <Card className="rounded-sm border-brand-border shadow-lg shadow-brand-heading/5 ring-1 ring-brand-heading/5">
           <CardHeader className="border-b border-brand-border p-3 md:p-6">
-            <p className="text-lg md:text-2xl font-bold tracking-tight text-brand-heading">{tourTitle}</p>
+            <p className="line-clamp-2 text-xl font-bold tracking-tight text-brand-heading md:text-2xl">{tourTitle}</p>
           </CardHeader>
           <CardContent className="space-y-4 p-3 md:space-y-6 md:p-6">
             {date && (
-              <div className="rounded-sm border border-brand-border bg-brand-surface-soft/40 p-4">
-                <span className="text-xs font-bold uppercase tracking-normal text-brand-muted">Date</span>
-                <p className="mt-1 text-base font-bold text-brand-heading">{formatDate(date)}</p>
+              <div className="rounded-sm border border-brand-border bg-brand-surface-soft/40 p-4 space-y-3">
+                {isMultiDayJourney && returnDateStr && returnDateStr !== date ? (
+                  <>
+                    <div>
+                      <span className="text-xs font-bold uppercase tracking-normal text-brand-muted">
+                        Departure
+                      </span>
+                      <p className="mt-1 text-base font-bold text-brand-heading">{formatDate(date)}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold uppercase tracking-normal text-brand-muted">Return</span>
+                      <p className="mt-1 text-base font-bold text-brand-heading">{formatDate(returnDateStr)}</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xs font-bold uppercase tracking-normal text-brand-muted">Tour date</span>
+                    <p className="mt-1 text-base font-bold text-brand-heading">{formatDate(date)}</p>
+                  </>
+                )}
               </div>
             )}
             {selectedPickup && (
@@ -535,34 +791,59 @@ export function BookingFormClient({
                   <span className="text-xs font-bold uppercase tracking-normal text-brand-muted">Total</span>
                   <span className="text-2xl font-black text-brand-heading">{formatPrice(pricing.total, pricing.currency)}</span>
                 </div>
-                <div className="space-y-1 text-xs text-brand-muted">
+                <div className="space-y-1.5 text-xs text-brand-muted">
                   {pricing.pricingMode === "package" ? (
                     <>
-                      <p>
-                        Package ({pricing.includedGuests ?? pricing.includedAdults ?? 2} guests included){" "}
-                        {formatPrice(pricing.packageBase ?? 0, pricing.currency)}
+                      <p className="flex items-start justify-between gap-3">
+                        <span>Package ({pricing.includedGuests ?? pricing.includedAdults ?? 2} guests included)</span>
+                        <span className="shrink-0 font-semibold text-brand-heading">
+                          {formatPrice(pricing.packageBase ?? 0, pricing.currency)}
+                        </span>
                       </p>
                       {(pricing.extraAdultsCount ?? 0) > 0 ? (
-                        <p>
-                          {pricing.extraAdultsCount} Extra adult
+                        <p className="flex items-start justify-between gap-3">
+                          <span>
+                            {pricing.extraAdultsCount} Extra adult
                           {pricing.extraAdultsCount !== 1 ? "s" : ""} ×{" "}
-                          {formatPrice(pricing.extraAdultUnit ?? pricing.adultUnit, pricing.currency)}
+                            {formatPrice(pricing.extraAdultUnit ?? pricing.adultUnit, pricing.currency)}
+                          </span>
+                          <span className="shrink-0 font-semibold text-brand-heading">
+                            {formatPrice(
+                              (pricing.extraAdultsCount ?? 0) *
+                                (pricing.extraAdultUnit ?? pricing.adultUnit),
+                              pricing.currency
+                            )}
+                          </span>
                         </p>
                       ) : null}
                     </>
                   ) : pricing.adults > 0 ? (
-                    <p>
-                      {pricing.adults} Adult{pricing.adults !== 1 ? "s" : ""} ×{" "}
-                      {formatPrice(pricing.adultUnit, pricing.currency)}
+                    <p className="flex items-start justify-between gap-3">
+                      <span>
+                        {pricing.adults} Adult{pricing.adults !== 1 ? "s" : ""} ×{" "}
+                        {formatPrice(pricing.adultUnit, pricing.currency)}
+                      </span>
+                      <span className="shrink-0 font-semibold text-brand-heading">
+                        {formatPrice(pricing.adults * pricing.adultUnit, pricing.currency)}
+                      </span>
                     </p>
                   ) : null}
                   {pricing.pricingMode === "package" ? (
                     <>
                       {(pricing.extraChildrenCount ?? 0) > 0 ? (
-                        <p>
-                          {pricing.extraChildrenCount} Extra child
+                        <p className="flex items-start justify-between gap-3">
+                          <span>
+                            {pricing.extraChildrenCount} Extra child
                           {pricing.extraChildrenCount !== 1 ? "ren" : ""} ×{" "}
-                          {formatPrice(pricing.extraChildUnit ?? pricing.childUnit, pricing.currency)}
+                            {formatPrice(pricing.extraChildUnit ?? pricing.childUnit, pricing.currency)}
+                          </span>
+                          <span className="shrink-0 font-semibold text-brand-heading">
+                            {formatPrice(
+                              (pricing.extraChildrenCount ?? 0) *
+                                (pricing.extraChildUnit ?? pricing.childUnit),
+                              pricing.currency
+                            )}
+                          </span>
                         </p>
                       ) : pricing.children > 0 ? (
                         <p>
@@ -572,15 +853,25 @@ export function BookingFormClient({
                       ) : null}
                     </>
                   ) : pricing.children > 0 ? (
-                    <p>
-                      {pricing.children} Child{pricing.children !== 1 ? "ren" : ""} ×{" "}
-                      {formatPrice(pricing.childUnit, pricing.currency)}
+                    <p className="flex items-start justify-between gap-3">
+                      <span>
+                        {pricing.children} Child{pricing.children !== 1 ? "ren" : ""} ×{" "}
+                        {formatPrice(pricing.childUnit, pricing.currency)}
+                      </span>
+                      <span className="shrink-0 font-semibold text-brand-heading">
+                        {formatPrice(pricing.children * pricing.childUnit, pricing.currency)}
+                      </span>
                     </p>
                   ) : null}
                   {pricing.infants > 0 && (
-                    <p>
-                      {pricing.infants} Infant{pricing.infants !== 1 ? "s" : ""} ×{" "}
-                      {formatPrice(pricing.infantUnit, pricing.currency)}
+                    <p className="flex items-start justify-between gap-3">
+                      <span>
+                        {pricing.infants} Infant{pricing.infants !== 1 ? "s" : ""} ×{" "}
+                        {formatPrice(pricing.infantUnit, pricing.currency)}
+                      </span>
+                      <span className="shrink-0 font-semibold text-brand-heading">
+                        {formatPrice(pricing.infants * pricing.infantUnit, pricing.currency)}
+                      </span>
                     </p>
                   )}
                 </div>
@@ -595,15 +886,25 @@ export function BookingFormClient({
             >
               {minimumAdvanceBookingBlocked ? "Contact us for urgent bookings" : loading ? "Redirecting…" : "Continue to payment"}
             </Button>
+            {!minimumAdvanceBookingBlocked ? (
+              <p className="text-center text-xs leading-relaxed text-brand-muted">
+                Secure checkout powered by Stripe. You can review details before final payment.
+              </p>
+            ) : null}
             {minimumAdvanceBookingBlocked ? (
               <Button asChild variant="secondary" className="w-full text-base font-bold tracking-tight">
                 <Link href="/contact">Contact us for urgent bookings</Link>
               </Button>
             ) : null}
 
-            <button type="button" onClick={() => router.push("/availability")} className="block w-full text-center text-sm font-medium text-brand-muted hover:text-brand-primary transition-colors">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => router.push("/availability")}
+              className="w-full text-base font-bold tracking-tight"
+            >
               Back
-            </button>
+            </Button>
           </CardContent>
         </Card>
       </aside>

@@ -2,13 +2,79 @@ import { Resend } from "resend";
 
 import { captureEmailFailure } from "@/lib/sentry/capture";
 import { db } from "@/lib/db";
-import { bookings, systemJobsLog } from "@/lib/db/schema";
+import { bookings, systemJobsLog, tours } from "@/lib/db/schema";
+import { parseTourItineraryDays } from "@/lib/types/tour-itinerary";
 import { eq } from "drizzle-orm";
 
 import { getSystemSettings } from "@/lib/services/system-settings";
 import { DEFAULT_TZ, formatDateInTz } from "@/lib/utils/dates";
 
 const RESEND_FALLBACK_FROM = "Happy Wanderers <onboarding@resend.dev>";
+
+function bookingSpanIso(b: {
+  tourStartDate?: unknown;
+  tourEndDate?: unknown;
+  bookingDate: unknown;
+}): { start: string; end: string } {
+  const start = String(b.tourStartDate ?? b.bookingDate).slice(0, 10);
+  const end = String(b.tourEndDate ?? b.bookingDate).slice(0, 10);
+  return { start, end };
+}
+
+function formatBookingDatesForCustomerEmail(
+  b: { tourStartDate?: unknown; tourEndDate?: unknown; bookingDate: unknown },
+  tz: string
+): string {
+  const { start, end } = bookingSpanIso(b);
+  if (start === end) {
+    return formatDateInTz(new Date(`${start}T12:00:00Z`), tz, "EEEE d MMMM yyyy");
+  }
+  return `Departure ${formatDateInTz(new Date(`${start}T12:00:00Z`), tz, "EEEE d MMMM yyyy")} — Return ${formatDateInTz(new Date(`${end}T12:00:00Z`), tz, "EEEE d MMMM yyyy")}`;
+}
+
+function formatBookingDatesPlain(b: {
+  tourStartDate?: unknown;
+  tourEndDate?: unknown;
+  bookingDate: unknown;
+}): string {
+  const { start, end } = bookingSpanIso(b);
+  return start === end ? start : `${start} to ${end}`;
+}
+
+function buildTourItineraryEmailLines(
+  raw: unknown,
+  isMultiDay: boolean,
+  durationDays: number
+): string[] {
+  const journey = Boolean(isMultiDay) && Math.max(1, durationDays) > 1;
+  if (!journey) return [];
+  const days = parseTourItineraryDays(raw);
+  if (days.length === 0) return [];
+  const lines: string[] = ["", "Itinerary pickup schedule:"];
+  for (const d of days) {
+    lines.push(`Day ${d.day_number} pickup: ${d.pickup_location} ${d.pickup_time}`);
+    if (d.title.trim()) lines.push(`  ${d.title}`);
+    if (d.summary.trim()) {
+      for (const ln of d.summary.trim().split("\n")) lines.push(`  ${ln}`);
+    }
+  }
+  return lines;
+}
+
+async function loadTourItineraryEmailLines(tourId: string): Promise<string[]> {
+  const rows = await db
+    .select({
+      itineraryDays: tours.itineraryDays,
+      isMultiDay: tours.isMultiDay,
+      durationDays: tours.durationDays,
+    })
+    .from(tours)
+    .where(eq(tours.id, tourId))
+    .limit(1);
+  const t = rows[0];
+  if (!t) return [];
+  return buildTourItineraryEmailLines(t.itineraryDays, t.isMultiDay, t.durationDays ?? 1);
+}
 
 /** Runtime key read — avoids any build-time substitution of server env in some bundler configs. */
 function readEmailFromEnv(): string | undefined {
@@ -150,7 +216,8 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
 
   if (!b.confirmationEmailSentAt) {
     const pickupTime = b.pickupTimeSnapshot;
-    const dateLabel = formatDateInTz(new Date(`${b.bookingDate}T12:00:00Z`), tz, "EEEE d MMMM yyyy");
+    const dateLabel = formatBookingDatesForCustomerEmail(b, tz);
+    const itineraryLines = await loadTourItineraryEmailLines(b.tourId);
     try {
       const resend = getResend();
       const result = await resend.emails.send({
@@ -163,6 +230,7 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
           `Your booking ${b.bookingReference} is confirmed.`,
           `Tour: ${b.tourTitleSnapshot}`,
           `Date: ${dateLabel}`,
+          ...itineraryLines,
           `Pickup: ${b.pickupLocationNameSnapshot} at ${pickupTime}`,
           `Guests: ${b.adults} adults, ${b.children} children, ${b.infants} infants`,
           `Total: ${b.currency} ${b.totalPriceSnapshot}`,
@@ -198,6 +266,7 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
   if (!bookingFresh || bookingFresh.status !== "confirmed") return;
 
   if (settings.adminAlertEmail && !bookingFresh.adminAlertSentAt) {
+    const adminItineraryLines = await loadTourItineraryEmailLines(bookingFresh.tourId);
     try {
       const resend = getResend();
       const result = await resend.emails.send({
@@ -207,7 +276,8 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
         text: [
           `Booking ${bookingFresh.bookingReference}`,
           `Tour: ${bookingFresh.tourTitleSnapshot}`,
-          `Date: ${bookingFresh.bookingDate}`,
+          `Date: ${formatBookingDatesPlain(bookingFresh)}`,
+          ...adminItineraryLines,
           `Pickup: ${bookingFresh.pickupLocationNameSnapshot} ${bookingFresh.pickupTimeSnapshot}`,
           `Guests: ${bookingFresh.guestTotal}`,
           `Customer: ${bookingFresh.customerFirstName} ${bookingFresh.customerLastName}`,
@@ -250,7 +320,7 @@ export async function sendCancellationEmail(bookingId: string) {
       from,
       to: b.customerEmail,
       subject: `Booking cancelled — ${b.bookingReference}`,
-      text: `Your booking ${b.bookingReference} for ${b.tourTitleSnapshot} on ${b.bookingDate} has been cancelled.\n\n${settings.supportEmail ? `Contact: ${settings.supportEmail}` : ""}`,
+      text: `Your booking ${b.bookingReference} for ${b.tourTitleSnapshot} on ${formatBookingDatesPlain(b)} has been cancelled.\n\n${settings.supportEmail ? `Contact: ${settings.supportEmail}` : ""}`,
     });
     ensureResendOk(result, "cancellation");
   } catch (e) {

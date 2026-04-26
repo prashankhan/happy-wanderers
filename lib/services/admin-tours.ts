@@ -37,7 +37,12 @@ async function uniqueSlug(base: string): Promise<string> {
  * Creates a draft tour with one default pickup, one placeholder pricing rule, and weekday rows
  * so the operator can open the editor and publish when ready.
  */
-export async function createDraftTour(input: { title: string }): Promise<{ id: string; slug: string }> {
+export async function createDraftTour(input: {
+  title: string;
+  isMultiDay?: boolean;
+  durationDays?: number;
+  requiresAccommodation?: boolean;
+}): Promise<{ id: string; slug: string }> {
   const settings = await getSystemSettings();
   const title = input.title.trim() || "New tour";
   const baseSlug = slugify(title);
@@ -48,6 +53,10 @@ export async function createDraftTour(input: { title: string }): Promise<{ id: s
     .from(tours)
     .where(isNull(tours.deletedAt));
   const nextOrder = (orderRows[0]?.max ?? -1) + 1;
+
+  const isMulti = Boolean(input.isMultiDay);
+  const durationDays = isMulti ? Math.max(2, input.durationDays ?? 2) : 1;
+  const requiresAccommodation = isMulti && Boolean(input.requiresAccommodation);
 
   const [tour] = await db
     .insert(tours)
@@ -71,6 +80,9 @@ export async function createDraftTour(input: { title: string }): Promise<{ id: s
       heroBadge: null,
       bookingCutoffHours: settings.defaultCutoffHours,
       minimumAdvanceBookingDays: 0,
+      durationDays,
+      isMultiDay: isMulti,
+      requiresAccommodation,
       bookingEnabled: false,
       isActive: true,
       status: "draft",

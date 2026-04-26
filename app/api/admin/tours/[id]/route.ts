@@ -6,6 +6,15 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { setAdminOperationContext } from "@/lib/sentry/context";
 import { tours } from "@/lib/db/schema";
+import { parseTourItineraryDays } from "@/lib/types/tour-itinerary";
+
+const itineraryDaySchema = z.object({
+  day_number: z.number().int().min(1).max(30),
+  title: z.string().max(500),
+  pickup_location: z.string().max(500),
+  pickup_time: z.string().max(32),
+  summary: z.string().max(20000),
+});
 
 const patchSchema = z
   .object({
@@ -27,6 +36,10 @@ const patchSchema = z
     hero_badge: z.string().nullable().optional(),
     booking_cutoff_hours: z.number().int().min(0).optional(),
     minimum_advance_booking_days: z.number().int().min(0).max(365).optional(),
+    duration_days: z.number().int().min(1).max(30).optional(),
+    is_multi_day: z.boolean().optional(),
+    requires_accommodation: z.boolean().optional(),
+    itinerary_days: z.array(itineraryDaySchema).max(30).nullable().optional(),
     booking_enabled: z.boolean().optional(),
     is_active: z.boolean().optional(),
     status: z.enum(["draft", "published", "archived"]).optional(),
@@ -106,6 +119,14 @@ export async function PATCH(
   if (d.booking_cutoff_hours !== undefined) values.bookingCutoffHours = d.booking_cutoff_hours;
   if (d.minimum_advance_booking_days !== undefined)
     values.minimumAdvanceBookingDays = d.minimum_advance_booking_days;
+  if (d.duration_days !== undefined) values.durationDays = d.duration_days;
+  if (d.is_multi_day !== undefined) values.isMultiDay = d.is_multi_day;
+  if (d.requires_accommodation !== undefined)
+    values.requiresAccommodation = d.requires_accommodation;
+  if (d.itinerary_days !== undefined) {
+    const cleaned = parseTourItineraryDays(d.itinerary_days);
+    values.itineraryDays = cleaned.length > 0 ? cleaned : null;
+  }
   if (d.booking_enabled !== undefined) values.bookingEnabled = d.booking_enabled;
   if (d.is_active !== undefined) values.isActive = d.is_active;
   if (d.status !== undefined) values.status = d.status;

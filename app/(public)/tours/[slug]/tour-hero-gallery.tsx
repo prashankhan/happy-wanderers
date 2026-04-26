@@ -26,8 +26,8 @@ export function TourHeroGallery({ images, tourTitle }: { images: TourHeroGallery
   }
 
   return (
-    <div className="space-y-4">
-      <div className="relative aspect-[16/9] min-h-[200px] w-full overflow-hidden rounded-sm bg-brand-surface shadow-xl shadow-brand-heading/10 ring-1 ring-brand-heading/10 md:min-h-[400px] md:aspect-[21/9]">
+    <div className="space-y-3">
+      <div className="relative aspect-[16/9] min-h-[200px] w-full overflow-hidden rounded-sm bg-brand-surface ring-1 ring-brand-heading/10 md:min-h-[360px] md:aspect-[20/9]">
         <Image
           key={active.id}
           src={active.imageUrl}

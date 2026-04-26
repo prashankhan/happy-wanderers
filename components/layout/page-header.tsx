@@ -15,7 +15,7 @@ interface PageHeaderProps {
 export function PageHeader({ title, description, breadcrumb }: PageHeaderProps) {
   return (
     <header className="bg-brand-surface-soft border-b border-brand-border overflow-hidden">
-      <Container className="py-16 md:py-24 lg:py-28 relative">
+      <Container className="relative py-14 md:py-20 lg:py-24">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -24,13 +24,15 @@ export function PageHeader({ title, description, breadcrumb }: PageHeaderProps) 
         >
           {/* Breadcrumbs */}
           {breadcrumb && (
-            <nav className="mb-12 flex items-center justify-center gap-3 text-sm font-bold uppercase tracking-[0.25em] text-brand-body/40">
-              <Link href="/" className="transition hover:text-brand-primary">Home</Link>
+            <nav className="mb-8 flex items-center justify-center gap-2 text-[11px] font-medium uppercase tracking-[0.12em] text-brand-body/45 md:mb-10">
+              <Link href="/" className="transition-colors hover:text-brand-primary">
+                Home
+              </Link>
               {breadcrumb.map((item, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className="opacity-50">/</span>
+                  <span className="opacity-35">·</span>
                   {item.href ? (
-                    <Link href={item.href} className="transition hover:text-brand-primary">
+                    <Link href={item.href} className="transition-colors hover:text-brand-primary">
                       {item.label}
                     </Link>
                   ) : (
@@ -42,18 +44,25 @@ export function PageHeader({ title, description, breadcrumb }: PageHeaderProps) 
           )}
 
           {/* Page Narrative */}
-          <h1 className="font-serif text-3xl font-bold tracking-tighter text-brand-heading md:text-6xl lg:text-7xl lg:leading-[1.1]">
+          <h1 className="mx-auto max-w-[14ch] font-serif text-3xl font-semibold tracking-tight text-brand-heading md:text-5xl lg:text-6xl lg:leading-[1.1]">
             {title}
           </h1>
           {description && (
-            <p className="mt-12 mx-auto max-w-3xl text-xl font-medium leading-relaxed tracking-tight text-brand-body/70 md:text-3xl">
+            <p className="mx-auto mt-6 max-w-3xl text-base font-normal leading-relaxed text-brand-body/75 md:mt-8 md:text-xl">
               {description}
             </p>
           )}
         </motion.div>
-        
-        {/* Subtle architectural background detail */}
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-brand-surface-soft/50 to-transparent pointer-events-none" />
+
+        {/* Subtle architectural framing */}
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-white/35 to-transparent"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white/20 to-transparent"
+          aria-hidden
+        />
       </Container>
     </header>
   );

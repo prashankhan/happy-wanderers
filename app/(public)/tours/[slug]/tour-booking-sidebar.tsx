@@ -36,23 +36,23 @@ export function TourBookingSidebar({
     : `/availability?tour_id=${tourId}`;
 
   return (
-    <aside className="lg:sticky lg:top-24">
-      <Card className="rounded-sm border-brand-border shadow-lg shadow-brand-heading/5 ring-1 ring-brand-heading/5">
-        <CardHeader className="border-b border-brand-border pb-4 pt-4 px-4 md:pb-6 md:pt-6 md:px-6">
+    <aside className="lg:sticky lg:top-28">
+      <Card className="rounded-sm border-brand-border shadow-[0_12px_24px_-20px_rgba(12,22,44,0.28)] ring-1 ring-brand-heading/5">
+        <CardHeader className="border-b border-brand-border pb-4 pt-4 px-4 md:pb-5 md:pt-5 md:px-6">
           {priceFromText ? (
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-brand-muted">Starting from</p>
-              <p className="text-4xl font-black tracking-tighter text-brand-heading">
+              <p className="text-xs font-bold uppercase tracking-normal text-brand-muted">Starting from</p>
+              <p className="text-[2.35rem] font-black tracking-tight text-brand-heading">
                 {priceFromText.replace(/^(From\s*|from\s*)/i, "")}
               </p>
             </div>
           ) : null}
         </CardHeader>
-        <CardContent className="space-y-4 px-4 pt-4 pb-4 md:space-y-6 md:px-6 md:pt-6 md:pb-6">
+        <CardContent className="space-y-5 px-4 pt-4 pb-4 md:space-y-6 md:px-6 md:pt-6 md:pb-6">
           <div>
             <label className="block text-xs font-bold uppercase tracking-normal text-brand-muted mb-2">Pickup location</label>
             <select
-              className="w-full rounded-sm border border-brand-border bg-brand-surface px-3 py-2.5 md:px-4 md:py-3 text-sm font-medium text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+              className="w-full rounded-sm border border-brand-border/70 bg-white px-3 py-2.5 md:px-4 md:py-3 text-sm font-medium text-brand-heading transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
               value={pickupId ?? ""}
               onChange={(e) => setPickupId(e.target.value || undefined)}
             >
@@ -64,14 +64,14 @@ export function TourBookingSidebar({
             </select>
           </div>
 
-          <Button asChild variant="primary" className={cn("w-full", primaryTourCtaClassName)}>
+          <Button asChild variant="primary" className={cn("mt-1 w-full", primaryTourCtaClassName)}>
             <Link href={availabilityHref}>
               Check dates & book
             </Link>
           </Button>
 
-          <div className="space-y-3 border-t border-brand-border/50 pt-3 md:space-y-4 md:pt-4">
-            <p className="text-xs leading-relaxed text-brand-muted/80">
+          <div className="space-y-3 border-t border-brand-border/40 pt-4 md:space-y-4 md:pt-4">
+            <p className="text-[11px] leading-relaxed text-brand-muted/65">
               Live availability and instant confirmation via our secure booking partner.
             </p>
             <TourNextOpenChip tourId={tourId} departureLocationId={pickupId} />
@@ -82,7 +82,7 @@ export function TourBookingSidebar({
             <div className="border-t border-brand-border/50 pt-3 md:pt-4">
               <Link
                 href="/cancellation-policy"
-                className="text-xs text-brand-primary hover:underline"
+                className="text-[11px] font-medium text-brand-primary hover:underline"
               >
                 View cancellation policy
               </Link>

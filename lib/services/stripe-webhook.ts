@@ -97,7 +97,8 @@ async function confirmPendingBookingAfterSuccessfulPayment(input: {
 
   const seatCheck = await validateCapacityForConfirmingPendingHold({
     tourId: booking.tourId,
-    bookingDate: String(booking.bookingDate),
+    tourStartDate: String(booking.tourStartDate),
+    tourEndDate: String(booking.tourEndDate),
     pickupTime,
   });
   if (!seatCheck.ok) {
