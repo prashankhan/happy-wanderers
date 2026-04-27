@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { Container } from "@/components/layout/container";
@@ -30,75 +31,87 @@ export function Footer() {
   ];
 
   return (
-    <footer className="bg-brand-heading text-white selection:bg-brand-primary/30">
-      {/* Top Section: Architectural Columns */}
-      <Container className="py-24 md:py-32">
-        <div className="grid gap-x-20 gap-y-16 lg:grid-cols-12">
-          
-          {/* Column 1: Destinations */}
-          <div className="lg:col-span-4 space-y-8">
-            <p className="text-base font-bold uppercase tracking-normal text-white/40">Destinations</p>
-            <nav className="flex flex-col gap-3">
-              {destinations.map((item) => (
-                <Link key={item.label} href={item.href} className={cn(footerNavLinkClass, "text-white")}>
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
+    <footer className="relative overflow-hidden text-white selection:bg-brand-primary/30">
+      <Image
+        src="/images/marketing/happywanderers-foooter.jpeg"
+        alt=""
+        fill
+        className="z-0 object-cover object-center"
+        sizes="100vw"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-0 z-[1] bg-brand-heading/95"
+        aria-hidden
+      />
+      <div className="relative z-[2]">
+        {/* Top Section: Architectural Columns */}
+        <Container className="py-24 md:py-32">
+          <div className="grid gap-x-20 gap-y-16 lg:grid-cols-12">
+            {/* Column 1: Destinations */}
+            <div className="space-y-8 lg:col-span-4">
+              <p className="text-base font-bold uppercase tracking-normal text-white/40">Destinations</p>
+              <nav className="flex flex-col gap-3">
+                {destinations.map((item) => (
+                  <Link key={item.label} href={item.href} className={cn(footerNavLinkClass, "text-white")}>
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+
+            {/* Column 2: Explore */}
+            <div className="space-y-8 lg:col-span-4">
+              <p className="text-base font-bold uppercase tracking-normal text-white/40">Explore</p>
+              <nav className="flex flex-col gap-3">
+                {explore.map((item) => (
+                  <Link key={item.label} href={item.href} className={cn(footerNavLinkClass, "text-white")}>
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+
+            {/* Column 3: Legal */}
+            <div className="space-y-8 lg:col-span-4">
+              <p className="text-base font-bold uppercase tracking-normal text-white/40">Legal</p>
+              <nav className="flex flex-col gap-3">
+                {legal.map((item) => (
+                  <Link key={item.label} href={item.href} className={cn(footerNavLinkClass, "text-white")}>
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+            </div>
           </div>
-
-          {/* Column 2: Explore */}
-          <div className="lg:col-span-4 space-y-8">
-            <p className="text-base font-bold uppercase tracking-normal text-white/40">Explore</p>
-            <nav className="flex flex-col gap-3">
-              {explore.map((item) => (
-                <Link key={item.label} href={item.href} className={cn(footerNavLinkClass, "text-white")}>
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-
-          {/* Column 3: Legal */}
-          <div className="lg:col-span-4 space-y-8">
-            <p className="text-base font-bold uppercase tracking-normal text-white/40">Legal</p>
-            <nav className="flex flex-col gap-3">
-              {legal.map((item) => (
-                <Link key={item.label} href={item.href} className={cn(footerNavLinkClass, "text-white")}>
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-
-        </div>
-      </Container>
-
-      {/* Brand Sign-off background element */}
-      <div className="relative overflow-hidden pointer-events-none select-none">
-         <p className="text-[15vw] font-bold leading-none tracking-tighter text-white/[0.02] absolute -bottom-[4vw] left-0 w-full text-center whitespace-nowrap">
-            HAPPY WANDERERS
-         </p>
-      </div>
-
-      {/* Final Stripe */}
-      <div className="border-t border-white/5 bg-black/10 py-10">
-        <Container className="flex flex-col items-center justify-between gap-6 md:flex-row">
-          <p className="text-sm font-bold tracking-normal text-white/30 uppercase text-center md:text-left">
-             © {year} Happy Wanderers. Cairns & Daintree Region.
-          </p>
-          <p className="text-sm font-bold tracking-normal text-white/30 uppercase text-center md:text-right">
-            Developed by{" "}
-            <a 
-              href="https://chanmax.io" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="text-white/50 transition-colors hover:text-brand-primary cursor-pointer"
-            >
-              Chanmax
-            </a>
-          </p>
         </Container>
+
+        {/* Brand Sign-off background element */}
+        <div className="pointer-events-none relative select-none overflow-hidden">
+          <p className="absolute -bottom-[4vw] left-0 w-full whitespace-nowrap text-center text-[15vw] font-bold leading-none tracking-tighter text-white/[0.02]">
+            HAPPY WANDERERS
+          </p>
+        </div>
+
+        {/* Final Stripe */}
+        <div className="border-t border-white/5 bg-brand-heading py-10">
+          <Container className="flex flex-col items-center justify-between gap-6 md:flex-row">
+            <p className="text-center text-sm font-bold uppercase tracking-normal text-white/30 md:text-left">
+              © {year} Happy Wanderers. Cairns & Daintree Region.
+            </p>
+            <p className="text-center text-sm font-bold uppercase tracking-normal text-white/30 md:text-right">
+              Developed by{" "}
+              <a
+                href="https://chanmax.io"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cursor-pointer text-white/50 transition-colors hover:text-brand-primary"
+              >
+                Chanmax
+              </a>
+            </p>
+          </Container>
+        </div>
       </div>
     </footer>
   );

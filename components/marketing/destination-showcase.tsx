@@ -27,7 +27,7 @@ export function DestinationShowcase({ imageSrc }: DestinationShowcaseProps) {
         >
           <Image
             src={imageSrc}
-            alt="North Queensland rainforest canopy"
+            alt="North Queensland rainforest stream and forest floor"
             fill
             className="object-cover transition-transform duration-[2s] ease-out group-hover:scale-105"
             sizes="(max-width:1024px) 100vw, 50vw"

@@ -9,6 +9,13 @@ import { RevealOnView } from "@/components/motion/reveal-on-view";
 import { PageHeader } from "@/components/layout/page-header";
 import { TestimonialSection } from "@/components/marketing/testimonial-section";
 import { Button } from "@/components/ui/button";
+import {
+  HOME_MARKETING_CTA_PATH,
+  HOME_MARKETING_DESTINATION_SHOWCASE_PATH,
+  HOME_MARKETING_FIELD_AUTHORITY_SECTION_PATH,
+  HOME_MARKETING_SERVICE_AREA_PATH,
+  HOME_MARKETING_WET_TROPICS_VALLEY_PATH,
+} from "@/lib/ui/home-marketing";
 import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
 import { cn } from "@/lib/utils/cn";
 
@@ -21,31 +28,27 @@ const ABOUT_SECTION_LEDE = "mx-auto max-w-3xl text-lg leading-relaxed text-brand
 const ABOUT_SECTION_BODY =
   "mx-auto mt-6 max-w-3xl space-y-6 text-base font-medium leading-relaxed text-brand-body/90 md:text-lg";
 
-/** Hero for service-area card (wide landscape; verified 200 from Unsplash). */
-const SERVICE_AREA_HERO_IMAGE =
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2000&q=85";
-
 const pillars = [
   {
     icon: Shield,
     title: "Operator discipline",
     body: "Capacity, cutoffs, and confirmations are handled with the same rigour we expect when booking our own travel — no surprises at the pickup.",
-    image:
-      "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=1200&q=85",
+    image: HOME_MARKETING_CTA_PATH,
+    imageAlt: "Coastal rainforest corridor from above, North Queensland",
   },
   {
     icon: Globe2,
     title: "Destination authority",
     body: "We speak in specifics — which creek is running clear, which canopy loop is quieter in wet season, where cassowary crossings need extra care.",
-    image:
-      "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&fit=crop&w=1200&q=85",
+    image: HOME_MARKETING_WET_TROPICS_VALLEY_PATH,
+    imageAlt: "Dense Wet Tropics canopy and forested ranges",
   },
   {
     icon: HeartHandshake,
     title: "Guest dignity",
     body: "Small groups, honest infant capacity, and guides who know when to narrate and when to let the forest speak.",
-    image:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=85",
+    image: HOME_MARKETING_DESTINATION_SHOWCASE_PATH,
+    imageAlt: "Rainforest stream and mossy forest floor, North Queensland",
   },
 ];
 
@@ -84,48 +87,62 @@ export default function AboutPage() {
         </Container>
       </section>
 
-      {/* Local Expertise / Highlights */}
-      <section className="border-b border-brand-border bg-brand-surface-soft py-24 md:py-32">
-        <Container>
-          <RevealOnView>
-          <div className="mx-auto max-w-5xl text-center">
-            <h2 className={ABOUT_SECTION_TITLE}>Field authority.</h2>
-            <p className={cn("mt-6", ABOUT_SECTION_LEDE)}>
-              Our guides live inside the rhythms of the Wet Tropics — weather windows, creek behaviour, and the ethics
-              of wildlife approach.
-            </p>
-          </div>
-          </RevealOnView>
-
-          <RevealOnView className="mx-auto mt-16 block max-w-6xl md:mt-20">
-          <div className="grid gap-8 md:grid-cols-3">
-            {pillars.map(({ icon: Icon, title, body, image }) => (
-              <div
-                key={title}
-                className="group overflow-hidden rounded-sm border border-brand-border bg-white text-left shadow-sm transition-shadow hover:shadow-md"
-              >
-                <div className="relative h-48 w-full overflow-hidden">
-                  <Image
-                    src={image}
-                    alt=""
-                    fill
-                    unoptimized
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-105"
-                  />
-                </div>
-                <div className="p-8 md:p-10">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-sm bg-brand-primary/10 text-brand-primary">
-                    <Icon className="size-5" aria-hidden />
-                  </div>
-                  <h3 className="mt-5 text-lg font-bold tracking-tight text-brand-heading md:text-xl">{title}</h3>
-                  <p className="mt-3 text-sm leading-relaxed text-brand-body/70 md:text-base">{body}</p>
-                </div>
+      {/* Local expertise — principles (background + surface-soft overlay at 95%) */}
+      <section className="relative overflow-hidden border-b border-brand-border py-24 md:py-32">
+        <Image
+          src={HOME_MARKETING_FIELD_AUTHORITY_SECTION_PATH}
+          alt=""
+          fill
+          className="z-0 object-cover object-center"
+          sizes="100vw"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-0 z-[1] bg-brand-surface-soft/95"
+          aria-hidden
+        />
+        <div className="relative z-[2]">
+          <Container>
+            <RevealOnView>
+              <div className="mx-auto max-w-5xl text-center">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary">Principles</p>
+                <h2 className={cn("mt-4", ABOUT_SECTION_TITLE)}>Field authority.</h2>
+                <p className={cn("mt-6", ABOUT_SECTION_LEDE)}>
+                  Our guides live inside the rhythms of the Wet Tropics — weather windows, creek behaviour, and the
+                  ethics of wildlife approach.
+                </p>
               </div>
-            ))}
-          </div>
-          </RevealOnView>
-        </Container>
+            </RevealOnView>
+
+            <RevealOnView className="mx-auto mt-16 block max-w-6xl md:mt-20">
+              <div className="grid gap-8 md:grid-cols-3">
+                {pillars.map(({ icon: Icon, title, body, image, imageAlt }) => (
+                  <div
+                    key={title}
+                    className="group overflow-hidden rounded-md border border-brand-border bg-white text-left shadow-[0_6px_16px_-14px_rgba(12,22,44,0.24)] transition-[box-shadow,transform] duration-300 hover:shadow-[0_12px_24px_-16px_rgba(12,22,44,0.22)] motion-safe:hover:-translate-y-px"
+                  >
+                    <div className="relative h-48 w-full overflow-hidden bg-brand-border">
+                      <Image
+                        src={image}
+                        alt={imageAlt}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-105"
+                      />
+                    </div>
+                    <div className="p-8 md:p-10">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-md bg-brand-primary/10 text-brand-primary">
+                        <Icon className="size-5" aria-hidden />
+                      </div>
+                      <h3 className="mt-5 text-lg font-bold tracking-tight text-brand-heading md:text-xl">{title}</h3>
+                      <p className="mt-3 text-sm leading-relaxed text-brand-body/70 md:text-base">{body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </RevealOnView>
+          </Container>
+        </div>
       </section>
 
       {/* Service Area & Features */}
@@ -154,14 +171,13 @@ export default function AboutPage() {
             </ul>
           </RevealOnView>
 
-          <RevealOnView className="relative min-h-[20rem] overflow-hidden rounded-sm border border-brand-border bg-brand-heading p-10 text-white shadow-lg md:min-h-[24rem] md:p-14 lg:min-h-[26rem] lg:p-16">
+          <RevealOnView className="relative min-h-[20rem] overflow-hidden rounded-md border border-brand-border bg-brand-heading p-10 text-white shadow-lg md:min-h-[24rem] md:p-14 lg:min-h-[26rem] lg:p-16">
             {/* Photo under gradient; explicit z-index so the image is never painted above copy */}
             <div className="pointer-events-none absolute inset-0 z-0">
               <Image
-                src={SERVICE_AREA_HERO_IMAGE}
-                alt="Wide view over forested ranges in North Queensland"
+                src={HOME_MARKETING_SERVICE_AREA_PATH}
+                alt="Tropical coastline with palms — Cairns, Port Douglas and Daintree region"
                 fill
-                unoptimized
                 sizes="(max-width: 1024px) 100vw, 45vw"
                 className="z-0 object-cover"
               />

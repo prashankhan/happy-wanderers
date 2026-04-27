@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Quote } from "lucide-react";
+import Image from "next/image";
 
 import { Container } from "@/components/layout/container";
 import { publicRevealItem, publicRevealParent, publicRevealViewport } from "@/lib/motion/public-reveal";
@@ -34,61 +35,78 @@ const TESTIMONIALS: TestimonialItem[] = [
   },
 ];
 
+const testimonialBackgroundImageSrc =
+  "/images/marketing/North%20Queensland%2C%20told%20through%20the%20forest%20floor%20happy%20wanderers.jpeg";
+
 export function TestimonialSection() {
   return (
-    <section className="border-t border-brand-border bg-brand-surface-warm py-24 md:py-32">
-      <Container>
-        <motion.div
-          variants={publicRevealItem}
-          initial="hidden"
-          whileInView="show"
-          viewport={publicRevealViewport}
-          className="mx-auto mb-12 max-w-3xl text-center md:mb-16"
-        >
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary">Voices</p>
-          <h2 className="mt-4 font-serif text-3xl font-bold tracking-tight text-brand-heading md:text-4xl lg:text-5xl">
-            What guests say
-          </h2>
-          <p className="mx-auto mt-6 text-lg leading-relaxed text-brand-body md:text-xl">
-            Stories from recent departures — our community of explorers sharing their time in the North Queensland forest.
-          </p>
-        </motion.div>
+    <section className="relative overflow-hidden border-t border-brand-border py-24 md:py-32">
+      <Image
+        src={testimonialBackgroundImageSrc}
+        alt=""
+        fill
+        className="z-0 object-cover object-center"
+        sizes="100vw"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-0 z-[1] bg-brand-surface-warm/95"
+        aria-hidden
+      />
+      <div className="relative z-[2]">
+        <Container>
+          <motion.div
+            variants={publicRevealItem}
+            initial="hidden"
+            whileInView="show"
+            viewport={publicRevealViewport}
+            className="mx-auto mb-12 max-w-3xl text-center md:mb-16"
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary">Voices</p>
+            <h2 className="mt-4 font-serif text-3xl font-bold tracking-tight text-brand-heading md:text-4xl lg:text-5xl">
+              What guests say
+            </h2>
+            <p className="mx-auto mt-6 text-lg leading-relaxed text-brand-body md:text-xl">
+              Stories from recent departures — our community of explorers sharing their time in the North Queensland forest.
+            </p>
+          </motion.div>
 
-        <motion.div
-          variants={publicRevealParent}
-          initial="hidden"
-          whileInView="show"
-          viewport={publicRevealViewport}
-          className="mx-auto grid max-w-6xl gap-8 md:grid-cols-2 lg:grid-cols-3"
-        >
-          {TESTIMONIALS.map((t) => (
-            <motion.figure
-              key={t.id}
-              variants={publicRevealItem}
-              className="group flex flex-col rounded-sm border border-brand-border bg-white p-8 shadow-sm transition-[box-shadow,transform] duration-300 hover:shadow-md motion-safe:hover:-translate-y-px"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary/5 text-brand-primary transition-transform duration-500 group-hover:scale-110">
-                <Quote className="h-5 w-5 fill-current" />
-              </div>
+          <motion.div
+            variants={publicRevealParent}
+            initial="hidden"
+            whileInView="show"
+            viewport={publicRevealViewport}
+            className="mx-auto grid max-w-6xl gap-8 md:grid-cols-2 lg:grid-cols-3"
+          >
+            {TESTIMONIALS.map((t) => (
+              <motion.figure
+                key={t.id}
+                variants={publicRevealItem}
+                className="group flex flex-col rounded-md border border-brand-border bg-white p-8 shadow-sm transition-[box-shadow,transform] duration-300 hover:shadow-md motion-safe:hover:-translate-y-px"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary/5 text-brand-primary transition-transform duration-500 group-hover:scale-110">
+                  <Quote className="h-5 w-5 fill-current" />
+                </div>
 
-              <blockquote className="mt-6 flex-1 text-base leading-relaxed text-brand-body md:text-lg">
-                <p className="font-sans italic">&ldquo;{t.quote}&rdquo;</p>
-              </blockquote>
+                <blockquote className="mt-6 flex-1 text-base leading-relaxed text-brand-body md:text-lg">
+                  <p className="font-sans italic">&ldquo;{t.quote}&rdquo;</p>
+                </blockquote>
 
-              <figcaption className="mt-8 border-t border-brand-border/40 pt-6">
-                <span className="text-base font-bold tracking-tight text-brand-heading block">
-                  {t.attribution}
-                </span>
-                {t.context ? (
-                  <span className="mt-1 block text-xs font-bold uppercase tracking-widest text-brand-muted">
-                    {t.context}
+                <figcaption className="mt-8 border-t border-brand-border/40 pt-6">
+                  <span className="block text-base font-bold tracking-tight text-brand-heading">
+                    {t.attribution}
                   </span>
-                ) : null}
-              </figcaption>
-            </motion.figure>
-          ))}
-        </motion.div>
-      </Container>
+                  {t.context ? (
+                    <span className="mt-1 block text-xs font-bold uppercase tracking-widest text-brand-muted">
+                      {t.context}
+                    </span>
+                  ) : null}
+                </figcaption>
+              </motion.figure>
+            ))}
+          </motion.div>
+        </Container>
+      </div>
     </section>
   );
 }

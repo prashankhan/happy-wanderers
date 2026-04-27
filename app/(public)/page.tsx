@@ -1,6 +1,9 @@
 import { Container } from "@/components/layout/container";
 import { listPublishedTours } from "@/lib/services/tours-public";
-import { HOME_MARKETING_HERO_PATH } from "@/lib/ui/home-marketing";
+import {
+  HOME_MARKETING_CTA_PATH,
+  HOME_MARKETING_DESTINATION_SHOWCASE_PATH,
+} from "@/lib/ui/home-marketing";
 
 import { HomeHeroBackground } from "@/components/marketing/home-hero-background";
 import { HeroContent } from "@/components/marketing/hero-content";
@@ -16,8 +19,6 @@ export default async function HomePage() {
   const featured = await listPublishedTours({ featured: true });
   const fallback = featured.length ? featured : await listPublishedTours({});
   const toursForGrid = fallback.slice(0, 3);
-
-  const marketingImageSrc = HOME_MARKETING_HERO_PATH;
 
   return (
     <>
@@ -51,7 +52,7 @@ export default async function HomePage() {
         }))}
       />
 
-      <DestinationShowcase imageSrc={marketingImageSrc} />
+      <DestinationShowcase imageSrc={HOME_MARKETING_DESTINATION_SHOWCASE_PATH} />
 
       <PhilosophySection />
 
@@ -59,7 +60,7 @@ export default async function HomePage() {
 
       <TrustStripe />
 
-      <CtaSection imageSrc={marketingImageSrc} />
+      <CtaSection imageSrc={HOME_MARKETING_CTA_PATH} />
     </>
   );
 }
