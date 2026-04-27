@@ -11,6 +11,10 @@ export const HOME_MARKETING_CTA_PATH =
 export const HOME_MARKETING_DESTINATION_SHOWCASE_PATH =
   "/images/marketing/North%20Queensland%2C%20told%20through%20the%20forest%20floor.jpeg";
 
+/** Private tours — showcase column (`Rainforest, hinterland and coast.jpeg`). */
+export const HOME_MARKETING_PRIVATE_TOURS_SHOWCASE_PATH =
+  "/images/marketing/Rainforest%2C%20hinterland%20and%20coast.jpeg";
+
 /** Wet Tropics canopy / valley still — used on About pillar cards (`public/`). */
 export const HOME_MARKETING_WET_TROPICS_VALLEY_PATH =
   "/images/marketing/North%20Queensland%2C%20told%20through%20the%20forest%20floor%20happy%20wanderers.jpeg";

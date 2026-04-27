@@ -59,9 +59,9 @@ export function HeroContent() {
         variants={heroItemVariants}
         className="mx-auto mt-6 max-w-3xl text-base font-medium leading-relaxed text-white/70 md:mt-8 md:text-xl md:leading-relaxed"
       >
-        Move beyond predictable sightseeing into experiences shaped around comfort, attentiveness, and genuine
-        connection with the places you explore — guided with insight, professionalism, and thoughtful detail at
-        every step.
+        Move beyond predictable sightseeing and crowded schedules into experiences shaped around comfort, attentiveness,
+        and genuine connection with the places you explore — guided with insight, professionalism, and thoughtful detail
+        at every step.
       </motion.p>
       
       <motion.div

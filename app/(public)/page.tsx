@@ -7,6 +7,7 @@ import {
 
 import { HomeHeroBackground } from "@/components/marketing/home-hero-background";
 import { HeroContent } from "@/components/marketing/hero-content";
+import { HomeIntroductionSection } from "@/components/marketing/home-introduction-section";
 import { CredibilityBar } from "@/components/marketing/credibility-bar";
 import { FeaturedTours } from "@/components/marketing/featured-tours";
 import { DestinationShowcase } from "@/components/marketing/destination-showcase";
@@ -36,6 +37,8 @@ export default async function HomePage() {
       </section>
 
       <CredibilityBar />
+
+      <HomeIntroductionSection />
 
       <FeaturedTours
         tours={toursForGrid.map((t) => ({

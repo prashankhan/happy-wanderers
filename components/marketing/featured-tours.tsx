@@ -15,7 +15,7 @@ interface FeaturedToursProps {
 
 export function FeaturedTours({ tours }: FeaturedToursProps) {
   return (
-    <section className="py-24 md:py-32">
+    <section className="border-t border-brand-border py-24 md:py-32">
       <Container>
         <motion.div
           variants={publicRevealItem}

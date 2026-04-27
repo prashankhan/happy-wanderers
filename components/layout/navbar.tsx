@@ -24,6 +24,7 @@ const LOGO_FULL_CLASS =
 const links = [
   { href: "/", label: "Home" },
   { href: "/tours", label: "Tours" },
+  { href: "/private-tours", label: "Private tours" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];

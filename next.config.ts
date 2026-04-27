@@ -2,9 +2,6 @@ import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  async redirects() {
-    return [{ source: "/private-tours", destination: "/contact", permanent: true }];
-  },
   turbopack: {
     root: __dirname,
   },
