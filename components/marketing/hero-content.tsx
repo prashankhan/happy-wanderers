@@ -57,7 +57,7 @@ export function HeroContent() {
       
       <motion.p
         variants={heroItemVariants}
-        className="mx-auto mt-6 max-w-3xl text-base font-medium leading-relaxed text-white/70 md:mt-8 md:text-xl md:leading-relaxed"
+        className="mx-auto mt-6 max-w-4xl text-base font-medium leading-relaxed text-white/70 md:mt-8 md:text-xl md:leading-relaxed"
       >
         Move beyond predictable sightseeing and crowded schedules into experiences shaped around comfort, attentiveness,
         and genuine connection with the places you explore — guided with insight, professionalism, and thoughtful detail
@@ -90,10 +90,10 @@ export function HeroContent() {
         {heroTrustPointers.map((label) => (
           <li key={label} className="inline-flex items-center gap-2">
             <BadgeCheck
-              className="h-4 w-4 shrink-0 text-brand-gold/45 md:h-5 md:w-5"
+              className="h-4 w-4 shrink-0 text-brand-gold/70 md:h-5 md:w-5"
               aria-hidden
             />
-            <span className="font-medium uppercase tracking-wide text-blue-100/45">
+            <span className="font-medium uppercase tracking-wide text-blue-100/70">
               {label}
             </span>
           </li>

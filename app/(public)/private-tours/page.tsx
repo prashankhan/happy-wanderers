@@ -23,11 +23,6 @@ const SECTION_HEADING =
 
 const experienceTiers = [
   {
-    title: "Half day private touring",
-    description:
-      "A relaxed and personalised introduction to Cairns' surrounding landscapes. Ideal for those seeking a refined experience within a shorter timeframe, with flexibility to explore rainforest, coastline or elevated scenic routes.",
-  },
-  {
     title: "Full day private immersion",
     description:
       "A complete and unhurried exploration of the Cairns region. Travel deeper into rainforest environments, discover hidden locations and experience the diversity of the tropical north through a fully tailored private journey.",
@@ -167,7 +162,7 @@ export default function PrivateToursPage() {
             initial="hidden"
             whileInView="show"
             viewport={publicRevealViewport}
-            className="mx-auto mt-16 grid max-w-6xl gap-8 md:grid-cols-3"
+            className="mx-auto mt-16 grid max-w-5xl gap-8 md:grid-cols-2"
           >
             {experienceTiers.map((tier) => (
               <motion.article

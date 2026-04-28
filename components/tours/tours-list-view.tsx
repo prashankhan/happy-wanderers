@@ -39,7 +39,7 @@ export function ToursListView({ rows }: ToursListViewProps) {
     <div className="bg-brand-surface min-h-screen">
       <PageHeader 
         title="Our tours"
-        description="Intentionally small departures, rainforest-first pacing, and logistics designed for real mornings — not brochure promises."
+        description="Thoughtfully paced private experiences designed around real days – not rushed schedules. From rainforest escapes to coastal highlights, each journey is shaped with local insight, personal service and the flexibility to enjoy Far North Queensland at its best."
         breadcrumb={[{ label: "Tours" }]}
       />
 

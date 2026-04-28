@@ -82,9 +82,23 @@ export function TourDetailView({ tour, heroGallery, bookingSidebar }: TourDetail
               if (useStructured) {
                 return (
                   <div className="space-y-12">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-brand-primary">
-                      About this experience
-                    </p>
+                    {tour.description ? (
+                      <section>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-brand-primary mb-3">
+                          About this experience
+                        </p>
+                        <h2 className="font-serif text-2xl font-bold tracking-tighter text-brand-heading md:text-4xl italic">
+                          The full story.
+                        </h2>
+                        <div className="mt-8 whitespace-pre-line text-base leading-relaxed text-brand-body/90 md:text-lg md:leading-[1.8]">
+                          {tour.description}
+                        </div>
+                      </section>
+                    ) : (
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-brand-primary">
+                        About this experience
+                      </p>
+                    )}
                     {itinerary.map((day, idx) => (
                       <section
                         key={`${day.day_number}-${idx}`}

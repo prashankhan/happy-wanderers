@@ -28,8 +28,8 @@ export default async function HomePage() {
       >
         <div className="absolute inset-0 min-h-full">
           <HomeHeroBackground />
-          <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/88 to-blue-950/45" />
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-950/40 via-transparent to-gray-950/40" />
+          <div className="absolute inset-0 bg-black/72" />
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-950/60 via-gray-950/35 to-blue-950/15" />
         </div>
         <Container className="relative z-10 flex min-h-0 flex-1 flex-col justify-start py-16 max-md:pt-28 max-md:pb-20 md:justify-center md:py-28 lg:py-32">
           <HeroContent />
