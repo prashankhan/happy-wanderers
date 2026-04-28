@@ -31,6 +31,7 @@ export const tours = pgTable(
     groupSizeText: text("group_size_text").notNull(),
     defaultCapacity: integer("default_capacity").notNull(),
     priceFromText: text("price_from_text"),
+    priceContextText: text("price_context_text"),
     locationRegion: text("location_region").notNull(),
     inclusions: jsonb("inclusions").$type<string[] | null>(),
     exclusions: jsonb("exclusions").$type<string[] | null>(),

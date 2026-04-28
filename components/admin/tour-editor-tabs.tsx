@@ -37,6 +37,7 @@ export interface SerializedTour {
   groupSizeText: string;
   defaultCapacity: number;
   priceFromText: string | null;
+  priceContextText: string | null;
   locationRegion: string;
   inclusions: string[] | null;
   exclusions: string[] | null;
@@ -127,6 +128,7 @@ interface TourEditorContentState {
   group_size_text: string;
   default_capacity: number;
   price_from_text: string;
+  price_context_text: string;
   location_region: string;
   pickup_notes: string;
   cancellation_policy: string;
@@ -223,6 +225,7 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
         group_size_text: content.group_size_text,
         default_capacity: content.default_capacity,
         price_from_text: content.price_from_text || null,
+        price_context_text: content.price_context_text || null,
         location_region: content.location_region,
         pickup_notes: content.pickup_notes || null,
         cancellation_policy: content.cancellation_policy || null,
@@ -250,7 +253,15 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = (await res.json()) as { success?: boolean; message?: string };
+      const raw = await res.text();
+      let data: { success?: boolean; message?: string } = {};
+      if (raw) {
+        try {
+          data = JSON.parse(raw) as { success?: boolean; message?: string };
+        } catch {
+          data = {};
+        }
+      }
       if (!res.ok) {
         showToast(data.message ?? "Save failed", "error");
         return;
@@ -499,6 +510,16 @@ export function TourEditorTabs({ tour, role, initialPricingRules }: TourEditorTa
               className={`mt-1 ${adminFieldClass}`}
               value={content.price_from_text}
               onChange={(e) => setContent((c) => ({ ...c, price_from_text: e.target.value }))}
+              disabled={!isAdmin || pending}
+            />
+          </label>
+          <label className="text-xs font-medium text-brand-muted">
+            Price context text
+            <input
+              className={`mt-1 ${adminFieldClass}`}
+              value={content.price_context_text}
+              onChange={(e) => setContent((c) => ({ ...c, price_context_text: e.target.value }))}
+              placeholder="e.g. per person / for 2 people"
               disabled={!isAdmin || pending}
             />
           </label>
@@ -1511,6 +1532,7 @@ function buildTourEditorContentState(tour: SerializedTour): TourEditorContentSta
     group_size_text: tour.groupSizeText,
     default_capacity: tour.defaultCapacity,
     price_from_text: tour.priceFromText ?? "",
+    price_context_text: tour.priceContextText ?? "",
     location_region: tour.locationRegion,
     pickup_notes: tour.pickupNotes ?? "",
     cancellation_policy: tour.cancellationPolicy ?? "",

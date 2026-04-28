@@ -18,19 +18,39 @@ interface PickupData {
 interface TourBookingSidebarProps {
   tourId: string;
   priceFromText: string | null;
+  priceContextText?: string | null;
   defaultPickupId?: string;
   pickups: PickupData[];
   cancellationPolicy?: string | null;
 }
 
+function formatPriceContextText(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+
+  const normalized = trimmed.replace(/\s+/g, " ");
+
+  if (/^per person$/i.test(normalized)) return "Per Person";
+
+  const fixedPeopleMatch = normalized.match(/^for\s+(\d+)\s+people$/i);
+  if (fixedPeopleMatch) return `For ${fixedPeopleMatch[1]} People`;
+
+  const upToPeopleMatch = normalized.match(/^for\s+up\s+to\s+(\d+)\s+people$/i);
+  if (upToPeopleMatch) return `For up to ${upToPeopleMatch[1]} People`;
+
+  return normalized;
+}
+
 export function TourBookingSidebar({
   tourId,
   priceFromText,
+  priceContextText,
   defaultPickupId,
   pickups,
   cancellationPolicy,
 }: TourBookingSidebarProps) {
   const [pickupId, setPickupId] = useState<string | undefined>(defaultPickupId);
+  const normalizedPriceContext = formatPriceContextText(priceContextText);
   const availabilityHref = pickupId
     ? `/availability?tour_id=${tourId}&departure_location_id=${pickupId}`
     : `/availability?tour_id=${tourId}`;
@@ -45,6 +65,11 @@ export function TourBookingSidebar({
               <p className="text-[2.35rem] font-black tracking-tight text-brand-heading">
                 {priceFromText.replace(/^(From\s*|from\s*)/i, "")}
               </p>
+              {normalizedPriceContext ? (
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.03em] text-brand-primary">
+                  {normalizedPriceContext}
+                </p>
+              ) : null}
             </div>
           ) : null}
         </CardHeader>

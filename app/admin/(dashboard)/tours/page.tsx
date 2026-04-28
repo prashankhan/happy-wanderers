@@ -11,7 +11,18 @@ export default async function AdminToursPage() {
   const session = await auth();
   const isAdmin = session?.user?.role === "admin";
 
-  const rows = await db.select().from(tours).where(isNull(tours.deletedAt)).orderBy(asc(tours.displayOrder));
+  const rows = await db
+    .select({
+      id: tours.id,
+      title: tours.title,
+      status: tours.status,
+      isFeatured: tours.isFeatured,
+      defaultCapacity: tours.defaultCapacity,
+      displayOrder: tours.displayOrder,
+    })
+    .from(tours)
+    .where(isNull(tours.deletedAt))
+    .orderBy(asc(tours.displayOrder));
 
   return (
     <div className="space-y-6">

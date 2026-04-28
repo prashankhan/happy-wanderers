@@ -11,9 +11,27 @@ export interface TourCardProps {
   durationText: string;
   groupSizeText: string;
   priceFromText?: string | null;
+  priceContextText?: string | null;
   locationRegion?: string | null;
   heroImage?: string | null;
   isFeatured?: boolean; // Kept via interface but effectively unused per UI reqs
+}
+
+function formatPriceContextText(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+
+  const normalized = trimmed.replace(/\s+/g, " ");
+
+  if (/^per person$/i.test(normalized)) return "Per Person";
+
+  const fixedPeopleMatch = normalized.match(/^for\s+(\d+)\s+people$/i);
+  if (fixedPeopleMatch) return `For ${fixedPeopleMatch[1]} People`;
+
+  const upToPeopleMatch = normalized.match(/^for\s+up\s+to\s+(\d+)\s+people$/i);
+  if (upToPeopleMatch) return `For up to ${upToPeopleMatch[1]} People`;
+
+  return normalized;
 }
 
 export function TourCard({
@@ -23,10 +41,12 @@ export function TourCard({
   durationText,
   groupSizeText,
   priceFromText,
+  priceContextText,
   locationRegion,
   heroImage,
 }: TourCardProps) {
   const normalizedPrice = priceFromText?.replace(/^(From\s*|from\s*)/i, "").trim() ?? null;
+  const normalizedPriceContext = formatPriceContextText(priceContextText);
   const locationLabel = locationRegion?.replace(/\s*&\s*/g, " · ");
 
   return (
@@ -87,7 +107,7 @@ export function TourCard({
             {shortDescription}
           </p>
 
-          <div className="mt-6 flex items-end justify-between border-t border-brand-border/40 pt-4">
+          <div className="mt-6 flex items-center justify-between border-t border-brand-border/40 pt-4">
             <span className="inline-flex items-center rounded-sm border border-brand-primary/20 bg-brand-primary/5 px-2.5 py-1 text-sm font-semibold text-brand-primary transition-colors group-hover:border-brand-primary/35 group-hover:bg-brand-primary/10">
               Explore tour
             </span>
@@ -99,6 +119,11 @@ export function TourCard({
                 <div className="mt-1 text-[2rem] font-black tracking-tight text-brand-heading">
                   {normalizedPrice}
                 </div>
+                {normalizedPriceContext ? (
+                  <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.03em] text-brand-primary">
+                    {normalizedPriceContext}
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </div>

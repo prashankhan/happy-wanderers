@@ -62,6 +62,7 @@ export function ToursListView({ rows }: ToursListViewProps) {
                   durationText={t.durationText}
                   groupSizeText={t.groupSizeText}
                   priceFromText={t.priceFromText}
+                  priceContextText={t.priceContextText}
                   locationRegion={t.locationRegion}
                   heroImage={t.heroImage}
                   isFeatured={t.isFeatured}

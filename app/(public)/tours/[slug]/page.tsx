@@ -5,6 +5,8 @@ import { TourDetailView } from "@/components/tours/tour-detail-view";
 import { TourHeroGallery } from "./tour-hero-gallery";
 import { TourBookingSidebar } from "./tour-booking-sidebar";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
@@ -42,6 +44,7 @@ export default async function TourDetailPage({ params }: PageProps) {
         <TourBookingSidebar
           tourId={tour.id}
           priceFromText={tour.priceFromText}
+          priceContextText={tour.priceContextText}
           defaultPickupId={defaultPickup}
           pickups={pickups.map((p) => ({ id: p.id, name: p.name, timeLabel: p.pickupTimeLabel ?? p.pickupTime }))}
           cancellationPolicy={tour.cancellationPolicy}

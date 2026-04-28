@@ -17,6 +17,7 @@ export async function GET(request: Request) {
         duration_text: r.durationText,
         group_size_text: r.groupSizeText,
         price_from_text: r.priceFromText,
+        price_context_text: r.priceContextText,
         minimum_advance_booking_days: r.minimumAdvanceBookingDays,
         duration_days: r.durationDays,
         is_multi_day: r.isMultiDay,

@@ -71,6 +71,7 @@ export async function createDraftTour(input: {
       groupSizeText: "Configure group size",
       defaultCapacity: 10,
       priceFromText: null,
+      priceContextText: null,
       locationRegion: "Queensland",
       inclusions: [],
       exclusions: [],

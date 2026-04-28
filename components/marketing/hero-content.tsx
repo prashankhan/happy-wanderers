@@ -43,9 +43,9 @@ export function HeroContent() {
     >
       <motion.p
         variants={heroItemVariants}
-        className="text-sm font-bold uppercase tracking-[0.2em] text-white/60 md:text-base"
+        className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60 md:text-sm"
       >
-        Thoughtfully guided private journeys from Cairns
+        Thoughtfully guided private journeys from Cairns and Port Douglas
       </motion.p>
       
       <motion.h1

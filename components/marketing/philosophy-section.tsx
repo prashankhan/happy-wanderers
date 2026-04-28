@@ -20,22 +20,22 @@ export function PhilosophySection() {
           initial="hidden"
           whileInView="show"
           viewport={publicRevealViewport}
-          className="mx-auto max-w-3xl text-center"
+          className="mx-auto max-w-5xl text-center"
         >
           <motion.h2
             variants={publicRevealItem}
             className="font-serif text-3xl font-bold tracking-tight text-brand-heading md:text-4xl lg:text-5xl lg:leading-[1.15]"
           >
-            Guide-led, field-quiet luxury
+            From Senior Naturalist to Senior Guide
           </motion.h2>
 
           <motion.div variants={publicRevealItem} className="mt-10 space-y-8">
-            <p className="text-lg font-medium leading-[1.7] text-brand-body/95 md:text-xl lg:text-2xl">
-              Luxury here is not gold trim on a coach — it is the confidence of a senior naturalist reading the day,
+            <p className="mx-auto max-w-3xl text-lg font-medium leading-[1.7] text-brand-body/95 md:text-xl lg:text-2xl">
+              Luxury here is not gold trim on a coach — it is the confidence of a senior guide reading the day,
               adjusting pace, and protecting silence when the forest offers it. We lead small groups so conversation
               stays intimate and the trail stays respectful.
             </p>
-            
+
             <p className="mx-auto max-w-2xl text-base leading-relaxed text-brand-body/80 md:text-lg">
               Expect clear briefings, generous margins in the schedule, and logistics that feel invisible — the same
               standards we would want on our own family departures.

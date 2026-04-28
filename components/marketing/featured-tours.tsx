@@ -29,8 +29,9 @@ export function FeaturedTours({ tours }: FeaturedToursProps) {
             Signature departures
           </h2>
           <p className="mx-auto mt-6 text-lg leading-relaxed text-brand-body md:text-xl">
-            Each experience is paced for the forest — with duration, region, and transparent pricing context before
-            you open a tour. Three curated cards below; when new tours publish, they appear here automatically.
+            A featured selection of our most popular private tours, designed for a relaxed, personal way to
+            experience Far North Queensland. Each listing includes clear details on region, duration and pricing. When
+            new tours publish, they appear here automatically.
           </p>
         </motion.div>
 

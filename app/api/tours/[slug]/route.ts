@@ -26,6 +26,7 @@ export async function GET(
         group_size_text: tour.groupSizeText,
         default_capacity: tour.defaultCapacity,
         price_from_text: tour.priceFromText,
+        price_context_text: tour.priceContextText,
         location_region: tour.locationRegion,
         inclusions: tour.inclusions,
         exclusions: tour.exclusions,

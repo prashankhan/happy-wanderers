@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { listPublishedTours } from "@/lib/services/tours-public";
 import { ToursListView } from "@/components/tours/tours-list-view";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Tours",
   description: "Browse premium small-group rainforest tours with curated departures and transparent availability.",

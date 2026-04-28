@@ -7,7 +7,6 @@ import { Clock, MapPin, Users } from "lucide-react";
 import { addMonths, format, parseISO, startOfMonth } from "date-fns";
 
 import { PublicAvailabilityCalendar } from "@/components/calendar/public-availability-calendar";
-import { RevealOnView } from "@/components/motion/reveal-on-view";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { primaryTourCtaClassName } from "@/lib/ui/primary-tour-cta";
@@ -174,7 +173,7 @@ export function AvailabilityExplorer({
   }, [departureId, thisMonth, tourId]);
 
   return (
-    <RevealOnView className="grid gap-10 lg:grid-cols-[1fr_400px] lg:items-start lg:gap-16 xl:gap-20">
+    <div className="grid gap-10 lg:grid-cols-[1fr_400px] lg:items-start lg:gap-16 xl:gap-20">
       <div className="space-y-8 md:space-y-14">
         {/* Calendar Control Center */}
         <Card className="rounded-sm border-brand-border shadow-md shadow-brand-heading/5 ring-1 ring-brand-heading/5">
@@ -354,6 +353,6 @@ export function AvailabilityExplorer({
           </CardContent>
         </Card>
       </aside>
-    </RevealOnView>
+    </div>
   );
 }

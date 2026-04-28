@@ -13,8 +13,63 @@ export default async function AdminTourEditorPage({ params }: { params: Promise<
   const session = await auth();
   const role = session?.user?.role === "admin" ? "admin" : "staff";
 
-  const rows = await db.select().from(tours).where(and(eq(tours.id, id), isNull(tours.deletedAt))).limit(1);
-  const tour = rows[0];
+  const baseTourQuery = db
+    .select({
+      id: tours.id,
+      title: tours.title,
+      slug: tours.slug,
+      shortDescription: tours.shortDescription,
+      description: tours.description,
+      durationText: tours.durationText,
+      durationMinutes: tours.durationMinutes,
+      groupSizeText: tours.groupSizeText,
+      defaultCapacity: tours.defaultCapacity,
+      priceFromText: tours.priceFromText,
+      locationRegion: tours.locationRegion,
+      inclusions: tours.inclusions,
+      exclusions: tours.exclusions,
+      whatToBring: tours.whatToBring,
+      pickupNotes: tours.pickupNotes,
+      cancellationPolicy: tours.cancellationPolicy,
+      heroBadge: tours.heroBadge,
+      bookingCutoffHours: tours.bookingCutoffHours,
+      minimumAdvanceBookingDays: tours.minimumAdvanceBookingDays,
+      durationDays: tours.durationDays,
+      isMultiDay: tours.isMultiDay,
+      requiresAccommodation: tours.requiresAccommodation,
+      itineraryDays: tours.itineraryDays,
+      bookingEnabled: tours.bookingEnabled,
+      isActive: tours.isActive,
+      status: tours.status,
+      isFeatured: tours.isFeatured,
+      displayOrder: tours.displayOrder,
+      seoTitle: tours.seoTitle,
+      seoDescription: tours.seoDescription,
+      deletedAt: tours.deletedAt,
+    })
+    .from(tours)
+    .where(and(eq(tours.id, id), isNull(tours.deletedAt)))
+    .limit(1);
+
+  const tour = (await baseTourQuery)[0];
+  let priceContextText: string | null = null;
+
+  try {
+    const rowWithContext = await db
+      .select({
+        priceContextText: tours.priceContextText,
+      })
+      .from(tours)
+      .where(and(eq(tours.id, id), isNull(tours.deletedAt)))
+      .limit(1);
+    if (tour && rowWithContext[0]) {
+      priceContextText = rowWithContext[0].priceContextText;
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (!message.includes("price_context_text") || !tour) throw error;
+    priceContextText = null;
+  }
   if (!tour) notFound();
 
   let initialPricing: PricingRuleRow[] | undefined;
@@ -66,6 +121,7 @@ export default async function AdminTourEditorPage({ params }: { params: Promise<
     groupSizeText: tour.groupSizeText,
     defaultCapacity: tour.defaultCapacity,
     priceFromText: tour.priceFromText,
+    priceContextText,
     locationRegion: tour.locationRegion,
     inclusions: tour.inclusions,
     exclusions: tour.exclusions,

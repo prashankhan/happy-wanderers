@@ -27,6 +27,7 @@ const patchSchema = z
     group_size_text: z.string().min(1).optional(),
     default_capacity: z.number().int().positive().optional(),
     price_from_text: z.string().nullable().optional(),
+    price_context_text: z.string().nullable().optional(),
     location_region: z.string().min(1).optional(),
     inclusions: z.array(z.string()).nullable().optional(),
     exclusions: z.array(z.string()).nullable().optional(),
@@ -87,7 +88,11 @@ export async function PATCH(
     }
   }
 
-  const row = await db.select().from(tours).where(and(eq(tours.id, id), isNull(tours.deletedAt))).limit(1);
+  const row = await db
+    .select({ id: tours.id })
+    .from(tours)
+    .where(and(eq(tours.id, id), isNull(tours.deletedAt)))
+    .limit(1);
   if (!row[0]) {
     return NextResponse.json({ success: false, message: "Not found" }, { status: 404 });
   }
@@ -109,6 +114,7 @@ export async function PATCH(
   if (d.group_size_text !== undefined) values.groupSizeText = d.group_size_text;
   if (d.default_capacity !== undefined) values.defaultCapacity = d.default_capacity;
   if (d.price_from_text !== undefined) values.priceFromText = d.price_from_text;
+  if (d.price_context_text !== undefined) values.priceContextText = d.price_context_text;
   if (d.location_region !== undefined) values.locationRegion = d.location_region;
   if (d.inclusions !== undefined) values.inclusions = d.inclusions;
   if (d.exclusions !== undefined) values.exclusions = d.exclusions;
@@ -135,7 +141,25 @@ export async function PATCH(
   if (d.seo_title !== undefined) values.seoTitle = d.seo_title;
   if (d.seo_description !== undefined) values.seoDescription = d.seo_description;
 
-  const [updated] = await db.update(tours).set(values).where(eq(tours.id, id)).returning();
-
-  return NextResponse.json({ success: true, tour: updated });
+  try {
+    const [updated] = await db
+      .update(tours)
+      .set(values)
+      .where(eq(tours.id, id))
+      .returning({ id: tours.id, updatedAt: tours.updatedAt });
+    return NextResponse.json({ success: true, tour: updated });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (message.includes("price_context_text")) {
+      const valuesWithoutContext: Partial<typeof tours.$inferInsert> = { ...values };
+      delete (valuesWithoutContext as { priceContextText?: string | null }).priceContextText;
+      const [updated] = await db
+        .update(tours)
+        .set(valuesWithoutContext)
+        .where(eq(tours.id, id))
+        .returning({ id: tours.id, updatedAt: tours.updatedAt });
+      return NextResponse.json({ success: true, tour: updated });
+    }
+    return NextResponse.json({ success: false, message: "Save failed" }, { status: 500 });
+  }
 }

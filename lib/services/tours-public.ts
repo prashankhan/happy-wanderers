@@ -18,33 +18,70 @@ export async function listPublishedTours(filters: { featured?: boolean; region?:
   if (filters.featured) conditions.push(eq(tours.isFeatured, true));
   if (filters.region) conditions.push(eq(tours.locationRegion, filters.region));
 
-  return db
-    .select({
-      id: tours.id,
-      title: tours.title,
-      slug: tours.slug,
-      shortDescription: tours.shortDescription,
-      durationText: tours.durationText,
-      groupSizeText: tours.groupSizeText,
-      priceFromText: tours.priceFromText,
-      locationRegion: tours.locationRegion,
-      isFeatured: tours.isFeatured,
-      minimumAdvanceBookingDays: tours.minimumAdvanceBookingDays,
-      durationDays: tours.durationDays,
-      isMultiDay: tours.isMultiDay,
-      heroImage: tourImages.imageUrl,
-    })
-    .from(tours)
-    .leftJoin(
-      tourImages,
-      and(
-        eq(tourImages.tourId, tours.id),
-        eq(tourImages.isHero, true),
-        isNull(tourImages.deletedAt)
+  try {
+    return await db
+      .select({
+        id: tours.id,
+        title: tours.title,
+        slug: tours.slug,
+        shortDescription: tours.shortDescription,
+        durationText: tours.durationText,
+        groupSizeText: tours.groupSizeText,
+        priceFromText: tours.priceFromText,
+        priceContextText: tours.priceContextText,
+        locationRegion: tours.locationRegion,
+        isFeatured: tours.isFeatured,
+        minimumAdvanceBookingDays: tours.minimumAdvanceBookingDays,
+        durationDays: tours.durationDays,
+        isMultiDay: tours.isMultiDay,
+        heroImage: tourImages.imageUrl,
+      })
+      .from(tours)
+      .leftJoin(
+        tourImages,
+        and(
+          eq(tourImages.tourId, tours.id),
+          eq(tourImages.isHero, true),
+          isNull(tourImages.deletedAt)
+        )
       )
-    )
-    .where(and(...conditions))
-    .orderBy(asc(tours.displayOrder), asc(tours.title));
+      .where(and(...conditions))
+      .orderBy(asc(tours.displayOrder), asc(tours.title));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (!message.includes("price_context_text")) throw error;
+
+    // Backward compatibility while DB migration is pending in an environment.
+    const rows = await db
+      .select({
+        id: tours.id,
+        title: tours.title,
+        slug: tours.slug,
+        shortDescription: tours.shortDescription,
+        durationText: tours.durationText,
+        groupSizeText: tours.groupSizeText,
+        priceFromText: tours.priceFromText,
+        locationRegion: tours.locationRegion,
+        isFeatured: tours.isFeatured,
+        minimumAdvanceBookingDays: tours.minimumAdvanceBookingDays,
+        durationDays: tours.durationDays,
+        isMultiDay: tours.isMultiDay,
+        heroImage: tourImages.imageUrl,
+      })
+      .from(tours)
+      .leftJoin(
+        tourImages,
+        and(
+          eq(tourImages.tourId, tours.id),
+          eq(tourImages.isHero, true),
+          isNull(tourImages.deletedAt)
+        )
+      )
+      .where(and(...conditions))
+      .orderBy(asc(tours.displayOrder), asc(tours.title));
+
+    return rows.map((row) => ({ ...row, priceContextText: null }));
+  }
 }
 
 async function loadTourBundle(tour: typeof tours.$inferSelect) {

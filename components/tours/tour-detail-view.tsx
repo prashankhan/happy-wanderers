@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { Clock, MapPin, Users } from "lucide-react";
 
 import { Container } from "@/components/layout/container";
-import { RevealOnView } from "@/components/motion/reveal-on-view";
 import { Card } from "@/components/ui/card";
 import { publicRevealEase } from "@/lib/motion/public-reveal";
 import { hasStructuredItinerary, parseTourItineraryDays } from "@/lib/types/tour-itinerary";
@@ -204,7 +203,7 @@ export function TourDetailView({ tour, heroGallery, bookingSidebar }: TourDetail
 
           {/* ─── Right Column: Booking Sidebar ──────────────────── */}
           <div className="lg:sticky lg:top-40">
-            <RevealOnView>{bookingSidebar}</RevealOnView>
+            {bookingSidebar}
           </div>
         </div>
       </div>
