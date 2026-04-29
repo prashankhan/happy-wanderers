@@ -717,13 +717,14 @@ export function BookingFormClient({
                 </label>
                 <input
                   required
+                  minLength={5}
                   placeholder="Hotel name, street address, suburb"
                   className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                   value={pickupAddress}
                   onChange={(e) => setPickupAddress(e.target.value)}
                 />
                 <p className="mt-2 text-xs text-brand-muted">
-                  Please provide the exact pickup point for your tour day.
+                  Please provide the exact pickup point for your tour day (minimum 5 characters).
                 </p>
               </div>
               <div className="md:col-span-2">

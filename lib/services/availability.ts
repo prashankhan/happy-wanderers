@@ -35,6 +35,7 @@ export interface AvailabilityDayResult {
   availableSeats: number;
   capacityTotal: number;
   seatsReserved: number;
+  activeBookingOnDate: boolean;
   cutoffPassed: boolean;
   effectiveCutoffTime: string;
   sourceOfCapacity: CapacitySource;
@@ -69,10 +70,10 @@ function weekdayFromDateStr(dateStr: string): number {
 export function derivePublicCalendarState(d: AvailabilityDayResult): PublicCalendarState {
   if (d.cutoffPassed) return "cutoff_passed";
   if (!d.isAvailable) {
-    if (d.capacityTotal > 0 && d.seatsReserved >= d.capacityTotal) return "sold_out";
+    if (d.activeBookingOnDate) return "sold_out";
     return "unavailable";
   }
-  if (d.availableSeats <= 0) return "sold_out";
+  if (d.availableSeats <= 0) return d.activeBookingOnDate ? "sold_out" : "unavailable";
   if (d.capacityTotal > 0 && d.availableSeats / d.capacityTotal <= 0.25) return "limited";
   return "available";
 }
@@ -160,6 +161,7 @@ function computeAvailabilityDay(input: {
       availableSeats: 0,
       capacityTotal,
       seatsReserved,
+      activeBookingOnDate: hasActiveBooking,
       cutoffPassed,
       effectiveCutoffTime: formatDateInTz(cutoffAt, tz, "yyyy-MM-dd'T'HH:mm:ssXXX"),
       sourceOfCapacity,
@@ -182,6 +184,7 @@ function computeAvailabilityDay(input: {
     availableSeats: cutoffPassed ? 0 : availableSeats,
     capacityTotal,
     seatsReserved,
+    activeBookingOnDate: hasActiveBooking,
     cutoffPassed,
     effectiveCutoffTime: formatDateInTz(cutoffAt, tz, "yyyy-MM-dd'T'HH:mm:ssXXX"),
     sourceOfCapacity,
@@ -265,7 +268,8 @@ function mergeMultiDayStartCell(startDate: string, spanDays: AvailabilityDayResu
     isAvailable: mergedOpen,
     availableSeats: w.availableSeats,
     capacityTotal: w.capacityTotal,
-    seatsReserved: w.seatsReserved,
+    seatsReserved: first.seatsReserved,
+    activeBookingOnDate: first.activeBookingOnDate,
     cutoffPassed: first.cutoffPassed,
     effectiveCutoffTime: first.effectiveCutoffTime,
     sourceOfCapacity: w.sourceOfCapacity,
