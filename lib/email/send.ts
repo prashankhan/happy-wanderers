@@ -205,6 +205,45 @@ function ensureResendOk(result: { data?: unknown; error?: unknown }, context: st
   }
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function toHtmlLines(lines: string[]): string {
+  return lines
+    .map((line) =>
+      line.trim().length === 0
+        ? '<div style="height:8px;line-height:8px;">&nbsp;</div>'
+        : `<div>${escapeHtml(line)}</div>`
+    )
+    .join("");
+}
+
+function wrapEmailHtml(title: string, bodyHtml: string): string {
+  return `
+  <div style="background:#f6f7fb;padding:24px 12px;font-family:Arial,sans-serif;color:#172033;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;">
+      <tr>
+        <td style="padding:20px 24px;border-bottom:1px solid #eef0f4;">
+          <div style="font-size:12px;letter-spacing:.08em;color:#6b7280;text-transform:uppercase;">Happy Wanderers</div>
+          <h1 style="margin:8px 0 0;font-size:24px;line-height:1.2;color:#0f172a;">${escapeHtml(title)}</h1>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:20px 24px;font-size:15px;line-height:1.65;color:#1f2937;">
+          ${bodyHtml}
+        </td>
+      </tr>
+    </table>
+  </div>
+  `;
+}
+
 export async function sendBookingConfirmationEmails(bookingId: string) {
   const settings = await getSystemSettings();
   const tz = settings.timezone || DEFAULT_TZ;
@@ -220,40 +259,75 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
     const itineraryLines = await loadTourItineraryEmailLines(b.tourId);
     try {
       const resend = getResend();
+      const customerTextLines = [
+        `Hi ${b.customerFirstName},`,
+        ``,
+        `Your booking is confirmed.`,
+        ``,
+        `REFERENCE`,
+        `${b.bookingReference}`,
+        ``,
+        `TOUR`,
+        `${b.tourTitleSnapshot}`,
+        ``,
+        `DATE`,
+        `${dateLabel}`,
+        ...(itineraryLines.length > 0 ? [...itineraryLines, ""] : []),
+        `PICKUP`,
+        `${b.pickupLocationNameSnapshot} at ${pickupTime}`,
+        b.pickupAddress ? `Exact pickup location: ${b.pickupAddress}` : "",
+        b.pickupGoogleMapsLink ? `Pickup map: ${b.pickupGoogleMapsLink}` : "",
+        ``,
+        `GUESTS`,
+        `${b.adults} adults, ${b.children} children, ${b.infants} infants`,
+        ``,
+        `TOTAL`,
+        `${b.currency} ${b.totalPriceSnapshot}`,
+        ``,
+        settings.supportEmail ? `Support: ${settings.supportEmail}` : "",
+        settings.supportPhone ? `Phone: ${settings.supportPhone}` : "",
+      ].filter(Boolean);
+      const customerHtml = wrapEmailHtml(
+        "Booking Confirmed",
+        `
+        <p style="margin:0 0 14px;">Hi ${escapeHtml(b.customerFirstName)},</p>
+        <p style="margin:0 0 16px;">Your booking is confirmed. Here are your details:</p>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;font-size:14px;">
+          <tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Reference</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;">${escapeHtml(b.bookingReference)}</td></tr>
+          <tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Tour</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;">${escapeHtml(b.tourTitleSnapshot)}</td></tr>
+          <tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Date</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;">${escapeHtml(dateLabel)}</td></tr>
+          <tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Pickup</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;">${escapeHtml(`${b.pickupLocationNameSnapshot} at ${pickupTime}`)}</td></tr>
+          ${
+            b.pickupAddress
+              ? `<tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Exact pickup</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;">${escapeHtml(b.pickupAddress)}</td></tr>`
+              : ""
+          }
+          ${
+            b.pickupGoogleMapsLink
+              ? `<tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Pickup map</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;"><a href="${escapeHtml(b.pickupGoogleMapsLink)}">${escapeHtml(b.pickupGoogleMapsLink)}</a></td></tr>`
+              : ""
+          }
+          <tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Guests</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;">${escapeHtml(`${b.adults} adults, ${b.children} children, ${b.infants} infants`)}</td></tr>
+          <tr><td style="padding:10px 0;border-top:1px solid #eef0f4;border-bottom:1px solid #eef0f4;"><strong>Total</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;border-bottom:1px solid #eef0f4;"><strong>${escapeHtml(`${b.currency} ${b.totalPriceSnapshot}`)}</strong></td></tr>
+        </table>
+        ${
+          itineraryLines.length > 0
+            ? `<div style="margin-top:16px;padding:12px;border:1px solid #eef0f4;background:#fafbff;"><strong style="display:block;margin-bottom:8px;">Itinerary pickup schedule</strong>${toHtmlLines(itineraryLines.slice(2))}</div>`
+            : ""
+        }
+        ${
+          settings.supportEmail || settings.supportPhone
+            ? `<p style="margin:16px 0 0;color:#4b5563;">${settings.supportEmail ? `Support: ${escapeHtml(settings.supportEmail)}` : ""}${settings.supportEmail && settings.supportPhone ? " · " : ""}${settings.supportPhone ? `Phone: ${escapeHtml(settings.supportPhone)}` : ""}</p>`
+            : ""
+        }
+        `
+      );
       const result = await resend.emails.send({
         from,
         to: b.customerEmail,
         subject: `Your booking is confirmed — Reference ${b.bookingReference}`,
-        text: [
-          `Hi ${b.customerFirstName},`,
-          ``,
-          `Your booking is confirmed.`,
-          ``,
-          `REFERENCE`,
-          `${b.bookingReference}`,
-          ``,
-          `TOUR`,
-          `${b.tourTitleSnapshot}`,
-          ``,
-          `DATE`,
-          `${dateLabel}`,
-          ...(itineraryLines.length > 0 ? [...itineraryLines, ""] : []),
-          `PICKUP`,
-          `${b.pickupLocationNameSnapshot} at ${pickupTime}`,
-          b.pickupAddress ? `Exact pickup location: ${b.pickupAddress}` : "",
-          b.pickupGoogleMapsLink ? `Pickup map: ${b.pickupGoogleMapsLink}` : "",
-          ``,
-          `GUESTS`,
-          `${b.adults} adults, ${b.children} children, ${b.infants} infants`,
-          ``,
-          `TOTAL`,
-          `${b.currency} ${b.totalPriceSnapshot}`,
-          ``,
-          settings.supportEmail ? `Support: ${settings.supportEmail}` : "",
-          settings.supportPhone ? `Phone: ${settings.supportPhone}` : "",
-        ]
-          .filter(Boolean)
-          .join("\n"),
+        text: customerTextLines.join("\n"),
+        html: customerHtml,
       });
       ensureResendOk(result, "customer_confirmation");
       await db
@@ -283,41 +357,74 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
     const adminItineraryLines = await loadTourItineraryEmailLines(bookingFresh.tourId);
     try {
       const resend = getResend();
+      const adminTextLines = [
+        `NEW CONFIRMED BOOKING`,
+        ``,
+        `REFERENCE`,
+        `${bookingFresh.bookingReference}`,
+        ``,
+        `TOUR`,
+        `${bookingFresh.tourTitleSnapshot}`,
+        ``,
+        `DATE`,
+        `${formatBookingDatesPlain(bookingFresh)}`,
+        ...(adminItineraryLines.length > 0 ? [...adminItineraryLines, ""] : []),
+        `PICKUP`,
+        `${bookingFresh.pickupLocationNameSnapshot} ${bookingFresh.pickupTimeSnapshot}`,
+        bookingFresh.pickupAddress ? `Exact pickup location: ${bookingFresh.pickupAddress}` : "",
+        bookingFresh.pickupGoogleMapsLink ? `Pickup map: ${bookingFresh.pickupGoogleMapsLink}` : "",
+        ``,
+        `GUESTS`,
+        `${bookingFresh.guestTotal}`,
+        ``,
+        `CUSTOMER`,
+        `${bookingFresh.customerFirstName} ${bookingFresh.customerLastName}`,
+        `Email: ${bookingFresh.customerEmail}`,
+        `Phone: ${bookingFresh.customerPhone}`,
+        ``,
+        bookingFresh.customerNotes ? `Notes: ${bookingFresh.customerNotes}` : "",
+      ].filter(Boolean);
+      const adminHtml = wrapEmailHtml(
+        "New Confirmed Booking",
+        `
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;font-size:14px;">
+          <tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Reference</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;">${escapeHtml(bookingFresh.bookingReference)}</td></tr>
+          <tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Tour</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;">${escapeHtml(bookingFresh.tourTitleSnapshot)}</td></tr>
+          <tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Date</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;">${escapeHtml(formatBookingDatesPlain(bookingFresh))}</td></tr>
+          <tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Pickup</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;">${escapeHtml(`${bookingFresh.pickupLocationNameSnapshot} ${bookingFresh.pickupTimeSnapshot}`)}</td></tr>
+          ${
+            bookingFresh.pickupAddress
+              ? `<tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Exact pickup</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;">${escapeHtml(bookingFresh.pickupAddress)}</td></tr>`
+              : ""
+          }
+          ${
+            bookingFresh.pickupGoogleMapsLink
+              ? `<tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Pickup map</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;"><a href="${escapeHtml(bookingFresh.pickupGoogleMapsLink)}">${escapeHtml(bookingFresh.pickupGoogleMapsLink)}</a></td></tr>`
+              : ""
+          }
+          <tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Guests</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;">${escapeHtml(String(bookingFresh.guestTotal))}</td></tr>
+          <tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Customer</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;">${escapeHtml(`${bookingFresh.customerFirstName} ${bookingFresh.customerLastName}`)}</td></tr>
+          <tr><td style="padding:10px 0;border-top:1px solid #eef0f4;"><strong>Email</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;">${escapeHtml(bookingFresh.customerEmail)}</td></tr>
+          <tr><td style="padding:10px 0;border-top:1px solid #eef0f4;border-bottom:1px solid #eef0f4;"><strong>Phone</strong></td><td style="padding:10px 0;border-top:1px solid #eef0f4;border-bottom:1px solid #eef0f4;">${escapeHtml(bookingFresh.customerPhone)}</td></tr>
+        </table>
+        ${
+          adminItineraryLines.length > 0
+            ? `<div style="margin-top:16px;padding:12px;border:1px solid #eef0f4;background:#fafbff;"><strong style="display:block;margin-bottom:8px;">Itinerary pickup schedule</strong>${toHtmlLines(adminItineraryLines.slice(2))}</div>`
+            : ""
+        }
+        ${
+          bookingFresh.customerNotes
+            ? `<div style="margin-top:16px;padding:12px;border:1px solid #eef0f4;background:#fffdf7;"><strong>Notes</strong><div style="margin-top:6px;">${escapeHtml(bookingFresh.customerNotes)}</div></div>`
+            : ""
+        }
+        `
+      );
       const result = await resend.emails.send({
         from,
         to: settings.adminAlertEmail,
         subject: `New confirmed booking ${bookingFresh.bookingReference}`,
-        text: [
-          `NEW CONFIRMED BOOKING`,
-          ``,
-          `REFERENCE`,
-          `${bookingFresh.bookingReference}`,
-          ``,
-          `TOUR`,
-          `${bookingFresh.tourTitleSnapshot}`,
-          ``,
-          `DATE`,
-          `${formatBookingDatesPlain(bookingFresh)}`,
-          ...(adminItineraryLines.length > 0 ? [...adminItineraryLines, ""] : []),
-          `PICKUP`,
-          `${bookingFresh.pickupLocationNameSnapshot} ${bookingFresh.pickupTimeSnapshot}`,
-          bookingFresh.pickupAddress ? `Exact pickup location: ${bookingFresh.pickupAddress}` : "",
-          bookingFresh.pickupGoogleMapsLink
-            ? `Pickup map: ${bookingFresh.pickupGoogleMapsLink}`
-            : "",
-          ``,
-          `GUESTS`,
-          `${bookingFresh.guestTotal}`,
-          ``,
-          `CUSTOMER`,
-          `${bookingFresh.customerFirstName} ${bookingFresh.customerLastName}`,
-          `Email: ${bookingFresh.customerEmail}`,
-          `Phone: ${bookingFresh.customerPhone}`,
-          ``,
-          bookingFresh.customerNotes ? `Notes: ${bookingFresh.customerNotes}` : "",
-        ]
-          .filter(Boolean)
-          .join("\n"),
+        text: adminTextLines.join("\n"),
+        html: adminHtml,
       });
       ensureResendOk(result, "admin_alert");
       await db
