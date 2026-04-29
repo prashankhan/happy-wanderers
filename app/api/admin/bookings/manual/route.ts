@@ -17,6 +17,8 @@ const bodySchema = z
     customer_last_name: z.string().min(1),
     customer_email: z.string().email(),
     customer_phone: z.union([z.string(), z.null()]).optional(),
+    pickup_address: z.string().nullable().optional(),
+    pickup_google_maps_link: z.string().url().nullable().optional(),
     customer_notes: z.string().nullable().optional(),
     payment_status: z.enum(["unpaid", "paid"]),
   })
@@ -60,6 +62,8 @@ export async function POST(request: Request) {
     customerLastName: parsed.data.customer_last_name,
     customerEmail: parsed.data.customer_email,
     customerPhone,
+    pickupAddress: parsed.data.pickup_address ?? null,
+    pickupGoogleMapsLink: parsed.data.pickup_google_maps_link ?? null,
     customerNotes: parsed.data.customer_notes ?? null,
     paymentStatus: parsed.data.payment_status,
     performedBy: session.user.email,

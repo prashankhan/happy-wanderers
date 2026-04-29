@@ -42,6 +42,8 @@ export function ManualBookingForm({ tours, departures, businessTimezone }: Manua
   const [customerLastName, setCustomerLastName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupGoogleMapsLink, setPickupGoogleMapsLink] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<"unpaid" | "paid">("paid");
   
@@ -62,6 +64,8 @@ export function ManualBookingForm({ tours, departures, businessTimezone }: Manua
     setCustomerLastName("");
     setCustomerEmail("");
     setCustomerPhone("");
+    setPickupAddress("");
+    setPickupGoogleMapsLink("");
     setCustomerNotes("");
     setPaymentStatus("paid");
   }
@@ -103,6 +107,8 @@ export function ManualBookingForm({ tours, departures, businessTimezone }: Manua
           customer_last_name: customerLastName,
           customer_email: customerEmail,
           customer_phone: customerPhone,
+          pickup_address: pickupAddress || null,
+          pickup_google_maps_link: pickupGoogleMapsLink || null,
           customer_notes: customerNotes || null,
           payment_status: paymentStatus,
         }),
@@ -286,6 +292,28 @@ export function ManualBookingForm({ tours, departures, businessTimezone }: Manua
                 className={adminFieldClass}
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-brand-muted mb-1">Exact pickup location</label>
+              <input
+                className={adminFieldClass}
+                placeholder="Hotel name, street address, suburb"
+                value={pickupAddress}
+                onChange={(e) => setPickupAddress(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-brand-muted mb-1">
+                Google Maps link (optional)
+              </label>
+              <input
+                className={adminFieldClass}
+                placeholder="https://maps.google.com/..."
+                value={pickupGoogleMapsLink}
+                onChange={(e) => setPickupGoogleMapsLink(e.target.value)}
               />
             </div>
 

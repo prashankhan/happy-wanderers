@@ -70,6 +70,18 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
             <br />
             {String(b.bookingDate)} · {b.pickupLocationNameSnapshot} @ {b.pickupTimeSnapshot}
             <br />
+            {b.pickupAddress ? (
+              <>
+                Exact pickup: {b.pickupAddress}
+                <br />
+              </>
+            ) : null}
+            {b.pickupGoogleMapsLink ? (
+              <>
+                Pickup map: {b.pickupGoogleMapsLink}
+                <br />
+              </>
+            ) : null}
             Guests {b.guestTotal} ({b.adults}A/{b.children}C/{b.infants}I)
             <br />
             Total {b.currency} {b.totalPriceSnapshot}

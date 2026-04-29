@@ -139,6 +139,8 @@ export function BookingFormClient({
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [pickupGoogleMapsLink, setPickupGoogleMapsLink] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -370,6 +372,8 @@ export function BookingFormClient({
           customer_last_name: lastName,
           customer_email: email,
           customer_phone: phone,
+          pickup_address: pickupAddress,
+          pickup_google_maps_link: pickupGoogleMapsLink.trim() ? pickupGoogleMapsLink.trim() : null,
           customer_notes: notes || null,
         }),
       });
@@ -705,6 +709,32 @@ export function BookingFormClient({
                   className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">
+                  Exact pickup location
+                </label>
+                <input
+                  required
+                  placeholder="Hotel name, street address, suburb"
+                  className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  value={pickupAddress}
+                  onChange={(e) => setPickupAddress(e.target.value)}
+                />
+                <p className="mt-2 text-xs text-brand-muted">
+                  Please provide the exact pickup point for your tour day.
+                </p>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-base font-bold uppercase tracking-normal text-brand-muted mb-2">
+                  Google Maps link (optional)
+                </label>
+                <input
+                  placeholder="https://maps.google.com/..."
+                  className="w-full rounded-sm border border-brand-border bg-white px-4 py-3 text-base font-bold text-brand-heading shadow-sm transition focus:border-brand-primary/40 focus:outline-none focus:ring-2 focus:ring-brand-primary/10"
+                  value={pickupGoogleMapsLink}
+                  onChange={(e) => setPickupGoogleMapsLink(e.target.value)}
                 />
               </div>
               <div className="md:col-span-2">

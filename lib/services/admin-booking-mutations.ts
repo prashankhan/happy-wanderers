@@ -243,6 +243,8 @@ export async function createManualBooking(input: {
   customerLastName: string;
   customerEmail: string;
   customerPhone: string;
+  pickupAddress?: string | null;
+  pickupGoogleMapsLink?: string | null;
   customerNotes?: string | null;
   paymentStatus: "unpaid" | "paid";
   performedBy: string;
@@ -330,6 +332,8 @@ export async function createManualBooking(input: {
       customerLastName: input.customerLastName,
       customerEmail: input.customerEmail,
       customerPhone: input.customerPhone,
+      pickupAddress: input.pickupAddress ?? null,
+      pickupGoogleMapsLink: input.pickupGoogleMapsLink ?? null,
       customerNotes: input.customerNotes ?? null,
       status: "confirmed",
       paymentStatus: input.paymentStatus,

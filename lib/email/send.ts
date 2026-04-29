@@ -232,6 +232,8 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
           `Date: ${dateLabel}`,
           ...itineraryLines,
           `Pickup: ${b.pickupLocationNameSnapshot} at ${pickupTime}`,
+          b.pickupAddress ? `Exact pickup location: ${b.pickupAddress}` : "",
+          b.pickupGoogleMapsLink ? `Pickup map: ${b.pickupGoogleMapsLink}` : "",
           `Guests: ${b.adults} adults, ${b.children} children, ${b.infants} infants`,
           `Total: ${b.currency} ${b.totalPriceSnapshot}`,
           ``,
@@ -279,6 +281,10 @@ export async function sendBookingConfirmationEmails(bookingId: string) {
           `Date: ${formatBookingDatesPlain(bookingFresh)}`,
           ...adminItineraryLines,
           `Pickup: ${bookingFresh.pickupLocationNameSnapshot} ${bookingFresh.pickupTimeSnapshot}`,
+          bookingFresh.pickupAddress ? `Exact pickup location: ${bookingFresh.pickupAddress}` : "",
+          bookingFresh.pickupGoogleMapsLink
+            ? `Pickup map: ${bookingFresh.pickupGoogleMapsLink}`
+            : "",
           `Guests: ${bookingFresh.guestTotal}`,
           `Customer: ${bookingFresh.customerFirstName} ${bookingFresh.customerLastName}`,
           `Phone: ${bookingFresh.customerPhone}`,

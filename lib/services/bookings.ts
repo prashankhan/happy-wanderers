@@ -50,6 +50,8 @@ export async function createWebsitePendingBooking(input: {
   customerLastName: string;
   customerEmail: string;
   customerPhone: string;
+  pickupAddress: string;
+  pickupGoogleMapsLink?: string | null;
   customerNotes?: string | null;
   appUrl: string;
 }): Promise<
@@ -162,6 +164,8 @@ export async function createWebsitePendingBooking(input: {
       customerLastName: input.customerLastName,
       customerEmail: input.customerEmail,
       customerPhone: input.customerPhone,
+      pickupAddress: input.pickupAddress,
+      pickupGoogleMapsLink: input.pickupGoogleMapsLink ?? null,
       customerNotes: input.customerNotes ?? null,
       status: "pending",
       paymentStatus: "unpaid",

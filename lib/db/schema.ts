@@ -232,6 +232,8 @@ export const bookings = pgTable(
     customerLastName: text("customer_last_name").notNull(),
     customerEmail: text("customer_email").notNull(),
     customerPhone: text("customer_phone").notNull(),
+    pickupAddress: text("pickup_address"),
+    pickupGoogleMapsLink: text("pickup_google_maps_link"),
     customerPhoneCountryCode: text("customer_phone_country_code"),
     customerCountry: text("customer_country"),
     customerNotes: text("customer_notes"),

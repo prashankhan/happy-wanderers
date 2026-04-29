@@ -19,6 +19,8 @@ const bodySchema = z.object({
   customer_last_name: z.string().trim().min(1, "Last name is required."),
   customer_email: z.string().trim().email("Please enter a valid email address."),
   customer_phone: z.string().trim().min(5, "Please enter a valid phone number."),
+  pickup_address: z.string().trim().min(5, "Please enter your exact pickup location."),
+  pickup_google_maps_link: z.string().trim().url("Please enter a valid Google Maps link.").optional().nullable(),
   customer_notes: z.string().optional().nullable(),
 });
 
@@ -76,6 +78,8 @@ export async function POST(request: Request) {
       customerLastName: parsed.data.customer_last_name,
       customerEmail: parsed.data.customer_email,
       customerPhone: parsed.data.customer_phone,
+      pickupAddress: parsed.data.pickup_address,
+      pickupGoogleMapsLink: parsed.data.pickup_google_maps_link,
       customerNotes: parsed.data.customer_notes,
       appUrl,
     });
