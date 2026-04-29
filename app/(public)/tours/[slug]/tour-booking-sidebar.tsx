@@ -85,16 +85,13 @@ export function TourBookingSidebar({
   const extraChildPrice = packageRule ? toAmount(packageRule.extraChildPrice) : 0;
   const infantPrice = packageRule ? toAmount(packageRule.infantPrice) : 0;
   const showExtraAdult =
-    Boolean(packageRule) &&
-    packageRule.extraAdultPricingType !== "not_allowed" &&
+    packageRule?.extraAdultPricingType !== "not_allowed" &&
     extraAdultPrice > 0;
   const showExtraChild =
-    Boolean(packageRule) &&
-    packageRule.childPricingType !== "not_allowed" &&
+    packageRule?.childPricingType !== "not_allowed" &&
     extraChildPrice > 0;
   const showExtraInfant =
-    Boolean(packageRule) &&
-    packageRule.infantPricingType !== "not_allowed" &&
+    packageRule?.infantPricingType !== "not_allowed" &&
     infantPrice > 0;
   const hasAnyExtras = showExtraAdult || showExtraChild || showExtraInfant;
   const availabilityHref = pickupId
