@@ -21,11 +21,11 @@ function shiftMonthKey(ym: string, delta: number): string {
 }
 
 function cellClass(d: DayPayload): string {
-  if (d.cutoff_passed) return "bg-availability-cutoff/90 text-brand-heading";
-  if (!d.available || d.remaining_capacity <= 0) {
-    if (d.remaining_capacity <= 0 && d.total_capacity > 0) return "bg-availability-full text-white";
-    return "bg-brand-border/80 text-brand-muted";
-  }
+  if (d.calendar_state === "cutoff_passed" || d.cutoff_passed)
+    return "bg-availability-cutoff/90 text-brand-heading";
+  if (d.calendar_state === "sold_out") return "bg-availability-full text-white";
+  if (d.calendar_state === "unavailable") return "bg-availability-cutoff/90 text-brand-heading";
+  if (!d.available || d.remaining_capacity <= 0) return "bg-brand-border/80 text-brand-muted";
   const low = d.total_capacity > 0 && d.remaining_capacity / d.total_capacity <= 0.25;
   if (low) return "bg-availability-low text-brand-heading";
   return "bg-availability-open/95 text-white";
