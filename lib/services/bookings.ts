@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { bookings, departureLocations, tours } from "@/lib/db/schema";
 import { getSystemSettings } from "@/lib/services/system-settings";
 import {
+  countActiveBookingsOnDateGlobal,
   getMinimumAdvanceWindowForDate,
   resolveDayAvailability,
   validateSeatsForDate,
@@ -181,6 +182,12 @@ export async function createWebsitePendingBooking(input: {
   const dates = iterateIsoDateRangeInclusive(tourStartDate, tourEndDate);
   for (let i = 0; i < dates.length; i++) {
     const d = dates[i]!;
+    const globalActiveBookings = await countActiveBookingsOnDateGlobal(d);
+    if (globalActiveBookings > 1) {
+      await db.delete(bookings).where(eq(bookings.id, bookingId));
+      return { ok: false, message: "Another booking already exists on this date" };
+    }
+
     const capacityCheck = await resolveDayAvailability({
       tourId: input.tourId,
       bookingDate: d,

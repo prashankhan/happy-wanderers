@@ -217,29 +217,36 @@ export async function countAllocatedSeats(tourId: string, bookingDateStr: string
   return Number(rows[0]?.sum ?? 0);
 }
 
-/** True when any active booking/hold already covers this date (exclusive private departure mode). */
-async function hasActiveBookingOnDate(tourId: string, bookingDateStr: string): Promise<boolean> {
+/** Active bookings/holds across all tours for a calendar date. */
+export async function countActiveBookingsOnDateGlobal(
+  bookingDateStr: string,
+  excludeBookingId?: string
+): Promise<number> {
   const now = new Date();
+  const exclusion = excludeBookingId ? sql`${bookings.id} <> ${excludeBookingId}` : undefined;
   const rows = await db
-    .select({ id: bookings.id })
+    .select({ count: sql<number>`count(*)::int` })
     .from(bookings)
     .where(
       and(
-        eq(bookings.tourId, tourId),
         sql`${bookings.tourStartDate}::text <= ${bookingDateStr}`,
         sql`${bookings.tourEndDate}::text >= ${bookingDateStr}`,
         or(
           eq(bookings.status, "confirmed"),
-          and(
-            eq(bookings.status, "pending"),
-            isNotNull(bookings.expiresAt),
-            gt(bookings.expiresAt, now)
-          )
-        )
+          and(eq(bookings.status, "pending"), isNotNull(bookings.expiresAt), gt(bookings.expiresAt, now))
+        ),
+        exclusion
       )
     )
     .limit(1);
-  return Boolean(rows[0]);
+  return Number(rows[0]?.count ?? 0);
+}
+
+/** True when any active booking/hold already covers this date (exclusive private departure mode). */
+async function hasActiveBookingOnDate(tourId: string, bookingDateStr: string): Promise<boolean> {
+  void tourId;
+  const total = await countActiveBookingsOnDateGlobal(bookingDateStr);
+  return total > 0;
 }
 
 function mergeMultiDayStartCell(startDate: string, spanDays: AvailabilityDayResult[]): AvailabilityDayResult {
@@ -474,6 +481,12 @@ export async function validateCapacityForConfirmingPendingHold(input: {
     });
     if (i === 0 && res.cutoffPassed) return { ok: false, message: "Booking cutoff has passed" };
 
+    // One-man operation: only one active booking is allowed per calendar date globally.
+    const globalActiveBookings = await countActiveBookingsOnDateGlobal(d);
+    if (globalActiveBookings > 1) {
+      return { ok: false, message: "Another booking already exists on this date" };
+    }
+
     const allocated = await countAllocatedSeats(input.tourId, d);
     if (allocated > res.capacityTotal) {
       return { ok: false, message: "Capacity exceeded for this date" };
@@ -548,6 +561,46 @@ function buildAllocatedByDateMap(input: {
   })();
 }
 
+function buildGlobalActiveBookingCountByDateMap(input: {
+  rangeStart: string;
+  rangeEnd: string;
+  now: Date;
+}): Promise<Map<string, number>> {
+  return (async () => {
+    const spanRows = await db
+      .select({
+        tourStartDate: bookings.tourStartDate,
+        tourEndDate: bookings.tourEndDate,
+      })
+      .from(bookings)
+      .where(
+        and(
+          sql`${bookings.tourStartDate}::text <= ${input.rangeEnd}`,
+          sql`${bookings.tourEndDate}::text >= ${input.rangeStart}`,
+          or(
+            eq(bookings.status, "confirmed"),
+            and(
+              eq(bookings.status, "pending"),
+              isNotNull(bookings.expiresAt),
+              gt(bookings.expiresAt, input.now)
+            )
+          )
+        )
+      );
+
+    const bookingCountByDate = new Map<string, number>();
+    for (const row of spanRows) {
+      const s = dateStringFromBookingDate(row.tourStartDate);
+      const e = dateStringFromBookingDate(row.tourEndDate);
+      for (const d of iterateIsoDateRangeInclusive(s, e)) {
+        if (d < input.rangeStart || d > input.rangeEnd) continue;
+        bookingCountByDate.set(d, (bookingCountByDate.get(d) ?? 0) + 1);
+      }
+    }
+    return bookingCountByDate;
+  })();
+}
+
 export async function getMonthAvailability(input: {
   tourId: string;
   month: string;
@@ -614,8 +667,13 @@ export async function getMonthAvailability(input: {
     .where(eq(availabilityRules.tourId, input.tourId));
   const ruleByWeekday = new Map(ruleRows.map((r) => [r.weekday, r]));
 
-  const { allocatedByDate, bookingCountByDate } = await buildAllocatedByDateMap({
+  const { allocatedByDate } = await buildAllocatedByDateMap({
     tourId: input.tourId,
+    rangeStart: expandedStart,
+    rangeEnd: expandedEnd,
+    now,
+  });
+  const globalBookingCountByDate = await buildGlobalActiveBookingCountByDateMap({
     rangeStart: expandedStart,
     rangeEnd: expandedEnd,
     now,
@@ -643,7 +701,7 @@ export async function getMonthAvailability(input: {
         override: overrideByDate.get(d),
         weekdayRule: ruleByWeekday.get(wd),
         seatsReserved: allocatedByDate.get(d) ?? 0,
-        hasActiveBooking: (bookingCountByDate.get(d) ?? 0) > 0,
+        hasActiveBooking: (globalBookingCountByDate.get(d) ?? 0) > 0,
       });
     }
 
@@ -666,7 +724,7 @@ export async function getMonthAvailability(input: {
           override: overrideByDate.get(dt),
           weekdayRule: ruleByWeekday.get(wd),
           seatsReserved: allocatedByDate.get(dt) ?? 0,
-          hasActiveBooking: (bookingCountByDate.get(dt) ?? 0) > 0,
+          hasActiveBooking: (globalBookingCountByDate.get(dt) ?? 0) > 0,
           applyMinimumAdvance: i === 0,
           applyCutoff: i === 0,
         })
