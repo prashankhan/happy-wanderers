@@ -19,6 +19,18 @@ interface TourBookingSidebarProps {
   tourId: string;
   priceFromText: string | null;
   priceContextText?: string | null;
+  pricingRules: Array<{
+    id: string;
+    pricingMode: string;
+    extraAdultPricingType: string;
+    extraAdultPrice: string;
+    childPricingType: string;
+    extraChildPrice: string;
+    infantPricingType: string;
+    infantPrice: string;
+    currencyCode: string;
+    priority: number;
+  }>;
   defaultPickupId?: string;
   pickups: PickupData[];
   cancellationPolicy?: string | null;
@@ -41,16 +53,50 @@ function formatPriceContextText(value: string | null | undefined): string | null
   return normalized;
 }
 
+function toAmount(value: string | null | undefined): number {
+  if (!value) return 0;
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatMoney(amount: number, currency: string): string {
+  return new Intl.NumberFormat("en-AU", {
+    style: "currency",
+    currency: currency || "AUD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
 export function TourBookingSidebar({
   tourId,
   priceFromText,
   priceContextText,
+  pricingRules,
   defaultPickupId,
   pickups,
   cancellationPolicy,
 }: TourBookingSidebarProps) {
   const [pickupId, setPickupId] = useState<string | undefined>(defaultPickupId);
   const normalizedPriceContext = formatPriceContextText(priceContextText);
+  const packageRule = pricingRules.find((rule) => rule.pricingMode === "package");
+  const extrasCurrency = packageRule?.currencyCode ?? "AUD";
+  const extraAdultPrice = packageRule ? toAmount(packageRule.extraAdultPrice) : 0;
+  const extraChildPrice = packageRule ? toAmount(packageRule.extraChildPrice) : 0;
+  const infantPrice = packageRule ? toAmount(packageRule.infantPrice) : 0;
+  const showExtraAdult =
+    Boolean(packageRule) &&
+    packageRule.extraAdultPricingType !== "not_allowed" &&
+    extraAdultPrice > 0;
+  const showExtraChild =
+    Boolean(packageRule) &&
+    packageRule.childPricingType !== "not_allowed" &&
+    extraChildPrice > 0;
+  const showExtraInfant =
+    Boolean(packageRule) &&
+    packageRule.infantPricingType !== "not_allowed" &&
+    infantPrice > 0;
+  const hasAnyExtras = showExtraAdult || showExtraChild || showExtraInfant;
   const availabilityHref = pickupId
     ? `/availability?tour_id=${tourId}&departure_location_id=${pickupId}`
     : `/availability?tour_id=${tourId}`;
@@ -69,6 +115,39 @@ export function TourBookingSidebar({
                 <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.03em] text-brand-primary">
                   {normalizedPriceContext}
                 </p>
+              ) : null}
+              {hasAnyExtras ? (
+                <div className="mt-3 border-t border-brand-border/40 pt-3">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-brand-muted">
+                    Optional extras
+                  </p>
+                  <div className="mt-2 space-y-1 text-xs text-brand-body/85">
+                    {showExtraAdult ? (
+                      <p className="flex items-center justify-between gap-3">
+                        <span>Extra adult</span>
+                        <span className="font-semibold text-brand-heading">
+                          {formatMoney(extraAdultPrice, extrasCurrency)}
+                        </span>
+                      </p>
+                    ) : null}
+                    {showExtraChild ? (
+                      <p className="flex items-center justify-between gap-3">
+                        <span>Extra child</span>
+                        <span className="font-semibold text-brand-heading">
+                          {formatMoney(extraChildPrice, extrasCurrency)}
+                        </span>
+                      </p>
+                    ) : null}
+                    {showExtraInfant ? (
+                      <p className="flex items-center justify-between gap-3">
+                        <span>Extra infant</span>
+                        <span className="font-semibold text-brand-heading">
+                          {formatMoney(infantPrice, extrasCurrency)}
+                        </span>
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
               ) : null}
             </div>
           ) : null}

@@ -26,7 +26,7 @@ export function PhilosophySection() {
             variants={publicRevealItem}
             className="font-serif text-3xl font-bold tracking-tight text-brand-heading md:text-4xl lg:text-5xl lg:leading-[1.15]"
           >
-            From Senior Naturalist to Senior Guide
+            Guide-led, quiet luxury
           </motion.h2>
 
           <motion.div variants={publicRevealItem} className="mt-10 space-y-8">

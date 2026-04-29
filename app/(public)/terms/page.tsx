@@ -92,6 +92,20 @@ export default function TermsPage() {
               </section>
 
               <section className="space-y-4">
+                <h2 id="child-age-policy" className={legalH2Class}>
+                  Child age policy
+                </h2>
+                <p>
+                  For safety and tour suitability, children must be at least{" "}
+                  <span className="text-brand-heading font-bold italic underline decoration-brand-primary/30 underline-offset-4">
+                    4 years old
+                  </span>{" "}
+                  on the date of travel. We reserve the right to decline or amend bookings where this requirement is
+                  not met.
+                </p>
+              </section>
+
+              <section className="space-y-4">
                 <h2 id="liability" className={legalH2Class}>
                   Liability (summary)
                 </h2>

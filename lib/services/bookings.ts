@@ -5,8 +5,12 @@ import { customAlphabet } from "nanoid";
 import { db } from "@/lib/db";
 import { bookings, departureLocations, tours } from "@/lib/db/schema";
 import { getSystemSettings } from "@/lib/services/system-settings";
-import { getMinimumAdvanceWindowForDate, validateSeatsForDate } from "@/lib/services/availability";
-import { tourSpanFromDepartureDate } from "@/lib/utils/dates";
+import {
+  getMinimumAdvanceWindowForDate,
+  resolveDayAvailability,
+  validateSeatsForDate,
+} from "@/lib/services/availability";
+import { iterateIsoDateRangeInclusive, tourSpanFromDepartureDate } from "@/lib/utils/dates";
 import { resolvePricing } from "@/lib/services/pricing";
 import { logBookingActivity } from "@/lib/services/booking-activity";
 import { getStripe } from "@/lib/stripe/client";
@@ -168,15 +172,22 @@ export async function createWebsitePendingBooking(input: {
 
   const bookingId = row.id;
 
-  const seatRecheck = await validateSeatsForDate({
-    tourId: input.tourId,
-    bookingDate: input.bookingDate,
-    pickupTime,
-    requestedGuests: guestTotal,
-  });
-  if (!seatRecheck.ok) {
-    await db.delete(bookings).where(eq(bookings.id, bookingId));
-    return { ok: false, message: seatRecheck.message };
+  // After inserting this pending hold, validate only capacity overflow.
+  // A "full" day (availableSeats === 0) is valid if this hold exactly fills capacity.
+  const dates = iterateIsoDateRangeInclusive(tourStartDate, tourEndDate);
+  for (let i = 0; i < dates.length; i++) {
+    const d = dates[i]!;
+    const capacityCheck = await resolveDayAvailability({
+      tourId: input.tourId,
+      bookingDate: d,
+      pickupTime,
+      applyMinimumAdvance: i === 0,
+      applyCutoff: i === 0,
+    });
+    if (capacityCheck.seatsReserved > capacityCheck.capacityTotal) {
+      await db.delete(bookings).where(eq(bookings.id, bookingId));
+      return { ok: false, message: "Not enough seats available" };
+    }
   }
 
   const stripe = getStripe();

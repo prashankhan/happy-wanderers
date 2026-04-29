@@ -45,6 +45,18 @@ export default async function TourDetailPage({ params }: PageProps) {
           tourId={tour.id}
           priceFromText={tour.priceFromText}
           priceContextText={tour.priceContextText}
+          pricingRules={data.pricingRules.map((rule) => ({
+            id: rule.id,
+            pricingMode: rule.pricingMode,
+            extraAdultPricingType: rule.extraAdultPricingType,
+            extraAdultPrice: rule.extraAdultPrice,
+            childPricingType: rule.childPricingType,
+            extraChildPrice: rule.extraChildPrice,
+            infantPricingType: rule.infantPricingType,
+            infantPrice: rule.infantPrice,
+            currencyCode: rule.currencyCode,
+            priority: rule.priority,
+          }))}
           defaultPickupId={defaultPickup}
           pickups={pickups.map((p) => ({ id: p.id, name: p.name, timeLabel: p.pickupTimeLabel ?? p.pickupTime }))}
           cancellationPolicy={tour.cancellationPolicy}

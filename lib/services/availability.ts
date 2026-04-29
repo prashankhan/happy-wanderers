@@ -86,6 +86,7 @@ function computeAvailabilityDay(input: {
   override: (typeof availabilityOverrides.$inferSelect) | undefined;
   weekdayRule: (typeof availabilityRules.$inferSelect) | undefined;
   seatsReserved: number;
+  hasActiveBooking: boolean;
   /** When false, minimum advance is not applied (used for non-start days of a multi-day span). */
   applyMinimumAdvance?: boolean;
   /** When false, departure cutoff is not applied (used for non-start days of a multi-day span). */
@@ -100,6 +101,7 @@ function computeAvailabilityDay(input: {
     override,
     weekdayRule,
     seatsReserved,
+    hasActiveBooking,
     applyMinimumAdvance = true,
     applyCutoff = true,
   } = input;
@@ -149,7 +151,7 @@ function computeAvailabilityDay(input: {
   const cutoffAt = new Date(departure.getTime() - cutoffHours * 60 * 60 * 1000);
   const cutoffPassed = applyCutoff && now.getTime() >= cutoffAt.getTime();
 
-  const availableSeats = Math.max(0, capacityTotal - seatsReserved);
+  const availableSeats = hasActiveBooking ? 0 : Math.max(0, capacityTotal - seatsReserved);
 
   if (!isAvailable) {
     return {
@@ -173,7 +175,7 @@ function computeAvailabilityDay(input: {
     ? false
     : cutoffPassed
       ? false
-      : availableSeats > 0;
+      : !hasActiveBooking && availableSeats > 0;
   return {
     date: bookingDate,
     isAvailable: effectiveAvailable && !cutoffPassed,
@@ -213,6 +215,31 @@ export async function countAllocatedSeats(tourId: string, bookingDateStr: string
       )
     );
   return Number(rows[0]?.sum ?? 0);
+}
+
+/** True when any active booking/hold already covers this date (exclusive private departure mode). */
+async function hasActiveBookingOnDate(tourId: string, bookingDateStr: string): Promise<boolean> {
+  const now = new Date();
+  const rows = await db
+    .select({ id: bookings.id })
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.tourId, tourId),
+        sql`${bookings.tourStartDate}::text <= ${bookingDateStr}`,
+        sql`${bookings.tourEndDate}::text >= ${bookingDateStr}`,
+        or(
+          eq(bookings.status, "confirmed"),
+          and(
+            eq(bookings.status, "pending"),
+            isNotNull(bookings.expiresAt),
+            gt(bookings.expiresAt, now)
+          )
+        )
+      )
+    )
+    .limit(1);
+  return Boolean(rows[0]);
 }
 
 function mergeMultiDayStartCell(startDate: string, spanDays: AvailabilityDayResult[]): AvailabilityDayResult {
@@ -288,7 +315,10 @@ export async function resolveDayAvailability(input: {
       .limit(1);
     const weekdayRule = ruleRows[0];
 
-    const seatsReserved = await countAllocatedSeats(input.tourId, input.bookingDate);
+    const [seatsReserved, hasActiveBooking] = await Promise.all([
+      countAllocatedSeats(input.tourId, input.bookingDate),
+      hasActiveBookingOnDate(input.tourId, input.bookingDate),
+    ]);
 
     return computeAvailabilityDay({
       bookingDate: input.bookingDate,
@@ -299,6 +329,7 @@ export async function resolveDayAvailability(input: {
       override,
       weekdayRule,
       seatsReserved,
+      hasActiveBooking,
       applyMinimumAdvance: input.applyMinimumAdvance ?? true,
       applyCutoff: input.applyCutoff ?? true,
     });
@@ -329,7 +360,10 @@ export async function resolveDayAvailability(input: {
       .limit(1);
     const weekdayRule = ruleRows[0];
 
-    const seatsReserved = await countAllocatedSeats(input.tourId, d);
+    const [seatsReserved, hasActiveBooking] = await Promise.all([
+      countAllocatedSeats(input.tourId, d),
+      hasActiveBookingOnDate(input.tourId, d),
+    ]);
     spanResults.push(
       computeAvailabilityDay({
         bookingDate: d,
@@ -340,6 +374,7 @@ export async function resolveDayAvailability(input: {
         override,
         weekdayRule,
         seatsReserved,
+        hasActiveBooking,
         applyMinimumAdvance: i === 0 ? (input.applyMinimumAdvance ?? true) : false,
         applyCutoff: i === 0 ? (input.applyCutoff ?? true) : false,
       })
@@ -380,7 +415,13 @@ export async function validateSeatsForDate(input: {
     }
     if (res.cutoffPassed) return { ok: false, message: "Booking cutoff has passed" };
     if (!res.isAvailable || res.availableSeats < input.requestedGuests) {
-      return { ok: false, message: "Not enough seats available" };
+      return {
+        ok: false,
+        message:
+          res.availableSeats > 0
+            ? `Only ${res.availableSeats} seat${res.availableSeats === 1 ? "" : "s"} remaining for this date`
+            : "No seats remaining for this date",
+      };
     }
     return { ok: true };
   }
@@ -398,7 +439,13 @@ export async function validateSeatsForDate(input: {
   }
   if (res.cutoffPassed) return { ok: false, message: "Booking cutoff has passed" };
   if (!res.isAvailable || res.availableSeats < input.requestedGuests) {
-    return { ok: false, message: "Not enough seats available across the full journey dates" };
+    return {
+      ok: false,
+      message:
+        res.availableSeats > 0
+          ? `Only ${res.availableSeats} seat${res.availableSeats === 1 ? "" : "s"} remaining across the full journey dates`
+          : "No seats remaining across the full journey dates",
+    };
   }
   return { ok: true };
 }
@@ -460,7 +507,7 @@ function buildAllocatedByDateMap(input: {
   rangeStart: string;
   rangeEnd: string;
   now: Date;
-}): Promise<Map<string, number>> {
+}): Promise<{ allocatedByDate: Map<string, number>; bookingCountByDate: Map<string, number> }> {
   return (async () => {
     const spanRows = await db
       .select({
@@ -486,6 +533,7 @@ function buildAllocatedByDateMap(input: {
       );
 
     const allocatedByDate = new Map<string, number>();
+    const bookingCountByDate = new Map<string, number>();
     for (const row of spanRows) {
       const s = dateStringFromBookingDate(row.tourStartDate);
       const e = dateStringFromBookingDate(row.tourEndDate);
@@ -493,9 +541,10 @@ function buildAllocatedByDateMap(input: {
       for (const d of iterateIsoDateRangeInclusive(s, e)) {
         if (d < input.rangeStart || d > input.rangeEnd) continue;
         allocatedByDate.set(d, (allocatedByDate.get(d) ?? 0) + g);
+        bookingCountByDate.set(d, (bookingCountByDate.get(d) ?? 0) + 1);
       }
     }
-    return allocatedByDate;
+    return { allocatedByDate, bookingCountByDate };
   })();
 }
 
@@ -565,7 +614,7 @@ export async function getMonthAvailability(input: {
     .where(eq(availabilityRules.tourId, input.tourId));
   const ruleByWeekday = new Map(ruleRows.map((r) => [r.weekday, r]));
 
-  const allocatedByDate = await buildAllocatedByDateMap({
+  const { allocatedByDate, bookingCountByDate } = await buildAllocatedByDateMap({
     tourId: input.tourId,
     rangeStart: expandedStart,
     rangeEnd: expandedEnd,
@@ -594,6 +643,7 @@ export async function getMonthAvailability(input: {
         override: overrideByDate.get(d),
         weekdayRule: ruleByWeekday.get(wd),
         seatsReserved: allocatedByDate.get(d) ?? 0,
+        hasActiveBooking: (bookingCountByDate.get(d) ?? 0) > 0,
       });
     }
 
@@ -616,6 +666,7 @@ export async function getMonthAvailability(input: {
           override: overrideByDate.get(dt),
           weekdayRule: ruleByWeekday.get(wd),
           seatsReserved: allocatedByDate.get(dt) ?? 0,
+          hasActiveBooking: (bookingCountByDate.get(dt) ?? 0) > 0,
           applyMinimumAdvance: i === 0,
           applyCutoff: i === 0,
         })
