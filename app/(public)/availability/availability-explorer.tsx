@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Clock, MapPin, Users } from "lucide-react";
-import { addMonths, format, parseISO, startOfMonth } from "date-fns";
+import { format, parseISO, startOfMonth } from "date-fns";
 
 import { PublicAvailabilityCalendar } from "@/components/calendar/public-availability-calendar";
 import { Button } from "@/components/ui/button";
@@ -31,12 +31,10 @@ interface PickupOption {
   timeLabel: string;
 }
 
-interface AvailabilityDayPayload {
-  date: string;
-  available: boolean;
-  remaining_capacity: number;
-  cutoff_passed: boolean;
-  earliest_bookable_date?: string | null;
+interface FirstOpenPayload {
+  first_open_date: string | null;
+  first_open_month: string | null;
+  earliest_bookable_date: string | null;
 }
 
 function formatDate(dateStr: string): string {
@@ -53,10 +51,6 @@ function formatNoticeDate(dateStr: string): string {
   } catch {
     return dateStr;
   }
-}
-
-function monthKeyOffset(baseMonth: string, offset: number): string {
-  return format(addMonths(parseISO(`${baseMonth}-01T12:00:00`), offset), "yyyy-MM");
 }
 
 export function AvailabilityExplorer({
@@ -115,35 +109,28 @@ export function AvailabilityExplorer({
     async function jumpToFirstBookableMonth() {
       const requestSeq = ++autoJumpRequestSeq.current;
       setIsFindingMonth(true);
+
+      const params = new URLSearchParams({
+        tour_id: tourId,
+        from_month: thisMonth,
+        horizon_months: "25",
+      });
+      if (departureId) params.set("departure_location_id", departureId);
+
       let firstOpenDate: string | null = null;
       let firstOpenMonth: string | null = null;
       let earliestBookableDate: string | null = null;
 
-      for (let offset = 0; offset <= 24; offset += 1) {
-        const probeMonth = monthKeyOffset(thisMonth, offset);
-        const params = new URLSearchParams({ tour_id: tourId, month: probeMonth });
-        if (departureId) params.set("departure_location_id", departureId);
-
-        try {
-          const res = await fetch(`/api/availability?${params.toString()}`);
-          if (!res.ok) continue;
-          const days = (await res.json()) as AvailabilityDayPayload[];
-          if (!Array.isArray(days)) continue;
-
-          if (!earliestBookableDate) {
-            const firstWithEarliest = days.find((d) => Boolean(d.earliest_bookable_date));
-            earliestBookableDate = firstWithEarliest?.earliest_bookable_date ?? null;
-          }
-
-          const openDay = days.find((d) => d.available && !d.cutoff_passed && d.remaining_capacity > 0);
-          if (openDay) {
-            firstOpenDate = openDay.date;
-            firstOpenMonth = probeMonth;
-            break;
-          }
-        } catch {
-          continue;
+      try {
+        const res = await fetch(`/api/availability/first-open?${params.toString()}`);
+        if (res.ok) {
+          const data = (await res.json()) as FirstOpenPayload;
+          firstOpenDate = data.first_open_date;
+          firstOpenMonth = data.first_open_month;
+          earliestBookableDate = data.earliest_bookable_date;
         }
+      } catch {
+        /* keep nulls — same as prior loop when all months fail */
       }
 
       if (firstOpenMonth) {

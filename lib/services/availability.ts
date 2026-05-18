@@ -565,6 +565,251 @@ function buildAllocatedByDateMap(input: {
   })();
 }
 
+export interface FirstBookableAvailabilityResult {
+  firstOpenDate: string | null;
+  firstOpenMonth: string | null;
+  earliestBookableDate: string | null;
+}
+
+function monthEndIsoDate(month: string): string {
+  const [y, m] = month.split("-").map(Number);
+  const last = new Date(Date.UTC(y, m, 0));
+  return `${month}-${String(last.getUTCDate()).padStart(2, "0")}`;
+}
+
+function addMonthsToMonthKey(month: string, delta: number): string {
+  const [y, m] = month.split("-").map(Number);
+  const d = new Date(Date.UTC(y, m - 1 + delta, 1));
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
+function listCalendarMonthStartDates(month: string): string[] {
+  const start = `${month}-01`;
+  const [y, m] = month.split("-").map(Number);
+  const last = new Date(Date.UTC(y, m, 0));
+  const end = `${month}-${String(last.getUTCDate()).padStart(2, "0")}`;
+  const days: string[] = [];
+  const cur = new Date(`${start}T00:00:00Z`);
+  const endD = new Date(`${end}T00:00:00Z`);
+  while (cur <= endD) {
+    days.push(cur.toISOString().slice(0, 10));
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+  return days;
+}
+
+function isBookableAvailabilityDay(d: AvailabilityDayResult): boolean {
+  return d.isAvailable && !d.cutoffPassed && d.availableSeats > 0;
+}
+
+interface AvailabilityScanContext {
+  tour: typeof tours.$inferSelect;
+  settings: Awaited<ReturnType<typeof getSystemSettings>>;
+  pickupTime: string;
+  now: Date;
+  overrideByDate: Map<string, typeof availabilityOverrides.$inferSelect>;
+  ruleByWeekday: Map<number, typeof availabilityRules.$inferSelect>;
+  allocatedByDate: Map<string, number>;
+  globalBookingCountByDate: Map<string, number>;
+  durationDays: number;
+  isMultiDay: boolean;
+}
+
+async function loadAvailabilityScanContext(input: {
+  tourId: string;
+  departureLocationId?: string;
+  rangeStart: string;
+  rangeEnd: string;
+}): Promise<AvailabilityScanContext> {
+  let pickupTime = "07:00";
+  if (input.departureLocationId) {
+    pickupTime = await getDefaultPickupTime(input.tourId, input.departureLocationId);
+  } else {
+    const def = await db
+      .select({ pickupTime: departureLocations.pickupTime })
+      .from(departureLocations)
+      .where(
+        and(
+          eq(departureLocations.tourId, input.tourId),
+          eq(departureLocations.isDefault, true),
+          eq(departureLocations.isActive, true)
+        )
+      )
+      .limit(1);
+    pickupTime = def[0]?.pickupTime ?? "07:00";
+  }
+
+  const now = new Date();
+  const settings = await getSystemSettings();
+
+  const tourRows = await db
+    .select()
+    .from(tours)
+    .where(and(eq(tours.id, input.tourId), sql`${tours.deletedAt} IS NULL`))
+    .limit(1);
+  const tour = tourRows[0];
+  if (!tour) {
+    throw new Error("Tour not found");
+  }
+
+  const overrideRows = await db
+    .select()
+    .from(availabilityOverrides)
+    .where(
+      and(
+        eq(availabilityOverrides.tourId, input.tourId),
+        gte(availabilityOverrides.date, input.rangeStart),
+        lte(availabilityOverrides.date, input.rangeEnd)
+      )
+    );
+  const overrideByDate = new Map(
+    overrideRows.map((o) => [dateStringFromBookingDate(o.date), o])
+  );
+
+  const ruleRows = await db
+    .select()
+    .from(availabilityRules)
+    .where(eq(availabilityRules.tourId, input.tourId));
+  const ruleByWeekday = new Map(ruleRows.map((r) => [r.weekday, r]));
+
+  const { allocatedByDate } = await buildAllocatedByDateMap({
+    tourId: input.tourId,
+    rangeStart: input.rangeStart,
+    rangeEnd: input.rangeEnd,
+    now,
+  });
+  const globalBookingCountByDate = await buildGlobalActiveBookingCountByDateMap({
+    rangeStart: input.rangeStart,
+    rangeEnd: input.rangeEnd,
+    now,
+  });
+
+  const durationDays = Math.max(1, tour.durationDays ?? 1);
+  const isMultiDay = Boolean(tour.isMultiDay) && durationDays > 1;
+
+  return {
+    tour,
+    settings,
+    pickupTime,
+    now,
+    overrideByDate,
+    ruleByWeekday,
+    allocatedByDate,
+    globalBookingCountByDate,
+    durationDays,
+    isMultiDay,
+  };
+}
+
+function computeStartDateAvailability(
+  ctx: AvailabilityScanContext,
+  startDate: string
+): AvailabilityDayResult {
+  if (!ctx.isMultiDay) {
+    const wd = weekdayFromDateStr(startDate);
+    return computeAvailabilityDay({
+      bookingDate: startDate,
+      pickupTime: ctx.pickupTime,
+      now: ctx.now,
+      tour: ctx.tour,
+      settings: ctx.settings,
+      override: ctx.overrideByDate.get(startDate),
+      weekdayRule: ctx.ruleByWeekday.get(wd),
+      seatsReserved: ctx.allocatedByDate.get(startDate) ?? 0,
+      hasActiveBooking: (ctx.globalBookingCountByDate.get(startDate) ?? 0) > 0,
+    });
+  }
+
+  const spanDates: string[] = [];
+  for (let i = 0; i < ctx.durationDays; i++) {
+    spanDates.push(addCalendarDaysIso(startDate, i));
+  }
+
+  const spanDays: AvailabilityDayResult[] = [];
+  for (let i = 0; i < spanDates.length; i++) {
+    const dt = spanDates[i]!;
+    const wd = weekdayFromDateStr(dt);
+    spanDays.push(
+      computeAvailabilityDay({
+        bookingDate: dt,
+        pickupTime: ctx.pickupTime,
+        now: ctx.now,
+        tour: ctx.tour,
+        settings: ctx.settings,
+        override: ctx.overrideByDate.get(dt),
+        weekdayRule: ctx.ruleByWeekday.get(wd),
+        seatsReserved: ctx.allocatedByDate.get(dt) ?? 0,
+        hasActiveBooking: (ctx.globalBookingCountByDate.get(dt) ?? 0) > 0,
+        applyMinimumAdvance: i === 0,
+        applyCutoff: i === 0,
+      })
+    );
+  }
+  return mergeMultiDayStartCell(startDate, spanDays);
+}
+
+/**
+ * Finds the first bookable departure in a month horizon with one batched DB load.
+ * Matches the scan previously done client-side across repeated `/api/availability` calls.
+ */
+export async function findFirstBookableAvailability(input: {
+  tourId: string;
+  departureLocationId?: string;
+  fromMonth: string;
+  horizonMonths?: number;
+}): Promise<FirstBookableAvailabilityResult> {
+  const horizonMonths = Math.min(Math.max(1, input.horizonMonths ?? 25), 25);
+  const lastMonth = addMonthsToMonthKey(input.fromMonth, horizonMonths - 1);
+
+  const tourRows = await db
+    .select({ durationDays: tours.durationDays, isMultiDay: tours.isMultiDay })
+    .from(tours)
+    .where(and(eq(tours.id, input.tourId), sql`${tours.deletedAt} IS NULL`))
+    .limit(1);
+  const tourMeta = tourRows[0];
+  if (!tourMeta) {
+    throw new Error("Tour not found");
+  }
+
+  const durationDays = Math.max(1, tourMeta.durationDays ?? 1);
+  const pad = tourMeta.isMultiDay && durationDays > 1 ? durationDays - 1 : 0;
+  const rangeStart = addCalendarDaysIso(`${input.fromMonth}-01`, -pad);
+  const rangeEnd = addCalendarDaysIso(monthEndIsoDate(lastMonth), pad);
+
+  const ctx = await loadAvailabilityScanContext({
+    tourId: input.tourId,
+    departureLocationId: input.departureLocationId,
+    rangeStart,
+    rangeEnd,
+  });
+
+  let earliestBookableDate: string | null = null;
+
+  for (let offset = 0; offset < horizonMonths; offset += 1) {
+    const probeMonth = addMonthsToMonthKey(input.fromMonth, offset);
+
+    for (const d of listCalendarMonthStartDates(probeMonth)) {
+      const day = computeStartDateAvailability(ctx, d);
+      if (offset === 0 && !earliestBookableDate && day.earliestBookableDate) {
+        earliestBookableDate = day.earliestBookableDate;
+      }
+      if (isBookableAvailabilityDay(day)) {
+        return {
+          firstOpenDate: day.date,
+          firstOpenMonth: probeMonth,
+          earliestBookableDate,
+        };
+      }
+    }
+  }
+
+  return {
+    firstOpenDate: null,
+    firstOpenMonth: null,
+    earliestBookableDate,
+  };
+}
+
 function buildGlobalActiveBookingCountByDateMap(input: {
   rangeStart: string;
   rangeEnd: string;

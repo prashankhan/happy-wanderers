@@ -3,12 +3,10 @@
 import { format, parseISO } from "date-fns";
 import { useCallback, useEffect, useState } from "react";
 
-interface DayPayload {
-  date: string;
-  available: boolean;
-  remaining_capacity: number;
-  total_capacity: number;
-  cutoff_passed: boolean;
+interface FirstOpenPayload {
+  first_open_date: string | null;
+  first_open_month: string | null;
+  earliest_bookable_date: string | null;
 }
 
 export function TourNextOpenChip({
@@ -24,28 +22,33 @@ export function TourNextOpenChip({
   const load = useCallback(async () => {
     setLoading(true);
     const now = new Date();
-    for (let i = 0; i < 6; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-      const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      const params = new URLSearchParams({ tour_id: tourId, month });
-      if (departureLocationId) params.set("departure_location_id", departureLocationId);
-      const res = await fetch(`/api/availability?${params.toString()}`);
-      const json = (await res.json()) as DayPayload[];
-      if (!Array.isArray(json)) continue;
-      const next = json
-        .filter((x) => x.available && !x.cutoff_passed && x.remaining_capacity > 0)
-        .sort((a, b) => a.date.localeCompare(b.date))[0];
-      if (next) {
-        try {
-          const pretty = format(parseISO(`${next.date}T12:00:00`), "EEEE, do MMMM yyyy");
-          setLabel(pretty);
-        } catch {
-          setLabel(next.date);
+    const fromMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const params = new URLSearchParams({
+      tour_id: tourId,
+      from_month: fromMonth,
+      horizon_months: "6",
+    });
+    if (departureLocationId) params.set("departure_location_id", departureLocationId);
+
+    try {
+      const res = await fetch(`/api/availability/first-open?${params.toString()}`);
+      if (res.ok) {
+        const data = (await res.json()) as FirstOpenPayload;
+        if (data.first_open_date) {
+          try {
+            const pretty = format(parseISO(`${data.first_open_date}T12:00:00`), "EEEE, do MMMM yyyy");
+            setLabel(pretty);
+          } catch {
+            setLabel(data.first_open_date);
+          }
+          setLoading(false);
+          return;
         }
-        setLoading(false);
-        return;
       }
+    } catch {
+      /* fall through to empty state */
     }
+
     setLabel(null);
     setLoading(false);
   }, [tourId, departureLocationId]);
