@@ -3,7 +3,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { setAvailabilityRequestContext } from "@/lib/sentry/context";
-import { derivePublicCalendarState, getMonthAvailability } from "@/lib/services/availability";
+import { derivePublicCalendarState } from "@/lib/services/availability";
+import {
+  getPublicMonthAvailabilityCached,
+  publicMonthAvailabilityCacheControl,
+} from "@/lib/services/public-month-availability-cache";
 
 const querySchema = z.object({
   tour_id: z.string().uuid(),
@@ -30,7 +34,7 @@ export async function GET(request: Request) {
   });
 
   try {
-    const days = await getMonthAvailability({
+    const days = await getPublicMonthAvailabilityCached({
       tourId: parsed.data.tour_id,
       month: parsed.data.month,
       departureLocationId: parsed.data.departure_location_id,
@@ -48,7 +52,12 @@ export async function GET(request: Request) {
         earliest_bookable_date: d.earliestBookableDate,
         override_exists: d.overrideExists,
         calendar_state: derivePublicCalendarState(d),
-      }))
+      })),
+      {
+        headers: {
+          "Cache-Control": publicMonthAvailabilityCacheControl(),
+        },
+      }
     );
   } catch (err) {
     Sentry.captureException(err, {
